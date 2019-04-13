@@ -1,3 +1,5 @@
+import { debounce } from 'lodash'
+
 import React, { Component } from 'react';
 
 import { Alert, Dimensions, SafeAreaView, View } from 'react-native';
@@ -5,6 +7,7 @@ import { Alert, Dimensions, SafeAreaView, View } from 'react-native';
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 
 import Button from './components/Button';
+import History from './components/History';
 import Tracker, { TRACKER_TYPES } from './components/Tracker';
 
 const { width, height } = Dimensions.get('window');
@@ -19,8 +22,9 @@ export default class App extends Component<Props> {
 
   defaultState = {
 
-    terraformingRating: 20,
     generation: 1,
+    isShowingHistory: false,
+    terraformingRating: 20,
 
     resourceCount: {
       [TRACKER_TYPES.MEGACREDITS]: 20,
@@ -66,25 +70,50 @@ export default class App extends Component<Props> {
   onDecrement = (type, addHistory = true) => {
     const state = this.state;
 
+    let oldValue = null;
+    let didSomething = false;
+
     switch (type) {
       case TRACKER_TYPES.TERRAFORMING_RATING:
+        oldValue = state.terraformingRating;
+
         state.terraformingRating = Math.max(state.terraformingRating - 1, 0);
+
+        didSomething = oldValue !== state.terraformingRating;
 
         break;
 
       case TRACKER_TYPES.MEGACREDITS:
+        oldValue = state.resourceRate[type];
+
         state.resourceRate[type] = Math.max(state.resourceRate[type] - 1, -5);
+
+        didSomething = oldValue !== state.resourceRate[type];
 
         break;
 
       default:
+        oldValue = state.resourceRate[type];
+
         state.resourceRate[type] = Math.max(state.resourceRate[type] - 1, 0);
+
+        didSomething = oldValue !== state.resourceRate[type];
     }
 
-    this.setState(state, () => {
-      addHistory && this.addHistory('decrement', { type });
-    });
+    if (didSomething) {
+      this.setState(state, () => {
+        addHistory && this.addHistory('decrement', { type });
+      });
+    }
   };
+
+  onHistory = debounce((isShowingHistory) => {
+    const state = this.state;
+
+    state.isShowingHistory = isShowingHistory;
+
+    this.setState(state)
+  }, 250, { leading: true, trailing: false });
 
   onIncrement = (type, addHistory = true) => {
     const state = this.state;
@@ -120,7 +149,7 @@ export default class App extends Component<Props> {
     });
   };
 
-  onNewGame = () => {
+  onNewGame = debounce(() => {
     Alert.alert(
       'Do you really want to start a new game?',
       null,
@@ -130,13 +159,13 @@ export default class App extends Component<Props> {
       ],
       'default'
     );
-  };
+  }, 250, { leading: true, trailing: true });
 
-  onPress = (type) => {
+  onPress = debounce((type) => {
     // TODO: Show calculator
 
     console.log('Pressed', type);
-  };
+  }, 250, { leading: true, trailing: true });
 
   onRedo = () => {
     if (this.undoneHistory.length) {
@@ -220,6 +249,8 @@ export default class App extends Component<Props> {
   };
 
   render () {
+    const { isShowingHistory } = this.state;
+
     return (
       <SafeAreaView style={ styles.safeAreaView }>
         <View style={ styles.container }>
@@ -250,9 +281,15 @@ export default class App extends Component<Props> {
             <View style={ styles.sidebarButtons }>
               { this.renderButton('#F45042', 'Undo', this.onUndo) }
               { this.renderButton('#F45042', 'Redo', this.onRedo) }
+              { this.renderButton('#F45042', 'History', () => this.onHistory(true)) }
             </View>
           </View>
         </View>
+        <History
+          history={ this.history }
+          isShowingHistory={ isShowingHistory }
+          dismiss={ () => this.onHistory(false) }
+        />
       </SafeAreaView>
     );
   }

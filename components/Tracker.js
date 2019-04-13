@@ -16,9 +16,9 @@ export const TRACKER_TYPES = {
   GENERATION: 'generation'
 };
 
-const trackerInfos = {
+export const TRACKER_INFOS = {
   [TRACKER_TYPES.TERRAFORMING_RATING]: {
-    title: 'Terraforming\nRating',
+    title: 'Terraforming Rating',
     color: '#4BD186'
   },
   [TRACKER_TYPES.MEGACREDITS]: {
@@ -96,7 +96,7 @@ export default class Tracker extends Component {
   render () {
     const { count, onDecrement, onIncrement, onPress, style, type } = this.props;
 
-    const trackerInfo = trackerInfos[type];
+    const trackerInfo = TRACKER_INFOS[type];
     const backgroundColorStyle = { backgroundColor: trackerInfo.color };
     const title = trackerInfo.title;
 
