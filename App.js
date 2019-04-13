@@ -1,29 +1,23 @@
 import React, { Component } from 'react';
 
-import { SafeAreaView, View } from 'react-native';
+import { Dimensions, SafeAreaView, View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 
+import Counter, { COUNTER_TYPES } from './components/Counter';
 import Tracker, { TRACKER_TYPES } from './components/Tracker';
 
-const resourceDisplayOrder = [
-  TRACKER_TYPES.MEGACREDITS,
-  TRACKER_TYPES.STEEL,
-  TRACKER_TYPES.TITANIUM,
-  TRACKER_TYPES.PLANTS,
-  TRACKER_TYPES.ENERGY,
-  TRACKER_TYPES.HEAT
-];
+const { width, height } = Dimensions.get('window');
 
 ExtendedStyleSheet.build({
-  $textColor: '#0275d8'
+  $rem: height > 375 ? 23 : width > 568 ? 16 : 12
 });
 
 type Props = {};
 
 export default class App extends Component<Props> {
 
-  state = {
+  defaultState = {
 
     generation: 1,
 
@@ -46,12 +40,49 @@ export default class App extends Component<Props> {
     },
 
     terraformRating: 20
+
   };
 
-  onGenerationUp = (type) => {
+  state = { ...this.defaultState };
+
+  onCounterDown = (type) => {
     const state = this.state;
 
-    state.resourceProduction[type] += 1;
+    if (type === COUNTER_TYPES.TERRAFORM_RATING) {
+      state.terraformRating -= 1;
+    } else {
+      state.generation -= 1;
+    }
+
+    this.setState(state);
+  };
+
+  onCounterUp = (type) => {
+    const state = this.state;
+
+    if (type === COUNTER_TYPES.TERRAFORM_RATING) {
+      state.terraformRating += 1;
+    } else {
+      state.generation += 1;
+
+      state.resourceCount[TRACKER_TYPES.MEGACREDITS] +=
+        state.resourceProduction[TRACKER_TYPES.MEGACREDITS] + state.terraformRating;
+
+      state.resourceCount[TRACKER_TYPES.STEEL] +=
+        state.resourceProduction[TRACKER_TYPES.STEEL];
+
+      state.resourceCount[TRACKER_TYPES.TITANIUM] +=
+        state.resourceProduction[TRACKER_TYPES.TITANIUM];
+
+      state.resourceCount[TRACKER_TYPES.PLANTS] +=
+        state.resourceProduction[TRACKER_TYPES.PLANTS];
+
+      state.resourceCount[TRACKER_TYPES.HEAT] +=
+        state.resourceProduction[TRACKER_TYPES.HEAT] + state.resourceCount[TRACKER_TYPES.ENERGY];
+
+      state.resourceCount[TRACKER_TYPES.ENERGY] =
+        state.resourceProduction[TRACKER_TYPES.ENERGY];
+    }
 
     this.setState(state);
   };
@@ -72,20 +103,22 @@ export default class App extends Component<Props> {
     this.setState(state);
   };
 
-  onTerraformRatingDown = (type) => {
-    const state = this.state;
+  renderCounter = (type) => {
+    let count = type === COUNTER_TYPES.TERRAFORM_RATING ?
+      this.state.terraformRating :
+      this.state.generation;
 
-    state.terraformRating -= 1;
+    let onCounterDown = type === COUNTER_TYPES.TERRAFORM_RATING ? this.onCounterDown : null;
 
-    this.setState(state);
-  };
-
-  onTerraformRatingUp = (type) => {
-    const state = this.state;
-
-    state.terraformRating[type] += 1;
-
-    this.setState(state);
+    return (
+      <Counter
+        key={ type }
+        type={ type }
+        count={ count }
+        onCounterDown={ onCounterDown }
+        onCounterUp={ this.onCounterUp }
+      />
+    );
   };
 
   renderTracker = (type) => {
@@ -106,17 +139,25 @@ export default class App extends Component<Props> {
 
   render () {
     return (
-      <SafeAreaView style={ styles.container }>
-        <View style={ styles.resources }>
-          <View style={ styles.resourcesRow }>
-            { this.renderTracker(TRACKER_TYPES.MEGACREDITS) }
-            { this.renderTracker(TRACKER_TYPES.STEEL) }
-            { this.renderTracker(TRACKER_TYPES.TITANIUM) }
+      <SafeAreaView style={ styles.safeAreaView }>
+        <View style={ styles.container }>
+          <View style={ styles.sidebar }>
+            { this.renderCounter(COUNTER_TYPES.TERRAFORM_RATING) }
           </View>
-          <View style={ styles.resourcesRow }>
-            { this.renderTracker(TRACKER_TYPES.PLANTS) }
-            { this.renderTracker(TRACKER_TYPES.ENERGY) }
-            { this.renderTracker(TRACKER_TYPES.HEAT) }
+          <View style={ styles.resources }>
+            <View style={ styles.resourcesRow }>
+              { this.renderTracker(TRACKER_TYPES.MEGACREDITS) }
+              { this.renderTracker(TRACKER_TYPES.STEEL) }
+              { this.renderTracker(TRACKER_TYPES.TITANIUM) }
+            </View>
+            <View style={ styles.resourcesRow }>
+              { this.renderTracker(TRACKER_TYPES.PLANTS) }
+              { this.renderTracker(TRACKER_TYPES.ENERGY) }
+              { this.renderTracker(TRACKER_TYPES.HEAT) }
+            </View>
+          </View>
+          <View style={ styles.sidebar }>
+            { this.renderCounter(COUNTER_TYPES.GENERATION) }
           </View>
         </View>
       </SafeAreaView>
@@ -128,21 +169,32 @@ export default class App extends Component<Props> {
 const styles = ExtendedStyleSheet.create({
 
   container: {
-    backgroundColor: '#C18C6A',
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'flex-start'
+    flexDirection: 'row',
+    paddingHorizontal: '0.25rem'
   },
 
   resources: {
-    paddingTop: '0.25rem',
-    paddingBottom: '0.25rem'
+    flex: 4.65,
+    paddingVertical: '0.25rem'
   },
 
   resourcesRow: {
+    flex: 1,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'stretch',
     justifyContent: 'center'
+  },
+
+  safeAreaView: {
+    backgroundColor: '#C18C6A',
+    flex: 1
+  },
+
+  sidebar: {
+    flex: 1,
+    alignItems: 'stretch',
+    justifyContent: 'flex-start',
   }
 
 });

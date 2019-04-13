@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 
 export const TRACKER_TYPES = {
   MEGACREDITS: 'megacredits',
@@ -50,27 +51,30 @@ export default class Tracker extends Component {
     const title = trackerInfo.title;
 
     return (
-      <View style={ styles.container }>
-        <View style={ [ styles.header, colorStyle ] }>
-          <Text style={ styles.headerText }>{ title }</Text>
-        </View>
-        <Text style={ styles.countText }>{ count }</Text>
-        <View style={ [ styles.footer, colorStyle ] }>
-          <Text style={ styles.productionTitle }>PRODUCTION</Text>
-          <View style={ styles.production }>
-            <TouchableOpacity
-              style={ styles.productionButton }
-              onPress={ () => onProductionDown(type) }
-            >
-              <Text style={ styles.productionButtonText }>-</Text>
-            </TouchableOpacity>
-            <Text style={ styles.productionText }>{ production }</Text>
-            <TouchableOpacity
-              style={ styles.productionButton }
-              onPress={ () => onProductionUp(type) }
-            >
-              <Text style={ styles.productionButtonText }>+</Text>
-            </TouchableOpacity>
+      <View style={ styles.border }>
+        <View style={ styles.container }>
+          <View style={ [ styles.header, colorStyle ] }>
+            <Text style={ styles.headerText }>{ title }</Text>
+          </View>
+          <View style={ styles.count }>
+            <Text style={ styles.countText }>{ count }</Text>
+          </View>
+          <View style={ [ styles.footer, colorStyle ] }>
+            <View style={ styles.production }>
+              <TouchableOpacity
+                style={ styles.productionButton }
+                onPress={ () => onProductionDown(type) }
+              >
+                <FontAwesome5 style={ styles.productionButtonIcon } name={ 'plus' } />
+              </TouchableOpacity>
+              <Text style={ styles.productionText }>{ production }</Text>
+              <TouchableOpacity
+                style={ styles.productionButton }
+                onPress={ () => onProductionUp(type) }
+              >
+                <FontAwesome5 style={ styles.productionButtonIcon } name={ 'minus' } />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>
@@ -81,15 +85,33 @@ export default class Tracker extends Component {
 
 const styles = ExtendedStyleSheet.create({
 
-  container: {
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'space-between',
-    alignItems: 'stretch',
-    borderColor: '#444444',
-    borderWidth: 4,
+  border: {
+    backgroundColor: '#444444',
+    flex: 1,
     borderRadius: '0.8rem',
-    width: '31.99%',
-    margin: '0.2rem'
+    margin: '0.2rem',
+    padding: '0.15rem',
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 2.5
+    },
+    shadowRadius: 2,
+    shadowOpacity: 0.25
+  },
+
+  container: {
+    flex: 1,
+    alignItems: 'stretch',
+    justifyContent: 'space-between',
+    borderRadius: '0.7rem'
+  },
+
+  count: {
+    backgroundColor: '#FFFFFF',
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
 
   countText: {
@@ -103,23 +125,44 @@ const styles = ExtendedStyleSheet.create({
     },
     shadowRadius: 1,
     shadowOpacity: 0.4,
-    marginBottom: '0.7rem'
+    marginTop: '-0.5rem',
+    marginBottom: '-0.5rem',
   },
 
   footer: {
-    borderBottomRightRadius: '0.5rem',
-    borderBottomLeftRadius: '0.5rem',
-    padding: '0.25rem'
+    borderBottomRightRadius: '0.7rem',
+    borderBottomLeftRadius: '0.7rem',
+    paddingHorizontal: '0.2rem',
+    paddingTop: '0.5rem',
+    paddingBottom: '0.6rem'
+  },
+
+  header: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderTopRightRadius: '0.7rem',
+    borderTopLeftRadius: '0.7rem',
+    height: '2.5rem'
+  },
+
+  headerText: {
+    fontSize: '1.2rem',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#333333'
   },
 
   production: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: '0.45rem'
+    paddingHorizontal: '0.4rem'
   },
 
   productionButton: {
     backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
     borderColor: '#555555',
     borderWidth: 2,
     borderRadius: '0.5rem',
@@ -134,42 +177,21 @@ const styles = ExtendedStyleSheet.create({
     shadowOpacity: 0.5
   },
 
-  productionButtonText: {
-    fontSize: '2.4rem',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#333333',
-    marginTop: '-0.65rem'
+  productionButtonIcon: {
+    fontSize: '1.3rem',
+    color: '#555555'
   },
 
   productionText: {
-    fontSize: '2.6rem',
+    fontSize: '2.3rem',
     fontWeight: 'bold',
     textAlign: 'center',
-    color: '#333333',
-    marginTop: '-0.5rem',
-    marginBottom: '-0.04rem'
+    color: '#FFFFFF',
+    marginVertical: '-0.5rem'
   },
 
-  productionTitle: {
-    fontSize: '0.8rem',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#999999',
-    marginBottom: '-1.55rem'
-  },
-
-  header: {
-    borderTopRightRadius: '0.5rem',
-    borderTopLeftRadius: '0.5rem',
-    padding: '0.5rem'
-  },
-
-  headerText: {
-    fontSize: '1rem',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#333333'
+  productionTextShrinker: {
+    height: '2.0rem'
   }
 
 });
