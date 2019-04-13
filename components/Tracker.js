@@ -6,15 +6,21 @@ import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 
 export const TRACKER_TYPES = {
+  TERRAFORMING_RATING: 'terraformingRating',
   MEGACREDITS: 'megacredits',
   STEEL: 'steel',
   TITANIUM: 'titanium',
   PLANTS: 'plants',
   ENERGY: 'energy',
-  HEAT: 'heat'
+  HEAT: 'heat',
+  GENERATION: 'generation'
 };
 
 const trackerInfos = {
+  [TRACKER_TYPES.TERRAFORMING_RATING]: {
+    title: 'Terraforming\nRating',
+    color: '#4BD186'
+  },
   [TRACKER_TYPES.MEGACREDITS]: {
     title: 'MegaCredits',
     color: '#FFCC33'
@@ -38,46 +44,102 @@ const trackerInfos = {
   [TRACKER_TYPES.HEAT]: {
     title: 'Heat',
     color: '#D67220'
+  },
+  [TRACKER_TYPES.GENERATION]: {
+    title: 'Generation',
+    color: '#4B8BD1'
   }
 };
 
 export default class Tracker extends Component {
 
+  renderDecrement = () => {
+    const { onDecrement, type } = this.props;
+
+    if (onDecrement) {
+      return (
+        <TouchableOpacity
+          style={ styles.button }
+          onPress={ () => onDecrement(type) }
+        >
+          <FontAwesome5 style={ styles.buttonIcon } name={ 'minus' } />
+        </TouchableOpacity>
+      );
+    }
+  };
+
+  renderIncrement = () => {
+    const { onIncrement, type } = this.props;
+
+    if (onIncrement) {
+      return (
+        <TouchableOpacity
+          style={ styles.button }
+          onPress={ () => onIncrement(type) }
+        >
+          <FontAwesome5 style={ styles.buttonIcon } name={ 'plus' } />
+        </TouchableOpacity>
+      );
+    }
+  };
+
+  renderRate = () => {
+    const { rate } = this.props;
+
+    if (rate !== undefined) {
+      return (
+        <Text style={ styles.rateText }>{ rate }</Text>
+      );
+    }
+  };
+
   render () {
-    const { count, onProductionDown, onProductionUp, production, type } = this.props;
+    const { count, onDecrement, onIncrement, onPress, style, type } = this.props;
 
     const trackerInfo = trackerInfos[type];
-    const colorStyle = { backgroundColor: trackerInfo.color };
+    const backgroundColorStyle = { backgroundColor: trackerInfo.color };
     const title = trackerInfo.title;
 
+    const rateStyle = onDecrement && onIncrement ?
+      styles.rateDual :
+      styles.rateSingle;
+
+    let colorStyle;
+    let countTextStyle;
+    let headerTextStyle;
+
+    switch (type) {
+      case TRACKER_TYPES.TERRAFORMING_RATING:
+      case TRACKER_TYPES.GENERATION:
+        colorStyle = { color: trackerInfo.color };
+        countTextStyle = styles.countTextSmall;
+        headerTextStyle = styles.headerTextSmall;
+
+        break;
+
+      default:
+        countTextStyle = styles.countTextLarge;
+        headerTextStyle = styles.headerTextLarge;
+    }
+
     return (
-      <View style={ styles.border }>
-        <View style={ styles.container }>
-          <View style={ [ styles.header, colorStyle ] }>
-            <Text style={ styles.headerText }>{ title }</Text>
+      <TouchableOpacity style={ [ styles.border, style ] } onPress={ () => onPress(type) }>
+        <View style={ [ styles.container, backgroundColorStyle ] }>
+          <View style={ styles.header }>
+            <Text style={ headerTextStyle }>{ title }</Text>
           </View>
           <View style={ styles.count }>
-            <Text style={ styles.countText }>{ count }</Text>
+            <Text style={ [ countTextStyle, colorStyle ] }>{ count }</Text>
           </View>
-          <View style={ [ styles.footer, colorStyle ] }>
-            <View style={ styles.production }>
-              <TouchableOpacity
-                style={ styles.productionButton }
-                onPress={ () => onProductionDown(type) }
-              >
-                <FontAwesome5 style={ styles.productionButtonIcon } name={ 'plus' } />
-              </TouchableOpacity>
-              <Text style={ styles.productionText }>{ production }</Text>
-              <TouchableOpacity
-                style={ styles.productionButton }
-                onPress={ () => onProductionUp(type) }
-              >
-                <FontAwesome5 style={ styles.productionButtonIcon } name={ 'minus' } />
-              </TouchableOpacity>
+          <View style={ styles.footer }>
+            <View style={ rateStyle }>
+              { this.renderDecrement() }
+              { this.renderRate() }
+              { this.renderIncrement() }
             </View>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   }
 
@@ -100,6 +162,29 @@ const styles = ExtendedStyleSheet.create({
     shadowOpacity: 0.25
   },
 
+  button: {
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderColor: '#555555',
+    borderWidth: 3,
+    borderRadius: '0.5rem',
+    width: '2.1rem',
+    height: '2.1rem',
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 1.5
+    },
+    shadowRadius: 1,
+    shadowOpacity: 0.5
+  },
+
+  buttonIcon: {
+    fontSize: '1.3rem',
+    color: '#555555'
+  },
+
   container: {
     flex: 1,
     alignItems: 'stretch',
@@ -114,7 +199,7 @@ const styles = ExtendedStyleSheet.create({
     justifyContent: 'center'
   },
 
-  countText: {
+  countTextLarge: {
     fontSize: '4.25rem',
     textAlign: 'center',
     color: '#333333',
@@ -125,16 +210,24 @@ const styles = ExtendedStyleSheet.create({
     },
     shadowRadius: 1,
     shadowOpacity: 0.4,
-    marginTop: '-0.5rem',
-    marginBottom: '-0.5rem',
+    marginTop: '-1rem',
+    marginBottom: '-1rem',
+  },
+
+  countTextSmall: {
+    fontSize: '3rem',
+    textAlign: 'center',
+    color: '#333333',
+    marginTop: '-1rem',
+    marginBottom: '-1rem'
   },
 
   footer: {
     borderBottomRightRadius: '0.7rem',
     borderBottomLeftRadius: '0.7rem',
-    paddingHorizontal: '0.2rem',
+    paddingHorizontal: '0.1rem',
     paddingTop: '0.5rem',
-    paddingBottom: '0.6rem'
+    paddingBottom: '0.5rem'
   },
 
   header: {
@@ -145,53 +238,44 @@ const styles = ExtendedStyleSheet.create({
     height: '2.5rem'
   },
 
-  headerText: {
+  headerTextLarge: {
     fontSize: '1.2rem',
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#333333'
   },
 
-  production: {
+  headerTextSmall: {
+    fontSize: '0.8rem',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#333333'
+  },
+
+  rate: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: '0.4rem'
   },
 
-  productionButton: {
-    backgroundColor: '#FFFFFF',
+  rateDual: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    borderColor: '#555555',
-    borderWidth: 2,
-    borderRadius: '0.5rem',
-    width: '2.1rem',
-    height: '2.1rem',
-    shadowColor: '#000000',
-    shadowOffset: {
-      width: 0,
-      height: 1.5
-    },
-    shadowRadius: 1,
-    shadowOpacity: 0.5
+    justifyContent: 'space-between',
+    paddingHorizontal: '0.4rem'
   },
 
-  productionButtonIcon: {
-    fontSize: '1.3rem',
-    color: '#555555'
+  rateSingle: {
+    alignItems: 'center'
   },
 
-  productionText: {
+  rateText: {
     fontSize: '2.3rem',
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#FFFFFF',
     marginVertical: '-0.5rem'
-  },
-
-  productionTextShrinker: {
-    height: '2.0rem'
   }
 
 });
