@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Text, View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 
 import ImageIconEnergy from '../resources/images/icon_energy.png';
 import ImageIconHeat from '../resources/images/icon_heat.png';
@@ -12,6 +11,8 @@ import ImageIconPlants from '../resources/images/icon_plants.png';
 import ImageIconSteel from '../resources/images/icon_steel.png';
 import ImageIconTerraformingRating from '../resources/images/icon_terraforming_rating.png';
 import ImageIconTitanium from '../resources/images/icon_titanium.png';
+
+import Button from './Button';
 
 export const TRACKER_TYPES = {
   TERRAFORMING_RATING: 'terraformingRating',
@@ -29,7 +30,7 @@ export const TRACKER_INFOS = {
     icon: ImageIconTerraformingRating,
     hideTitleInTracker: true,
     title: 'Terraforming Rating',
-    color: '#6BB1A6'
+    color: '#ed721f'
   },
   [TRACKER_TYPES.MEGACREDITS]: {
     icon: ImageIconMegaCredits,
@@ -39,7 +40,7 @@ export const TRACKER_INFOS = {
   [TRACKER_TYPES.STEEL]: {
     icon: ImageIconSteel,
     title: 'Steel',
-    color: '#9B734D'
+    color: '#b37d43'
   },
   [TRACKER_TYPES.TITANIUM]: {
     icon: ImageIconTitanium,
@@ -54,32 +55,41 @@ export const TRACKER_INFOS = {
   [TRACKER_TYPES.ENERGY]: {
     icon: ImageIconEnergy,
     title: 'Energy',
-    color: '#9855B8'
+    color: '#a34cb8'
   },
   [TRACKER_TYPES.HEAT]: {
     icon: ImageIconHeat,
     title: 'Heat',
-    color: '#ED5430'
+    color: '#ED4E44'
   },
   [TRACKER_TYPES.GENERATION]: {
     title: 'Generation',
-    color: '#5B8BDD'
+    color: '#5B8BDD',
+    useDebounce: true
   }
 };
 
 export default class Tracker extends Component {
 
+  static getTrackerInfo = (type) => {
+    return TRACKER_INFOS[type]
+  };
+
   renderDecrement = () => {
     const { onDecrement, type } = this.props;
 
+    const trackerInfo = TRACKER_INFOS[type];
+
     if (onDecrement) {
       return (
-        <TouchableOpacity
+        <Button
           style={ styles.button }
+          backgroundColor="#FFFFFF"
+          color="#222222"
+          icon="minus"
           onPress={ () => onDecrement(type) }
-        >
-          <FontAwesome5 style={ styles.buttonIcon } name={ 'minus' } />
-        </TouchableOpacity>
+          useDebounce={ trackerInfo.useDebounce }
+        />
       );
     }
 
@@ -105,14 +115,18 @@ export default class Tracker extends Component {
   renderIncrement = () => {
     const { onIncrement, type } = this.props;
 
+    const trackerInfo = TRACKER_INFOS[type];
+
     if (onIncrement) {
       return (
-        <TouchableOpacity
+        <Button
           style={ styles.button }
+          backgroundColor="#FFFFFF"
+          color="#222222"
+          icon="plus"
           onPress={ () => onIncrement(type) }
-        >
-          <FontAwesome5 style={ styles.buttonIcon } name={ 'plus' } />
-        </TouchableOpacity>
+          useDebounce={ trackerInfo.useDebounce }
+        />
       );
     }
 
@@ -163,11 +177,8 @@ export default class Tracker extends Component {
     const { count, onDecrement, onIncrement, onPress, style, type } = this.props;
 
     const trackerInfo = TRACKER_INFOS[type];
-    const backgroundColorStyle = { backgroundColor: trackerInfo.color };
 
-    const rateStyle = onDecrement && onIncrement ?
-      styles.rateDual :
-      styles.rateSingle;
+    const rateStyle = onDecrement && onIncrement ? styles.rateDual : styles.rateSingle;
 
     let colorStyle;
     let countTextStyle;
@@ -185,24 +196,26 @@ export default class Tracker extends Component {
     }
 
     return (
-      <TouchableOpacity style={ [ styles.border, style ] } onPress={ () => onPress(type) }>
-        <View style={ [ styles.container, backgroundColorStyle ] }>
-          <View style={ styles.header }>
-            { this.renderIcon() }
-            { this.renderTitle() }
-          </View>
-          <View style={ styles.count }>
-            <Text style={ [ countTextStyle, colorStyle ] }>{ count }</Text>
-          </View>
-          <View style={ styles.footer }>
-            <View style={ rateStyle }>
-              { this.renderDecrement() }
-              { this.renderRate() }
-              { this.renderIncrement() }
-            </View>
+      <Button
+        style={ style }
+        backgroundColor={ trackerInfo.color }
+        onPress={ () => onPress(type) }
+      >
+        <View style={ styles.header }>
+          { this.renderIcon() }
+          { this.renderTitle() }
+        </View>
+        <View style={ styles.count }>
+          <Text style={ [ countTextStyle, colorStyle ] }>{ count }</Text>
+        </View>
+        <View style={ styles.footer }>
+          <View style={ rateStyle }>
+            { this.renderDecrement() }
+            { this.renderRate() }
+            { this.renderIncrement() }
           </View>
         </View>
-      </TouchableOpacity>
+      </Button>
     );
   }
 
@@ -210,49 +223,10 @@ export default class Tracker extends Component {
 
 const styles = ExtendedStyleSheet.create({
 
-  border: {
-    backgroundColor: '#222222',
-    flex: 1,
-    borderRadius: '0.8rem',
-    margin: '0.2rem',
-    padding: '0.15rem',
-    shadowColor: '#000000',
-    shadowOffset: {
-      width: 0,
-      height: 2.5
-    },
-    shadowRadius: 2,
-    shadowOpacity: 0.25
-  },
-
   button: {
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderColor: '#333333',
-    borderWidth: 3,
     borderRadius: '0.5rem',
-    width: '2.1rem',
-    height: '2.1rem',
-    shadowColor: '#000000',
-    shadowOffset: {
-      width: 0,
-      height: 1.5
-    },
-    shadowRadius: 1,
-    shadowOpacity: 0.5
-  },
-
-  buttonIcon: {
-    fontSize: '1.2rem',
-    color: '#333333'
-  },
-
-  container: {
-    flex: 1,
-    alignItems: 'stretch',
-    justifyContent: 'space-between',
-    borderRadius: '0.7rem'
+    maxWidth: '2.1rem',
+    height: '2.1rem'
   },
 
   count: {
@@ -273,30 +247,28 @@ const styles = ExtendedStyleSheet.create({
     },
     shadowRadius: 1,
     shadowOpacity: 0.4,
-    marginTop: '-1rem',
-    marginBottom: '-1rem'
+    marginVertical: '-1rem'
   },
 
   countTextSmall: {
     fontSize: '3rem',
     textAlign: 'center',
     color: '#333333',
-    marginTop: '-1rem',
-    marginBottom: '-1rem'
+    marginVertical: '-1rem'
   },
 
   footer: {
     borderBottomRightRadius: '0.7rem',
     borderBottomLeftRadius: '0.7rem',
     paddingHorizontal: '0.1rem',
-    paddingTop: '0.5rem',
-    paddingBottom: '0.5rem'
+    paddingTop: '0.35rem',
+    paddingBottom: '0.3rem'
   },
 
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-evenly',
+    justifyContent: 'center',
     borderTopRightRadius: '0.7rem',
     borderTopLeftRadius: '0.7rem',
     height: '2.5rem',
@@ -305,15 +277,15 @@ const styles = ExtendedStyleSheet.create({
 
   headerIcon: {
     flex: 1,
-    height: '1.6rem'
+    height: '1.6rem',
+    marginRight: '0.2rem'
   },
 
   headerTextLarge: {
     flex: 4,
-    fontSize: '1rem',
+    fontSize: '1.2rem',
     fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#333333',
+    color: '#222222',
     margin: '0.2rem'
   },
 
@@ -321,25 +293,21 @@ const styles = ExtendedStyleSheet.create({
     fontSize: '0.9rem',
     fontWeight: 'bold',
     textAlign: 'center',
-    color: '#333333'
-  },
-
-  rate: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: '0.4rem'
+    color: '#FFFFFF'
   },
 
   rateDual: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: '0.4rem'
+    paddingHorizontal: '0.2rem'
   },
 
   rateSingle: {
-    alignItems: 'center'
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: '0.2rem'
   },
 
   rateText: {

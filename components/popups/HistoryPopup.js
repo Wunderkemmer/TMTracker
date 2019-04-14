@@ -1,23 +1,40 @@
 import React, { Component } from 'react';
 
-import {
-  Image,
-  SafeAreaView,
-  ScrollView,
-  Text,
-  TouchableWithoutFeedback,
-  View
-} from 'react-native';
+import { Image, ScrollView, Text, View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 
-import { TRACKER_INFOS, TRACKER_TYPES } from './Tracker';
+import { TRACKER_INFOS, TRACKER_TYPES } from '../Tracker';
 
-export default class History extends Component {
+export default class HistoryPopup extends Component {
 
   renderHistoryItem (item, index) {
 
     switch (item.event) {
+      case 'buyGreenery': {
+        const trackerInfo = TRACKER_INFOS[TRACKER_TYPES.PLANTS];
+        const icon = trackerInfo.icon;
+
+        return (
+          <View style={ styles.item } key={ `${ item.event }.${ index }` }>
+            <Image style={ styles.icon } resizeMode="contain" source={ icon } />
+            <Text style={ styles.text }>Purchased Greenery</Text>
+          </View>
+        );
+      }
+
+      case 'buyTemperature': {
+        const trackerInfo = TRACKER_INFOS[TRACKER_TYPES.HEAT];
+        const icon = trackerInfo.icon;
+
+        return (
+          <View style={ styles.item } key={ `${ item.event }.${ index }` }>
+            <Image style={ styles.icon } resizeMode="contain" source={ icon } />
+            <Text style={ styles.text }>Purchased Temperature</Text>
+          </View>
+        );
+      }
+
       case 'decrement': {
         const type = item.payload.type;
 
@@ -86,40 +103,26 @@ export default class History extends Component {
         }
       }
 
-      case 'newGame': {
+      case 'newGame':
         return (
           <View style={ styles.item } key={ `${ item.event }.${ index }` }>
             <Text style={ styles.text }>New Game!</Text>
           </View>
         );
-      }
     }
   }
 
   render () {
-    const { isShowingHistory } = this.props;
+    const { history = [] } = this.props;
 
-    if (isShowingHistory) {
-      const { dismiss, history } = this.props;
-
-      return (
-        <View style={ styles.screen }>
-          <TouchableWithoutFeedback onPress={ () => dismiss() }>
-            <View style={ styles.scrim } />
-          </TouchableWithoutFeedback>
-          <SafeAreaView>
-            <ScrollView
-              style={ styles.scroll }
-              contentContainerStyle={ styles.container }
-            >
-              { [ ...history ].reverse().map(this.renderHistoryItem) }
-            </ScrollView>
-          </SafeAreaView>
-        </View>
-      );
-    }
-
-    return null;
+    return (
+      <ScrollView
+        style={ styles.scroll }
+        contentContainerStyle={ styles.container }
+      >
+        { [ ...history ].reverse().map(this.renderHistoryItem) }
+      </ScrollView>
+    );
   }
 
 }
@@ -145,31 +148,10 @@ const styles = ExtendedStyleSheet.create({
     paddingVertical: '0.2rem'
   },
 
-  screen: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0
-  },
-
-  scrim: {
-    backgroundColor: '#000000',
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    opacity: 0.5
-  },
-
   scroll: {
     backgroundColor: '#FFFFFF',
     borderRadius: '2rem',
-    minWidth: '50%',
-    marginVertical: '1.3rem'
+    minWidth: '50%'
   },
 
   text: {

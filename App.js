@@ -1,5 +1,3 @@
-import { debounce } from 'lodash'
-
 import React, { Component, Fragment } from 'react';
 
 import { Alert, Dimensions, Image, SafeAreaView, View } from 'react-native';
@@ -7,10 +5,19 @@ import { Alert, Dimensions, Image, SafeAreaView, View } from 'react-native';
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 
 import Button from './components/Button';
-import History from './components/History';
-import Tracker, { TRACKER_TYPES } from './components/Tracker';
 
+import CalculatorPopup from './components/popups/CalculatorPopup';
+import HistoryPopup from './components/popups/HistoryPopup';
+import InfoPopup from './components/popups/InfoPopup';
+import { Popup, Popups, showPopup } from './components/popups/Popups';
+import ProjectsPopup from './components/popups/ProjectsPopup';
+
+import Tracker, { TRACKER_TYPES } from './components/Tracker';
+import TransactionButton from './components/TransactionButton';
 import ImageMars from './resources/images/background_mars.jpg';
+
+import ImageIconGreenery from './resources/images/icon_greenery.png';
+import ImageIconTemperature from './resources/images/icon_temperature.png';
 
 const { width, height } = Dimensions.get('window');
 
@@ -44,7 +51,10 @@ export default class App extends Component<Props> {
       [TRACKER_TYPES.PLANTS]: 1,
       [TRACKER_TYPES.ENERGY]: 1,
       [TRACKER_TYPES.HEAT]: 1
-    }
+    },
+
+    historyCount: 0,
+    undoneHistoryCount: 0,
 
   };
 
@@ -54,39 +64,70 @@ export default class App extends Component<Props> {
   undoneHistory = [];
 
   componentWillMount () {
-    this.reset();
+    this.startGame();
   }
 
-  reset = () => {
+  addHistory (event, payload) {
+    const state = JSON.parse(JSON.stringify(this.state));
+
+    this.history.push({ event, payload, state });
+
+    this.undoneHistory = [];
+
+    this.updateHistory(state);
+  }
+
+  updateHistory (state) {
+    state = JSON.parse(JSON.stringify(state));
+
+    state.historyCount = this.history.length;
+    state.undoneHistoryCount = this.undoneHistory.length;
+
+    this.setState(state);
+  }
+
+  startGame = () => {
     const state = JSON.parse(JSON.stringify(this.defaultState));
 
     this.setState(state, () => this.addHistory('newGame'));
   };
 
-  addHistory (event, payload) {
-    this.history.push({ event, payload, state: JSON.parse(JSON.stringify(this.state)) });
+  onBuyTemperature = () => {
+    if (this.state.resourceCount[TRACKER_TYPES.HEAT] >= 8) {
+      const state = JSON.parse(JSON.stringify(this.state));
 
-    this.undoneHistory = [];
-  }
+      state.terraformingRating += 1;
+      state.resourceCount[TRACKER_TYPES.HEAT] -= 8;
 
-  onBuyHeat = () => {
-    // TODO: Buy heat
+      this.setState(state, () => this.addHistory('buyTemperature'));
+    }
   };
 
   onBuyGreenery = () => {
-    // TODO: Buy greenery
+    if (this.state.resourceCount[TRACKER_TYPES.PLANTS] >= 8) {
+      const state = JSON.parse(JSON.stringify(this.state));
+
+      state.terraformingRating += 1;
+      state.resourceCount[TRACKER_TYPES.PLANTS] -= 8;
+
+      this.setState(state, () => this.addHistory('buyGreenery'));
+    }
   };
 
   onBuyWithSteel = () => {
     // TODO: Buy card with megacredits and steel
+
+    console.log('onBuyWithSteel');
   };
 
   onBuyWithTitanium = () => {
     // TODO: Buy card with megacredits and titanium
+
+    console.log('onBuyWithTitanium');
   };
 
-  onDecrement = (type, addHistory = true) => {
-    const state = this.state;
+  onDecrement = (type) => {
+    const state = JSON.parse(JSON.stringify(this.state));
 
     let oldValue = null;
     let didSomething = false;
@@ -94,47 +135,41 @@ export default class App extends Component<Props> {
     switch (type) {
       case TRACKER_TYPES.TERRAFORMING_RATING:
         oldValue = state.terraformingRating;
-
         state.terraformingRating = Math.max(state.terraformingRating - 1, 0);
-
         didSomething = oldValue !== state.terraformingRating;
 
         break;
 
       case TRACKER_TYPES.MEGACREDITS:
         oldValue = state.resourceRate[type];
-
         state.resourceRate[type] = Math.max(state.resourceRate[type] - 1, -5);
-
         didSomething = oldValue !== state.resourceRate[type];
 
         break;
 
       default:
         oldValue = state.resourceRate[type];
-
         state.resourceRate[type] = Math.max(state.resourceRate[type] - 1, 0);
-
         didSomething = oldValue !== state.resourceRate[type];
     }
 
     if (didSomething) {
-      this.setState(state, () => {
-        addHistory && this.addHistory('decrement', { type });
-      });
+      this.setState(state, () => this.addHistory('decrement', { type }));
     }
   };
 
-  onHistory = debounce((isShowingHistory) => {
-    const state = this.state;
+  onHistory = () => {
+    const { history } = this;
 
-    state.isShowingHistory = isShowingHistory;
+    showPopup('history', { history });
+  };
 
-    this.setState(state)
-  }, 250, { leading: true, trailing: false });
+  onInfo = () => {
+    showPopup('info');
+  };
 
-  onIncrement = (type, addHistory = true) => {
-    const state = this.state;
+  onIncrement = (type) => {
+    const state = JSON.parse(JSON.stringify(this.state));
 
     switch (type) {
       case TRACKER_TYPES.TERRAFORMING_RATING:
@@ -162,28 +197,20 @@ export default class App extends Component<Props> {
         state.resourceRate[type] += 1;
     }
 
-    this.setState(state, () => {
-      addHistory && this.addHistory('increment', { type });
-    });
+    this.setState(state, () => this.addHistory('increment', { type }));
   };
 
-  onNewGame = debounce(() => {
+  onNewGame = () => {
     Alert.alert(
       'Do you really want to start a new game?',
       null,
       [
         { text: 'No', style: 'cancel' },
-        { text: 'Yes', onPress: this.reset }
+        { text: 'Yes', onPress: this.startGame }
       ],
       'default'
     );
-  }, 250, { leading: true, trailing: true });
-
-  onPress = debounce((type) => {
-    // TODO: Show calculator
-
-    console.log('Pressed', type);
-  }, 250, { leading: true, trailing: true });
+  };
 
   onRedo = () => {
     if (this.undoneHistory.length) {
@@ -191,29 +218,63 @@ export default class App extends Component<Props> {
 
       this.history.push(historyItem);
 
-      this.setState(historyItem.state);
+      this.updateHistory(historyItem.state);
     }
   };
 
-  onUndo = () => {
-    const count = this.history.length;
+  onTracker = (type) => {
+    switch (type) {
+      case TRACKER_TYPES.TERRAFORMING_RATING:
+      case TRACKER_TYPES.GENERATION:
+        this.onHistory();
+        break;
 
-    if (count > 1) {
+      default:
+        showPopup('calculator', { type });
+    }
+  };
+
+  onProjects = () => {
+    showPopup('projects');
+  };
+
+  onUndo = () => {
+    const length = this.history.length;
+
+    if (length) {
+      if (this.history[length - 1].event === 'newGame') {
+        return;
+      }
+
       const historyItem = this.history.pop();
 
       this.undoneHistory.push(historyItem);
 
-      this.setState(this.history[this.history.length - 1].state);
-
-      return;
+      this.updateHistory(this.history[length - 2].state);
     }
   };
 
-  renderButton = (color, text, onPress) => {
+  renderButton = (backgroundColor, icon, text, isDisabled, onPress, color) => {
     return (
       <Button
+        backgroundColor={ backgroundColor }
         color={ color }
+        icon={ icon }
         text={ text }
+        isDisabled={ isDisabled }
+        onPress={ onPress }
+      />
+    );
+  };
+
+  renderTransactionButton = (backgroundColor, image1, image2, icon, isDisabled, onPress) => {
+    return (
+      <TransactionButton
+        backgroundColor={ backgroundColor }
+        icon={ icon }
+        image1={ image1 }
+        image2={ image2 }
+        isDisabled={ isDisabled }
         onPress={ onPress }
       />
     );
@@ -254,7 +315,7 @@ export default class App extends Component<Props> {
         type={ type }
         count={ count }
         rate={ rate }
-        onPress={ this.onPress }
+        onPress={ this.onTracker }
         onDecrement={ onDecrement }
         onIncrement={ this.onIncrement }
       />
@@ -262,7 +323,18 @@ export default class App extends Component<Props> {
   };
 
   render () {
-    const { isShowingHistory } = this.state;
+    const megacreditsIcon = Tracker.getTrackerInfo(TRACKER_TYPES.MEGACREDITS).icon;
+    const steelIcon = Tracker.getTrackerInfo(TRACKER_TYPES.STEEL).icon;
+    const titanmiumIcon = Tracker.getTrackerInfo(TRACKER_TYPES.TITANIUM).icon;
+    const plantsIcon = Tracker.getTrackerInfo(TRACKER_TYPES.PLANTS).icon;
+    const heatIcon = Tracker.getTrackerInfo(TRACKER_TYPES.HEAT).icon;
+
+    const isUndoDisabled = this.state.historyCount < 2;
+    const isRedoDisabled = !this.state.undoneHistoryCount;
+    const isMCAndSteelDisabled = !this.state.resourceCount[TRACKER_TYPES.STEEL];
+    const isMCAndTitanumDisabled = !this.state.resourceCount[TRACKER_TYPES.TITANIUM];
+    const isBuyGreeneryDisabled = this.state.resourceCount[TRACKER_TYPES.PLANTS] < 8;
+    const isBuyTemperatureDisabled = this.state.resourceCount[TRACKER_TYPES.HEAT] < 8;
 
     return (
       <Fragment>
@@ -274,10 +346,16 @@ export default class App extends Component<Props> {
                 { this.renderTracker(TRACKER_TYPES.TERRAFORMING_RATING) }
               </View>
               <View style={ styles.sidebarButtons }>
-                { this.renderButton('#F45042', 'New Game', this.onNewGame) }
-                { this.renderButton('#F45042', 'History', () => this.onHistory(true)) }
-                { this.renderButton('#F45042', 'Undo', this.onUndo) }
-                { this.renderButton('#F45042', 'Redo', this.onRedo) }
+                <View style={ styles.sidebarButtonRow }>
+                  { this.renderButton('#5B8BDD', 'undo-alt', null, isUndoDisabled, this.onUndo) }
+                  { this.renderButton('#5B8BDD', 'redo-alt', null, isRedoDisabled, this.onRedo) }
+                </View>
+                <View style={ styles.sidebarButtonRow }>
+                  { this.renderButton('#5B8BDD', 'info-circle', null, false, this.onInfo) }
+                  { this.renderButton('#5B8BDD', 'list-ul', null, false, () => this.onHistory(true)) }
+                </View>
+                { this.renderButton('#5B8BDD', null, 'New Game', false, this.onNewGame) }
+                { this.renderButton('#FFCC33', null, 'Projects', false, this.onProjects, '#222222') }
               </View>
             </View>
             <View style={ styles.resources }>
@@ -297,18 +375,19 @@ export default class App extends Component<Props> {
                 { this.renderTracker(TRACKER_TYPES.GENERATION) }
               </View>
               <View style={ styles.sidebarButtons }>
-                { this.renderButton('#FFCC33', 'MC & S', this.onBuyWithSteel) }
-                { this.renderButton('#FFCC33', 'MC & T', this.onBuyWithTitanium) }
-                { this.renderButton('#FFCC33', 'Greenery', this.onBuyGreenery) }
-                { this.renderButton('#FFCC33', 'Heat', this.onBuyHeat) }
+                { this.renderTransactionButton('#FFCC33', megacreditsIcon, steelIcon, 'plus', isMCAndSteelDisabled, this.onBuyWithSteel) }
+                { this.renderTransactionButton('#FFCC33', megacreditsIcon, titanmiumIcon, 'plus', isMCAndTitanumDisabled, this.onBuyWithTitanium) }
+                { this.renderTransactionButton('#5FB365', plantsIcon, ImageIconGreenery, 'arrow-right', isBuyGreeneryDisabled, this.onBuyGreenery) }
+                { this.renderTransactionButton('#ED4E44', heatIcon, ImageIconTemperature, 'arrow-right', isBuyTemperatureDisabled, this.onBuyTemperature) }
               </View>
             </View>
           </View>
-          <History
-            history={ this.history }
-            isShowingHistory={ isShowingHistory }
-            dismiss={ () => this.onHistory(false) }
-          />
+          <Popups>
+            <Popup id="calculator" title="Calculator" component={ CalculatorPopup } />
+            <Popup id="history" title="History" component={ HistoryPopup } />
+            <Popup id="info" title="TM Tracker" component={ InfoPopup } />
+            <Popup id="projects" title="Projects" component={ ProjectsPopup } />
+          </Popups>
         </SafeAreaView>
       </Fragment>
     );
@@ -356,6 +435,11 @@ const styles = ExtendedStyleSheet.create({
   sidebar: {
     flex: 1,
     paddingVertical: '0.25rem'
+  },
+
+  sidebarButtonRow: {
+    flex: 1.25,
+    flexDirection: 'row'
   },
 
   sidebarButtons: {
