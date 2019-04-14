@@ -25,7 +25,7 @@ export default class Button extends Component {
 const styles = ExtendedStyleSheet.create({
 
   border: {
-    backgroundColor: '#444444',
+    backgroundColor: '#222222',
     flex: 1,
     borderRadius: '0.8rem',
     margin: '0.2rem',
@@ -47,7 +47,7 @@ const styles = ExtendedStyleSheet.create({
   },
 
   text: {
-    fontSize: '0.8rem',
+    fontSize: '0.9rem',
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#333333'

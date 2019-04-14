@@ -1,9 +1,17 @@
 import React, { Component } from 'react';
 
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+
+import ImageIconEnergy from '../resources/images/icon_energy.png';
+import ImageIconHeat from '../resources/images/icon_heat.png';
+import ImageIconMegaCredits from '../resources/images/icon_mega_credits.png';
+import ImageIconPlants from '../resources/images/icon_plants.png';
+import ImageIconSteel from '../resources/images/icon_steel.png';
+import ImageIconTerraformingRating from '../resources/images/icon_terraforming_rating.png';
+import ImageIconTitanium from '../resources/images/icon_titanium.png';
 
 export const TRACKER_TYPES = {
   TERRAFORMING_RATING: 'terraformingRating',
@@ -18,36 +26,44 @@ export const TRACKER_TYPES = {
 
 export const TRACKER_INFOS = {
   [TRACKER_TYPES.TERRAFORMING_RATING]: {
+    icon: ImageIconTerraformingRating,
+    hideTitleInTracker: true,
     title: 'Terraforming Rating',
-    color: '#4BD186'
+    color: '#6BB1A6'
   },
   [TRACKER_TYPES.MEGACREDITS]: {
+    icon: ImageIconMegaCredits,
     title: 'MegaCredits',
     color: '#FFCC33'
   },
   [TRACKER_TYPES.STEEL]: {
+    icon: ImageIconSteel,
     title: 'Steel',
     color: '#9B734D'
   },
   [TRACKER_TYPES.TITANIUM]: {
+    icon: ImageIconTitanium,
     title: 'Titanium',
-    color: '#999999'
+    color: '#777777'
   },
   [TRACKER_TYPES.PLANTS]: {
+    icon: ImageIconPlants,
     title: 'Plants',
-    color: '#4FA355'
+    color: '#5FB365'
   },
   [TRACKER_TYPES.ENERGY]: {
+    icon: ImageIconEnergy,
     title: 'Energy',
-    color: '#8845a8'
+    color: '#9855B8'
   },
   [TRACKER_TYPES.HEAT]: {
+    icon: ImageIconHeat,
     title: 'Heat',
-    color: '#D67220'
+    color: '#ED5430'
   },
   [TRACKER_TYPES.GENERATION]: {
     title: 'Generation',
-    color: '#4B8BD1'
+    color: '#5B8BDD'
   }
 };
 
@@ -66,6 +82,24 @@ export default class Tracker extends Component {
         </TouchableOpacity>
       );
     }
+
+    return null;
+  };
+
+  renderIcon = () => {
+    const { type } = this.props;
+
+    const trackerInfo = TRACKER_INFOS[type];
+    const icon = trackerInfo.icon;
+    const hideIconInTracker = trackerInfo.hideIconInTracker;
+
+    if (icon && !hideIconInTracker) {
+      return (
+        <Image style={ styles.headerIcon } resizeMode="contain" source={ icon } />
+      );
+    }
+
+    return null;
   };
 
   renderIncrement = () => {
@@ -81,6 +115,8 @@ export default class Tracker extends Component {
         </TouchableOpacity>
       );
     }
+
+    return null;
   };
 
   renderRate = () => {
@@ -91,6 +127,36 @@ export default class Tracker extends Component {
         <Text style={ styles.rateText }>{ rate }</Text>
       );
     }
+
+    return null;
+  };
+
+  renderTitle = () => {
+    const { type } = this.props;
+
+    const trackerInfo = TRACKER_INFOS[type];
+    const { title, hideTitleInTracker } = trackerInfo;
+
+    if (!hideTitleInTracker) {
+      let headerTextStyle;
+
+      switch (type) {
+        case TRACKER_TYPES.TERRAFORMING_RATING:
+        case TRACKER_TYPES.GENERATION:
+          headerTextStyle = styles.headerTextSmall;
+
+          break;
+
+        default:
+          headerTextStyle = styles.headerTextLarge;
+      }
+
+      return (
+        <Text style={ headerTextStyle }>{ title }</Text>
+      );
+    }
+
+    return null;
   };
 
   render () {
@@ -98,7 +164,6 @@ export default class Tracker extends Component {
 
     const trackerInfo = TRACKER_INFOS[type];
     const backgroundColorStyle = { backgroundColor: trackerInfo.color };
-    const title = trackerInfo.title;
 
     const rateStyle = onDecrement && onIncrement ?
       styles.rateDual :
@@ -106,27 +171,25 @@ export default class Tracker extends Component {
 
     let colorStyle;
     let countTextStyle;
-    let headerTextStyle;
 
     switch (type) {
       case TRACKER_TYPES.TERRAFORMING_RATING:
       case TRACKER_TYPES.GENERATION:
         colorStyle = { color: trackerInfo.color };
         countTextStyle = styles.countTextSmall;
-        headerTextStyle = styles.headerTextSmall;
 
         break;
 
       default:
         countTextStyle = styles.countTextLarge;
-        headerTextStyle = styles.headerTextLarge;
     }
 
     return (
       <TouchableOpacity style={ [ styles.border, style ] } onPress={ () => onPress(type) }>
         <View style={ [ styles.container, backgroundColorStyle ] }>
           <View style={ styles.header }>
-            <Text style={ headerTextStyle }>{ title }</Text>
+            { this.renderIcon() }
+            { this.renderTitle() }
           </View>
           <View style={ styles.count }>
             <Text style={ [ countTextStyle, colorStyle ] }>{ count }</Text>
@@ -148,7 +211,7 @@ export default class Tracker extends Component {
 const styles = ExtendedStyleSheet.create({
 
   border: {
-    backgroundColor: '#444444',
+    backgroundColor: '#222222',
     flex: 1,
     borderRadius: '0.8rem',
     margin: '0.2rem',
@@ -166,7 +229,7 @@ const styles = ExtendedStyleSheet.create({
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    borderColor: '#555555',
+    borderColor: '#333333',
     borderWidth: 3,
     borderRadius: '0.5rem',
     width: '2.1rem',
@@ -181,8 +244,8 @@ const styles = ExtendedStyleSheet.create({
   },
 
   buttonIcon: {
-    fontSize: '1.3rem',
-    color: '#555555'
+    fontSize: '1.2rem',
+    color: '#333333'
   },
 
   container: {
@@ -211,7 +274,7 @@ const styles = ExtendedStyleSheet.create({
     shadowRadius: 1,
     shadowOpacity: 0.4,
     marginTop: '-1rem',
-    marginBottom: '-1rem',
+    marginBottom: '-1rem'
   },
 
   countTextSmall: {
@@ -231,22 +294,31 @@ const styles = ExtendedStyleSheet.create({
   },
 
   header: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-evenly',
     borderTopRightRadius: '0.7rem',
     borderTopLeftRadius: '0.7rem',
-    height: '2.5rem'
+    height: '2.5rem',
+    paddingHorizontal: '0.45rem'
+  },
+
+  headerIcon: {
+    flex: 1,
+    height: '1.6rem'
   },
 
   headerTextLarge: {
-    fontSize: '1.2rem',
+    flex: 4,
+    fontSize: '1rem',
     fontWeight: 'bold',
     textAlign: 'center',
-    color: '#333333'
+    color: '#333333',
+    margin: '0.2rem'
   },
 
   headerTextSmall: {
-    fontSize: '0.8rem',
+    fontSize: '0.9rem',
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#333333'

@@ -1,14 +1,16 @@
 import { debounce } from 'lodash'
 
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 
-import { Alert, Dimensions, SafeAreaView, View } from 'react-native';
+import { Alert, Dimensions, Image, SafeAreaView, View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 
 import Button from './components/Button';
 import History from './components/History';
 import Tracker, { TRACKER_TYPES } from './components/Tracker';
+
+import ImageMars from './resources/images/background_mars.jpg';
 
 const { width, height } = Dimensions.get('window');
 
@@ -58,7 +60,7 @@ export default class App extends Component<Props> {
   reset = () => {
     const state = JSON.parse(JSON.stringify(this.defaultState));
 
-    this.setState(state);
+    this.setState(state, () => this.addHistory('newGame'));
   };
 
   addHistory (event, payload) {
@@ -66,6 +68,22 @@ export default class App extends Component<Props> {
 
     this.undoneHistory = [];
   }
+
+  onBuyHeat = () => {
+    // TODO: Buy heat
+  };
+
+  onBuyGreenery = () => {
+    // TODO: Buy greenery
+  };
+
+  onBuyWithSteel = () => {
+    // TODO: Buy card with megacredits and steel
+  };
+
+  onBuyWithTitanium = () => {
+    // TODO: Buy card with megacredits and titanium
+  };
 
   onDecrement = (type, addHistory = true) => {
     const state = this.state;
@@ -180,25 +198,20 @@ export default class App extends Component<Props> {
   onUndo = () => {
     const count = this.history.length;
 
-    if (count) {
+    if (count > 1) {
       const historyItem = this.history.pop();
 
       this.undoneHistory.push(historyItem);
 
-      if (count > 1) {
-        this.setState(this.history[this.history.length - 1].state);
+      this.setState(this.history[this.history.length - 1].state);
 
-        return;
-      }
+      return;
     }
-
-    this.reset();
   };
 
   renderButton = (color, text, onPress) => {
     return (
       <Button
-        style={ styles.sidebarButton }
         color={ color }
         text={ text }
         onPress={ onPress }
@@ -252,51 +265,66 @@ export default class App extends Component<Props> {
     const { isShowingHistory } = this.state;
 
     return (
-      <SafeAreaView style={ styles.safeAreaView }>
-        <View style={ styles.container }>
-          <View style={ styles.sidebar }>
-            <View style={ styles.sidebarTracker }>
-              { this.renderTracker(TRACKER_TYPES.TERRAFORMING_RATING) }
+      <Fragment>
+        <Image style={ styles.background } resizeMode="cover" source={ ImageMars } />
+        <SafeAreaView style={ styles.safeAreaView }>
+          <View style={ styles.container }>
+            <View style={ styles.sidebar }>
+              <View style={ styles.sidebarTracker }>
+                { this.renderTracker(TRACKER_TYPES.TERRAFORMING_RATING) }
+              </View>
+              <View style={ styles.sidebarButtons }>
+                { this.renderButton('#F45042', 'New Game', this.onNewGame) }
+                { this.renderButton('#F45042', 'History', () => this.onHistory(true)) }
+                { this.renderButton('#F45042', 'Undo', this.onUndo) }
+                { this.renderButton('#F45042', 'Redo', this.onRedo) }
+              </View>
             </View>
-            <View style={ styles.sidebarButtons }>
-              { this.renderButton('#F45042', 'New Game', this.onNewGame) }
+            <View style={ styles.resources }>
+              <View style={ styles.resourcesRow }>
+                { this.renderTracker(TRACKER_TYPES.MEGACREDITS) }
+                { this.renderTracker(TRACKER_TYPES.STEEL) }
+                { this.renderTracker(TRACKER_TYPES.TITANIUM) }
+              </View>
+              <View style={ styles.resourcesRow }>
+                { this.renderTracker(TRACKER_TYPES.PLANTS) }
+                { this.renderTracker(TRACKER_TYPES.ENERGY) }
+                { this.renderTracker(TRACKER_TYPES.HEAT) }
+              </View>
+            </View>
+            <View style={ styles.sidebar }>
+              <View style={ styles.sidebarTracker }>
+                { this.renderTracker(TRACKER_TYPES.GENERATION) }
+              </View>
+              <View style={ styles.sidebarButtons }>
+                { this.renderButton('#FFCC33', 'MC & S', this.onBuyWithSteel) }
+                { this.renderButton('#FFCC33', 'MC & T', this.onBuyWithTitanium) }
+                { this.renderButton('#FFCC33', 'Greenery', this.onBuyGreenery) }
+                { this.renderButton('#FFCC33', 'Heat', this.onBuyHeat) }
+              </View>
             </View>
           </View>
-          <View style={ styles.resources }>
-            <View style={ styles.resourcesRow }>
-              { this.renderTracker(TRACKER_TYPES.MEGACREDITS) }
-              { this.renderTracker(TRACKER_TYPES.STEEL) }
-              { this.renderTracker(TRACKER_TYPES.TITANIUM) }
-            </View>
-            <View style={ styles.resourcesRow }>
-              { this.renderTracker(TRACKER_TYPES.PLANTS) }
-              { this.renderTracker(TRACKER_TYPES.ENERGY) }
-              { this.renderTracker(TRACKER_TYPES.HEAT) }
-            </View>
-          </View>
-          <View style={ styles.sidebar }>
-            <View style={ styles.sidebarTracker }>
-              { this.renderTracker(TRACKER_TYPES.GENERATION) }
-            </View>
-            <View style={ styles.sidebarButtons }>
-              { this.renderButton('#F45042', 'Undo', this.onUndo) }
-              { this.renderButton('#F45042', 'Redo', this.onRedo) }
-              { this.renderButton('#F45042', 'History', () => this.onHistory(true)) }
-            </View>
-          </View>
-        </View>
-        <History
-          history={ this.history }
-          isShowingHistory={ isShowingHistory }
-          dismiss={ () => this.onHistory(false) }
-        />
-      </SafeAreaView>
+          <History
+            history={ this.history }
+            isShowingHistory={ isShowingHistory }
+            dismiss={ () => this.onHistory(false) }
+          />
+        </SafeAreaView>
+      </Fragment>
     );
   }
 
 }
 
 const styles = ExtendedStyleSheet.create({
+
+  background: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: '100%',
+    height: '100%'
+  },
 
   container: {
     flex: 1,
@@ -321,7 +349,7 @@ const styles = ExtendedStyleSheet.create({
   },
 
   safeAreaView: {
-    backgroundColor: '#C18C6A',
+    // backgroundColor: '#C18C6A',
     flex: 1
   },
 
@@ -330,16 +358,14 @@ const styles = ExtendedStyleSheet.create({
     paddingVertical: '0.25rem'
   },
 
-  sidebarButton: {
-    maxHeight: '2.25rem'
-  },
-
   sidebarButtons: {
-    flex: 0.56
+    flex: 0.56,
+    maxHeight: '12rem'
   },
 
   sidebarTracker: {
-    flex: 0.44
+    flex: 0.44,
+    maxHeight: '12rem'
   }
 
 });
