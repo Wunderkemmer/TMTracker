@@ -4,9 +4,8 @@ import { Image, Text, View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 import PopupDialog, { SlideAnimation } from 'react-native-popup-dialog';
-import Button from '../Button';
 
-import { TRACKER_INFOS, TRACKER_TYPES } from '../Tracker';
+import { TRACKER_INFOS } from '../Tracker';
 
 const popupManagers = [];
 const popupStates = {};
@@ -32,14 +31,16 @@ export function showPopup (id, props) {
 }
 
 export function hidePopup (id) {
-  popupStates[id] = null;
+  if (popupStates[id]) {
+    popupStates[id].show = false;
+  }
 
   popupManagers.forEach((manager) => manager.onHidePopup(id));
 }
 
-const fakeDismissForHiding = () => {
-  // Do nothing!
-};
+// const fakeDismissForHiding = () => {
+//   // Do nothing!
+// };
 
 export class Popups extends Component {
 
@@ -64,7 +65,7 @@ export class Popups extends Component {
       this.props.children,
       (child) => React.cloneElement(child, popupStates[child.props.id] || {
         show: false,
-        dismiss: fakeDismissForHiding
+        // dismiss: fakeDismissForHiding
       })
     );
   }
@@ -93,14 +94,13 @@ export class Popup extends Component {
   };
 
   renderTitle = () => {
-    const { type } = this.props;
+    const { type, title } = this.props;
 
-    if (type) {
-      const trackerInfo = TRACKER_INFOS[type];
-      const { title } = trackerInfo;
+    const displayTitle = type ? TRACKER_INFOS[type].title + ' Calculator' : title;
 
+    if (displayTitle) {
       return (
-        <Text style={ styles.headerText }>{ title } Calculator</Text>
+        <Text style={ styles.headerText }>{ title }</Text>
       );
     }
 
@@ -110,7 +110,7 @@ export class Popup extends Component {
   render () {
     const { component, id, style, show, type } = this.props;
 
-    const headerStyle = { backgroundColor: type ? TRACKER_INFOS[type].color : '#FFEEDD' };
+    const headerStyle = { backgroundColor: type ? TRACKER_INFOS[type].color : '#ED721F' };
 
     return (
       <PopupDialog
@@ -160,29 +160,28 @@ const styles = ExtendedStyleSheet.create({
   defaultPopup: {
     backgroundColor: 'transparent',
     minWidth: '50%',
-    height: '86%',
-    padding: '0rem'
+    height: '90%',
+    padding: '0rem',
+    marginBottom: '0.5rem'
   },
 
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     borderTopRightRadius: '0.7rem',
     borderTopLeftRadius: '0.7rem',
-    height: '2.5rem',
+    height: '3rem',
     paddingHorizontal: '0.45rem'
   },
 
   headerIcon: {
-    flex: 1,
-    height: '1.6rem',
-    marginRight: '0.2rem'
+    width: '2rem',
+    height: '2rem',
+    marginRight: '0.25rem'
   },
 
   headerText: {
-    flex: 4,
-    fontSize: '1.2rem',
+    fontSize: '1.5rem',
     fontWeight: 'bold',
     color: '#222222',
     margin: '0.2rem'

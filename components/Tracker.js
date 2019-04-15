@@ -30,7 +30,7 @@ export const TRACKER_INFOS = {
     icon: ImageIconTerraformingRating,
     hideTitleInTracker: true,
     title: 'Terraforming Rating',
-    color: '#ed721f'
+    color: '#ED721F'
   },
   [TRACKER_TYPES.MEGACREDITS]: {
     icon: ImageIconMegaCredits,
@@ -40,7 +40,7 @@ export const TRACKER_INFOS = {
   [TRACKER_TYPES.STEEL]: {
     icon: ImageIconSteel,
     title: 'Steel',
-    color: '#b37d43'
+    color: '#B37D43'
   },
   [TRACKER_TYPES.TITANIUM]: {
     icon: ImageIconTitanium,
@@ -55,7 +55,7 @@ export const TRACKER_INFOS = {
   [TRACKER_TYPES.ENERGY]: {
     icon: ImageIconEnergy,
     title: 'Energy',
-    color: '#a34cb8'
+    color: '#A34Cb8'
   },
   [TRACKER_TYPES.HEAT]: {
     icon: ImageIconHeat,
@@ -268,7 +268,6 @@ const styles = ExtendedStyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     borderTopRightRadius: '0.7rem',
     borderTopLeftRadius: '0.7rem',
     height: '2.5rem',

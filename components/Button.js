@@ -24,13 +24,13 @@ export default class Button extends Component {
   }
 
   renderText () {
-    const { color, text } = this.props;
+    const { color, text, textStyle } = this.props;
 
     if (text) {
       const colorStyle = color ? { color } : null;
 
       return (
-        <Text style={ [ styles.text, colorStyle ] }>{ text }</Text>
+        <Text style={ [ styles.text, colorStyle, textStyle ] }>{ text }</Text>
       );
     }
 
@@ -40,7 +40,12 @@ export default class Button extends Component {
   render () {
     const { useDebounce = false, backgroundColor, isDisabled, style } = this.props;
 
+    const borderStyle = { ...style };
     const containerStyle = {};
+
+    if (isDisabled) {
+      borderStyle.opacity = 0.5;
+    }
 
     if (backgroundColor) {
       containerStyle.backgroundColor = backgroundColor;
@@ -48,10 +53,6 @@ export default class Button extends Component {
 
     if (style && style.borderRadius) {
       containerStyle.borderRadius = style.borderRadius - 2;
-    }
-
-    if (isDisabled) {
-      containerStyle.opacity = 0.5;
     }
 
     let { onPress } = this.props;
@@ -62,7 +63,7 @@ export default class Button extends Component {
 
     return (
       <TouchableOpacity
-        style={ [ styles.border, style ] }
+        style={ [ styles.border, borderStyle ] }
         disabled={ isDisabled }
         onPress={ onPress }
       >
@@ -90,8 +91,8 @@ const styles = ExtendedStyleSheet.create({
       width: 0,
       height: 2
     },
-    shadowRadius: 2,
-    shadowOpacity: 0.5
+    shadowRadius: 1,
+    shadowOpacity: 0.4
   },
 
   container: {

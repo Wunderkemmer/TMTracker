@@ -6,34 +6,29 @@ import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 
 import { TRACKER_INFOS, TRACKER_TYPES } from '../Tracker';
 
+import ImageIconGreenery from '../../resources/images/icon_greenery.png';
+import ImageIconTemperature from '../../resources/images/icon_temperature.png';
+
 export default class HistoryPopup extends Component {
 
   renderHistoryItem (item, index) {
 
     switch (item.event) {
-      case 'buyGreenery': {
-        const trackerInfo = TRACKER_INFOS[TRACKER_TYPES.PLANTS];
-        const icon = trackerInfo.icon;
-
+      case 'buyGreenery':
         return (
           <View style={ styles.item } key={ `${ item.event }.${ index }` }>
-            <Image style={ styles.icon } resizeMode="contain" source={ icon } />
-            <Text style={ styles.text }>Purchased Greenery</Text>
+            <Image style={ styles.icon } resizeMode="contain" source={ ImageIconGreenery } />
+            <Text style={ styles.textIncrease }>Purchased Greenery</Text>
           </View>
         );
-      }
 
-      case 'buyTemperature': {
-        const trackerInfo = TRACKER_INFOS[TRACKER_TYPES.HEAT];
-        const icon = trackerInfo.icon;
-
+      case 'buyTemperature':
         return (
           <View style={ styles.item } key={ `${ item.event }.${ index }` }>
-            <Image style={ styles.icon } resizeMode="contain" source={ icon } />
-            <Text style={ styles.text }>Purchased Temperature</Text>
+            <Image style={ styles.icon } resizeMode="contain" source={ ImageIconTemperature } />
+            <Text style={ styles.textIncrease }>Purchased Temperature</Text>
           </View>
         );
-      }
 
       case 'decrement': {
         const type = item.payload.type;
@@ -117,7 +112,6 @@ export default class HistoryPopup extends Component {
 
     return (
       <ScrollView
-        style={ styles.scroll }
         contentContainerStyle={ styles.container }
       >
         { [ ...history ].reverse().map(this.renderHistoryItem) }
@@ -131,8 +125,8 @@ const styles = ExtendedStyleSheet.create({
 
   container: {
     alignItems: 'stretch',
-    paddingHorizontal: '2rem',
-    paddingVertical: '1.75rem'
+    paddingHorizontal: '1rem',
+    paddingVertical: '0.8rem'
   },
 
   icon: {
@@ -146,12 +140,6 @@ const styles = ExtendedStyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-start',
     paddingVertical: '0.2rem'
-  },
-
-  scroll: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: '2rem',
-    minWidth: '50%'
   },
 
   text: {

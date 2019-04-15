@@ -230,7 +230,17 @@ export default class App extends Component<Props> {
         break;
 
       default:
-        showPopup('calculator', { type });
+        showPopup('calculator', {
+          state: this.state,
+          type,
+          onChange: (change) => {
+            const state = JSON.parse(JSON.stringify(this.state));
+
+            state.resourceCount[type] += change;
+
+            this.setState(state, () => this.addHistory('calculation', { type, change }));
+          }
+        });
     }
   };
 
@@ -383,10 +393,27 @@ export default class App extends Component<Props> {
             </View>
           </View>
           <Popups>
-            <Popup id="calculator" title="Calculator" component={ CalculatorPopup } />
-            <Popup id="history" title="History" component={ HistoryPopup } />
-            <Popup id="info" title="TM Tracker" component={ InfoPopup } />
-            <Popup id="projects" title="Projects" component={ ProjectsPopup } />
+            <Popup
+              id="calculator"
+              title="Calculator"
+              component={ CalculatorPopup }
+              style={ CalculatorPopup.publicStyles.popup }
+            />
+            <Popup
+              id="history"
+              title="Game History"
+              component={ HistoryPopup }
+            />
+            <Popup
+              id="info"
+              title="TM Tracker"
+              component={ InfoPopup }
+            />
+            <Popup
+              id="projects"
+              title="Projects"
+              component={ ProjectsPopup }
+            />
           </Popups>
         </SafeAreaView>
       </Fragment>
