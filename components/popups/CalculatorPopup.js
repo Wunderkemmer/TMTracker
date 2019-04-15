@@ -33,9 +33,9 @@ export default class CalculatorPopup extends Component {
     if (value === 'C') {
       state.change = 0;
       state.isNegativeZero = false;
-    } else if (value === '-') {
+    } else if (value === '±') {
       if (state.change === 0) {
-        state.isNegativeZero = true;
+        state.isNegativeZero = !state.isNegativeZero;
       } else {
         state.change = state.change * -1;
       }
@@ -88,18 +88,36 @@ export default class CalculatorPopup extends Component {
   };
 
   renderKeyPadButton = (value, backgroundColor, isSmall) => {
-    const text = typeof value !== 'string' && value > 0 ? '+' + value : value;
-    const textStyle = isSmall ? styles.keyPadTextSmall : styles.keyPadTextLarge;
+    if (value === '±') {
+      return (
+        <Button
+          backgroundColor={ backgroundColor }
+          color="#222222"
+          onPress={ () => this.onKeyPad(value) }
+        >
+          <View style={ styles.keyPadPlusMinus }>
+            <Text style={ styles.keyPadPlusMinusText }>+</Text>
+            <Text style={ styles.keyPadPlusMinusText }>-</Text>
+          </View>
+        </Button>
+      );
+    } else {
+      const textStyle = isSmall ? styles.keyPadTextSmall : styles.keyPadTextLarge;
 
-    return (
-      <Button
-        backgroundColor={ backgroundColor }
-        color="#222222"
-        text={ text }
-        textStyle={ textStyle }
-        onPress={ () => this.onKeyPad(value) }
-      />
-    );
+      const text = typeof value === 'string' ?
+        value :
+        value >= 0 ? '+' + value : value;
+
+      return (
+        <Button
+          backgroundColor={ backgroundColor }
+          color="#222222"
+          text={ text }
+          textStyle={ textStyle }
+          onPress={ () => this.onKeyPad(value) }
+        />
+      );
+    }
   };
 
   render () {
@@ -114,9 +132,9 @@ export default class CalculatorPopup extends Component {
 
     const lighterColor = Color(trackerInfo.color).mix(Color('#FFFFFF'), 0.65);
 
-    const changeText = state.change >= 0 ?
-      '+' + state.change :
-      state.isNegativeZero ? '-0' : state.change;
+    const changeText = state.isNegativeZero ?
+      '-0' :
+      state.change >= 0 ? '+' + state.change : state.change;
 
     return (
       <View style={ styles.container }>
@@ -141,7 +159,7 @@ export default class CalculatorPopup extends Component {
               <View style={ styles.keyPadRow }>
                 { this.renderKeyPadButton('C', lighterColor) }
                 { this.renderKeyPadButton('0', '#FFFFFF') }
-                { this.renderKeyPadButton('-', lighterColor) }
+                { this.renderKeyPadButton('±', lighterColor) }
               </View>
             </View>
             <View style={ styles.steppers }>
@@ -270,6 +288,16 @@ const styles = ExtendedStyleSheet.create({
 
   keyPadTextLarge: {
     fontSize: '1.9rem'
+  },
+
+  keyPadPlusMinus: {
+    marginTop: '0.05rem'
+  },
+
+  keyPadPlusMinusText: {
+    fontSize: '2.2rem',
+    textAlign: 'center',
+    marginVertical: '-0.65rem'
   },
 
   keyPadTextSmall: {
