@@ -25,49 +25,49 @@ export const TRACKER_TYPES = {
   GENERATION: 'generation'
 };
 
-export const TRACKER_INFOS = {
-  [TRACKER_TYPES.TERRAFORMING_RATING]: {
-    icon: ImageIconTerraformingRating,
-    hideTitleInTracker: true,
-    title: 'Terraforming Rating',
-    color: '#ED721F'
-  },
-  [TRACKER_TYPES.MEGACREDITS]: {
-    icon: ImageIconMegaCredits,
-    title: 'MegaCredits',
-    color: '#FFCC33'
-  },
-  [TRACKER_TYPES.STEEL]: {
-    icon: ImageIconSteel,
-    title: 'Steel',
-    color: '#B37D43'
-  },
-  [TRACKER_TYPES.TITANIUM]: {
-    icon: ImageIconTitanium,
-    title: 'Titanium',
-    color: '#777777'
-  },
-  [TRACKER_TYPES.PLANTS]: {
-    icon: ImageIconPlants,
-    title: 'Plants',
-    color: '#5FB365'
-  },
-  [TRACKER_TYPES.ENERGY]: {
-    icon: ImageIconEnergy,
-    title: 'Energy',
-    color: '#A34Cb8'
-  },
-  [TRACKER_TYPES.HEAT]: {
-    icon: ImageIconHeat,
-    title: 'Heat',
-    color: '#ED4E44'
-  },
-  [TRACKER_TYPES.GENERATION]: {
-    title: 'Generation',
-    color: '#5B8BDD',
-    useDebounce: true
-  }
-};
+export const     TRACKER_INFOS = {
+      [TRACKER_TYPES.TERRAFORMING_RATING]: {
+        icon: ImageIconTerraformingRating,
+        hideTitleInTracker: true,
+        title: 'Terraforming Rating',
+        color: '#ED721F'
+      },
+      [TRACKER_TYPES.MEGACREDITS]: {
+        icon: ImageIconMegaCredits,
+        title: 'MegaCredits',
+        color: '#FFCC33'
+      },
+      [TRACKER_TYPES.STEEL]: {
+        icon: ImageIconSteel,
+        title: 'Steel',
+        color: '#B37D43'
+      },
+      [TRACKER_TYPES.TITANIUM]: {
+        icon: ImageIconTitanium,
+        title: 'Titanium',
+        color: '#777777'
+      },
+      [TRACKER_TYPES.PLANTS]: {
+        icon: ImageIconPlants,
+        title: 'Plants',
+        color: '#5FB365'
+      },
+      [TRACKER_TYPES.ENERGY]: {
+        icon: ImageIconEnergy,
+        title: 'Energy',
+        color: '#A34Cb8'
+      },
+      [TRACKER_TYPES.HEAT]: {
+        icon: ImageIconHeat,
+        title: 'Heat',
+        color: '#ED4E44'
+      },
+      [TRACKER_TYPES.GENERATION]: {
+        title: 'Generation',
+        color: '#5B8BDD',
+        useDebounce: true
+      }
+    };
 
 export default class Tracker extends Component {
 

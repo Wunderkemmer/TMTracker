@@ -91,6 +91,7 @@ export default class CalculatorPopup extends Component {
     if (value === '±') {
       return (
         <Button
+          style={ styles.button }
           backgroundColor={ backgroundColor }
           color="#222222"
           onPress={ () => this.onKeyPad(value) }
@@ -110,6 +111,7 @@ export default class CalculatorPopup extends Component {
 
       return (
         <Button
+          style={ styles.button }
           backgroundColor={ backgroundColor }
           color="#222222"
           text={ text }
@@ -138,38 +140,36 @@ export default class CalculatorPopup extends Component {
 
     return (
       <View style={ styles.container }>
-        <View style={ styles.keys }>
-          <View style={ [ styles.keyPad, backgroundColorStyle ] }>
-            <View style={ styles.numPad}>
-              <View style={ styles.keyPadRow }>
-                { this.renderKeyPadButton('7', '#FFFFFF') }
-                { this.renderKeyPadButton('8', '#FFFFFF') }
-                { this.renderKeyPadButton('9', '#FFFFFF') }
-              </View>
-              <View style={ styles.keyPadRow }>
-                { this.renderKeyPadButton('4', '#FFFFFF') }
-                { this.renderKeyPadButton('5', '#FFFFFF') }
-                { this.renderKeyPadButton('6', '#FFFFFF') }
-              </View>
-              <View style={ styles.keyPadRow }>
-                { this.renderKeyPadButton('1', '#FFFFFF') }
-                { this.renderKeyPadButton('2', '#FFFFFF') }
-                { this.renderKeyPadButton('3', '#FFFFFF') }
-              </View>
-              <View style={ styles.keyPadRow }>
-                { this.renderKeyPadButton('C', lighterColor) }
-                { this.renderKeyPadButton('0', '#FFFFFF') }
-                { this.renderKeyPadButton('±', lighterColor) }
-              </View>
+        <View style={ [ styles.keyPad, backgroundColorStyle ] }>
+          <View style={ styles.numPad}>
+            <View style={ styles.keyPadRow }>
+              { this.renderKeyPadButton('7', '#FFFFFF') }
+              { this.renderKeyPadButton('8', '#FFFFFF') }
+              { this.renderKeyPadButton('9', '#FFFFFF') }
             </View>
-            <View style={ styles.steppers }>
-              { this.renderKeyPadButton(10, lighterColor, true) }
-              { this.renderKeyPadButton(5, lighterColor, true) }
-              { this.renderKeyPadButton(1, lighterColor, true) }
-              { this.renderKeyPadButton(-1, lighterColor, true) }
-              { this.renderKeyPadButton(-5, lighterColor, true) }
-              { this.renderKeyPadButton(-10, lighterColor, true) }
+            <View style={ styles.keyPadRow }>
+              { this.renderKeyPadButton('4', '#FFFFFF') }
+              { this.renderKeyPadButton('5', '#FFFFFF') }
+              { this.renderKeyPadButton('6', '#FFFFFF') }
             </View>
+            <View style={ styles.keyPadRow }>
+              { this.renderKeyPadButton('1', '#FFFFFF') }
+              { this.renderKeyPadButton('2', '#FFFFFF') }
+              { this.renderKeyPadButton('3', '#FFFFFF') }
+            </View>
+            <View style={ styles.keyPadRow }>
+              { this.renderKeyPadButton('C', lighterColor) }
+              { this.renderKeyPadButton('0', '#FFFFFF') }
+              { this.renderKeyPadButton('±', lighterColor) }
+            </View>
+          </View>
+          <View style={ styles.steppers }>
+            { this.renderKeyPadButton(10, lighterColor, true) }
+            { this.renderKeyPadButton(5, lighterColor, true) }
+            { this.renderKeyPadButton(1, lighterColor, true) }
+            { this.renderKeyPadButton(-1, lighterColor, true) }
+            { this.renderKeyPadButton(-5, lighterColor, true) }
+            { this.renderKeyPadButton(-10, lighterColor, true) }
           </View>
         </View>
         <View style={ styles.tabulator }>
@@ -192,10 +192,10 @@ export default class CalculatorPopup extends Component {
 const styles = ExtendedStyleSheet.create({
 
   actionButton: {
+    borderRadius: '0.5rem',
     marginTop: '0.5rem',
-    marginRight: '-0.05rem',
-    marginBottom: '-0.05rem',
-    marginLeft: '0.5rem'
+    marginRight: '-0.025rem',
+    marginBottom: '-0.025rem'
   },
 
   actionButtonRow: {
@@ -265,11 +265,14 @@ const styles = ExtendedStyleSheet.create({
   },
 
   keyPad: {
-    flex: 1,
+    flex: 1.25,
     flexDirection: 'row',
     borderRadius: '0.5rem',
-    minWidth: '16rem',
     padding: '0.5rem'
+  },
+
+  keyPadButton: {
+    borderRadius: '0.5rem',
   },
 
   keyPadRow: {
@@ -282,7 +285,7 @@ const styles = ExtendedStyleSheet.create({
     fontSize: '1.5rem',
     borderTopRightRadius: '0.5rem',
     borderBottomRightRadius: '0.5rem',
-    width: '100%',
+    marginLeft: '-0.25rem',
     paddingRight: '0.5rem'
   },
 
@@ -304,12 +307,8 @@ const styles = ExtendedStyleSheet.create({
     fontSize: '1.25rem'
   },
 
-  keys: {
-    flex: 1.25
-  },
-
   numPad: {
-    flex: 2.5
+    flex: 3
   },
 
   steppers: {
@@ -319,7 +318,8 @@ const styles = ExtendedStyleSheet.create({
 
   tabulator: {
     flex: 1,
-    alignItems: 'stretch'
+    alignItems: 'stretch',
+    paddingLeft: '0.25rem'
   }
 
 });

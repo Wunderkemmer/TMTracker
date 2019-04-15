@@ -264,11 +264,10 @@ export default class App extends Component<Props> {
     }
   };
 
-  renderButton = (backgroundColor, icon, text, isDisabled, onPress, color) => {
+  renderButton = (backgroundColor, icon, text, isDisabled, onPress) => {
     return (
       <Button
         backgroundColor={ backgroundColor }
-        color={ color }
         icon={ icon }
         text={ text }
         isDisabled={ isDisabled }
@@ -379,9 +378,9 @@ export default class App extends Component<Props> {
                 { this.renderTracker(TRACKER_TYPES.GENERATION) }
               </View>
               <View style={ styles.sidebarButtons }>
-                { this.renderButton('#FFCC33', null, 'Projects', false, this.onProjects, '#222222') }
                 { this.renderTransactionButton('#5FB365', plantsIcon, ImageIconGreenery, 'arrow-right', isBuyGreeneryDisabled, this.onBuyGreenery) }
                 { this.renderTransactionButton('#ED4E44', heatIcon, ImageIconTemperature, 'arrow-right', isBuyTemperatureDisabled, this.onBuyTemperature) }
+                { this.renderButton('#5B8BDD', null, 'Projects', false, this.onProjects) }
               </View>
             </View>
           </View>
