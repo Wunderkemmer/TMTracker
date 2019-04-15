@@ -333,16 +333,11 @@ export default class App extends Component<Props> {
   };
 
   render () {
-    const megacreditsIcon = Tracker.getTrackerInfo(TRACKER_TYPES.MEGACREDITS).icon;
-    const steelIcon = Tracker.getTrackerInfo(TRACKER_TYPES.STEEL).icon;
-    const titanmiumIcon = Tracker.getTrackerInfo(TRACKER_TYPES.TITANIUM).icon;
     const plantsIcon = Tracker.getTrackerInfo(TRACKER_TYPES.PLANTS).icon;
     const heatIcon = Tracker.getTrackerInfo(TRACKER_TYPES.HEAT).icon;
 
     const isUndoDisabled = this.state.historyCount < 2;
     const isRedoDisabled = !this.state.undoneHistoryCount;
-    const isMCAndSteelDisabled = !this.state.resourceCount[TRACKER_TYPES.STEEL];
-    const isMCAndTitanumDisabled = !this.state.resourceCount[TRACKER_TYPES.TITANIUM];
     const isBuyGreeneryDisabled = this.state.resourceCount[TRACKER_TYPES.PLANTS] < 8;
     const isBuyTemperatureDisabled = this.state.resourceCount[TRACKER_TYPES.HEAT] < 8;
 
@@ -365,7 +360,6 @@ export default class App extends Component<Props> {
                   { this.renderButton('#5B8BDD', 'list-ul', null, false, () => this.onHistory(true)) }
                 </View>
                 { this.renderButton('#5B8BDD', null, 'New Game', false, this.onNewGame) }
-                { this.renderButton('#FFCC33', null, 'Projects', false, this.onProjects, '#222222') }
               </View>
             </View>
             <View style={ styles.resources }>
@@ -385,8 +379,7 @@ export default class App extends Component<Props> {
                 { this.renderTracker(TRACKER_TYPES.GENERATION) }
               </View>
               <View style={ styles.sidebarButtons }>
-                { this.renderTransactionButton('#FFCC33', megacreditsIcon, steelIcon, 'plus', isMCAndSteelDisabled, this.onBuyWithSteel) }
-                { this.renderTransactionButton('#FFCC33', megacreditsIcon, titanmiumIcon, 'plus', isMCAndTitanumDisabled, this.onBuyWithTitanium) }
+                { this.renderButton('#FFCC33', null, 'Projects', false, this.onProjects, '#222222') }
                 { this.renderTransactionButton('#5FB365', plantsIcon, ImageIconGreenery, 'arrow-right', isBuyGreeneryDisabled, this.onBuyGreenery) }
                 { this.renderTransactionButton('#ED4E44', heatIcon, ImageIconTemperature, 'arrow-right', isBuyTemperatureDisabled, this.onBuyTemperature) }
               </View>
@@ -455,7 +448,6 @@ const styles = ExtendedStyleSheet.create({
   },
 
   safeAreaView: {
-    // backgroundColor: '#C18C6A',
     flex: 1
   },
 
@@ -471,12 +463,12 @@ const styles = ExtendedStyleSheet.create({
 
   sidebarButtons: {
     flex: 0.56,
-    maxHeight: '12rem'
+    maxHeight: '9rem'
   },
 
   sidebarTracker: {
     flex: 0.44,
-    maxHeight: '12rem'
+    maxHeight: '10rem'
   }
 
 });

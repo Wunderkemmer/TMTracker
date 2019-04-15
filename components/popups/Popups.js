@@ -176,15 +176,15 @@ const styles = ExtendedStyleSheet.create({
 
   headerIcon: {
     width: '2rem',
-    height: '2rem',
-    marginRight: '0.25rem'
+    height: '2rem'
   },
 
   headerText: {
     fontSize: '1.5rem',
     fontWeight: 'bold',
     color: '#222222',
-    margin: '0.2rem'
+    margin: '0.2rem',
+    paddingLeft: '0.25rem'
   }
 
 });

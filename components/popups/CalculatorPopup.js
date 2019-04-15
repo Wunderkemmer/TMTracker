@@ -291,7 +291,7 @@ const styles = ExtendedStyleSheet.create({
   },
 
   keyPadPlusMinus: {
-    marginTop: '0.05rem'
+    marginTop: '0.1rem'
   },
 
   keyPadPlusMinusText: {
