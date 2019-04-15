@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { Image, Text, View } from 'react-native';
+import { Image, Text, TouchableWithoutFeedback, View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 
@@ -208,13 +208,15 @@ export default class Tracker extends Component {
         <View style={ styles.count }>
           <Text style={ [ countTextStyle, colorStyle ] }>{ count }</Text>
         </View>
-        <View style={ styles.footer }>
-          <View style={ rateStyle }>
-            { this.renderDecrement() }
-            { this.renderRate() }
-            { this.renderIncrement() }
+        <TouchableWithoutFeedback>
+          <View style={ styles.footer }>
+            <View style={ rateStyle }>
+              { this.renderDecrement() }
+              { this.renderRate() }
+              { this.renderIncrement() }
+            </View>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Button>
     );
   }
@@ -292,7 +294,8 @@ const styles = ExtendedStyleSheet.create({
     fontSize: '0.9rem',
     fontWeight: 'bold',
     textAlign: 'center',
-    color: '#FFFFFF'
+    color: '#FFFFFF',
+    width: '100%'
   },
 
   rateDual: {

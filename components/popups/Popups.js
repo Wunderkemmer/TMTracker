@@ -38,9 +38,9 @@ export function hidePopup (id) {
   popupManagers.forEach((manager) => manager.onHidePopup(id));
 }
 
-// const fakeDismissForHiding = () => {
-//   // Do nothing!
-// };
+const fakeDismissForHiding = () => {
+  // Do nothing!
+};
 
 export class Popups extends Component {
 
@@ -65,7 +65,7 @@ export class Popups extends Component {
       this.props.children,
       (child) => React.cloneElement(child, popupStates[child.props.id] || {
         show: false,
-        // dismiss: fakeDismissForHiding
+        dismiss: fakeDismissForHiding,
       })
     );
   }
@@ -100,7 +100,7 @@ export class Popup extends Component {
 
     if (displayTitle) {
       return (
-        <Text style={ styles.headerText }>{ title }</Text>
+        <Text style={ styles.headerText }>{ displayTitle }</Text>
       );
     }
 
@@ -160,9 +160,9 @@ const styles = ExtendedStyleSheet.create({
   defaultPopup: {
     backgroundColor: 'transparent',
     minWidth: '50%',
-    height: '90%',
+    height: '95%',
     padding: '0rem',
-    marginBottom: '0.5rem'
+    paddingBottom: '0.75rem'
   },
 
   header: {
