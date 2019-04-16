@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 import React, { Component } from 'react';
 
 import { FlatList, Image, Text, View } from 'react-native';
@@ -13,55 +15,60 @@ export default class HistoryPopup extends Component {
 
   keyExtractor = (item, index) => `${ item.event }.${ index }`;
 
-  renderHistoryItem ({ item, index }) {
+  static renderHistoryIconRow (item, icon, text, textStyle) {
+    return (
+      <View style={ styles.item }>
+        <Image style={ styles.icon } resizeMode="contain" source={ icon } />
+        <View>
+          <Text style={ textStyle }>{ text }</Text>
+          <Text style={ styles.textTime }>{ moment(item.time).format('LLL') }</Text>
+        </View>
+      </View>
+    );
+  }
 
+  static renderHistoryRow (item, text, textStyle) {
+    return (
+      <View style={ styles.details }>
+        <Text style={ textStyle }>{ text }</Text>
+        <Text style={ styles.textTime }>{ moment(item.time).format('LLL') }</Text>
+      </View>
+    );
+  }
+
+  renderHistoryItem ({ item }) {
     switch (item.event) {
       case 'buyGreenery':
-        return (
-          <View style={ styles.item }>
-            <Image style={ styles.icon } resizeMode="contain" source={ ImageIconGreenery } />
-            <Text style={ styles.textIncrease }>Purchased Greenery</Text>
-          </View>
+        return HistoryPopup.renderHistoryIconRow(
+          item, ImageIconGreenery, 'Purchased Greenery', [ styles.text, styles.textIncrease ]
         );
 
       case 'buyTemperature':
-        return (
-          <View style={ styles.item }>
-            <Image style={ styles.icon } resizeMode="contain" source={ ImageIconTemperature } />
-            <Text style={ styles.textIncrease }>Purchased Temperature</Text>
-          </View>
+        return HistoryPopup.renderHistoryIconRow(
+          item, ImageIconTemperature, 'Purchased Temperature', [ styles.text, styles.textIncrease ]
         );
 
       case 'decrement': {
         const type = item.payload.type;
 
         const trackerInfo = TRACKER_INFOS[type];
-
         const icon = trackerInfo.icon;
         const title = trackerInfo.title;
 
         switch (type) {
           case TRACKER_TYPES.TERRAFORMING_RATING:
-            return (
-              <View style={ styles.item }>
-                <Image style={ styles.icon } resizeMode="contain" source={ icon } />
-                <Text style={ styles.textDecrease }>Decreased { title } by 1</Text>
-              </View>
+            return HistoryPopup.renderHistoryIconRow(
+              item, icon, `Decreased ${ title } by 1`, [ styles.text, styles.textDecrease ]
             );
 
           case TRACKER_TYPES.GENERATION:
-            return (
-              <View style={ styles.item }>
-                <Text style={ styles.text }>Returning to { title } { item.state.generation }</Text>
-              </View>
+            return HistoryPopup.renderHistoryRow(
+              item, `Returning to ${ title } ${ item.state.generation }`, styles.text
             );
 
           default:
-            return (
-              <View style={ styles.item }>
-                <Image style={ styles.icon } resizeMode="contain" source={ icon } />
-                <Text style={ styles.textDecrease }>Decreased { title } production by 1</Text>
-              </View>
+            return HistoryPopup.renderHistoryIconRow(
+              item, icon, `Decreased ${ title } production by 1`, [ styles.text, styles.textDecrease ]
             );
         }
       }
@@ -70,41 +77,30 @@ export default class HistoryPopup extends Component {
         const type = item.payload.type;
 
         const trackerInfo = TRACKER_INFOS[type];
-
         const icon = trackerInfo.icon;
         const title = trackerInfo.title;
 
         switch (type) {
           case TRACKER_TYPES.TERRAFORMING_RATING:
-            return (
-              <View style={ styles.item }>
-                <Image style={ styles.icon } resizeMode="contain" source={ icon } />
-                <Text style={ styles.textIncrease }>Increased { title } by 1</Text>
-              </View>
+            return HistoryPopup.renderHistoryIconRow(
+              item, icon, `Increased ${ title } by 1`, [ styles.text, styles.textIncrease ]
             );
 
           case TRACKER_TYPES.GENERATION:
-            return (
-              <View style={ styles.item }>
-                <Text style={ styles.text }>Starting { title } { item.state.generation }</Text>
-              </View>
+            return HistoryPopup.renderHistoryRow(
+              item, `Starting ${ title } ${ item.state.generation }`, styles.text
             );
 
           default:
-            return (
-              <View style={ styles.item }>
-                <Image style={ styles.icon } resizeMode="contain" source={ icon } />
-                <Text style={ styles.textIncrease }>Increased { title } production by 1</Text>
-              </View>
+            return HistoryPopup.renderHistoryIconRow(
+              item, icon, `Increased ${ title } production by 1`, [ styles.text, styles.textIncrease ]
             );
         }
       }
 
       case 'newGame':
-        return (
-          <View style={ styles.item }>
-            <Text style={ styles.text }>New Game!</Text>
-          </View>
+        return HistoryPopup.renderHistoryRow(
+          item, 'New Game!', styles.text
         );
     }
   }
@@ -114,14 +110,10 @@ export default class HistoryPopup extends Component {
 
     return (
       <FlatList
-        ref={ ref => this.flatList = ref}
         contentContainerStyle={ styles.container }
-        data={ history }
+        data={ history.reverse() }
         keyExtractor={ this.keyExtractor }
         renderItem={ this.renderHistoryItem }
-        onContentSizeChange={
-          (width, height) => this.flatList.scrollToOffset({ offset: height, animated: false })
-        }
       />
     );
   }
@@ -136,9 +128,13 @@ const styles = ExtendedStyleSheet.create({
     paddingVertical: '0.8rem'
   },
 
+  details: {
+    paddingVertical: '0.3rem'
+  },
+
   icon: {
-    width: '1.6rem',
-    height: '1.8rem',
+    width: '2.2rem',
+    height: '2.2rem',
     marginRight: '0.5rem'
   },
 
@@ -146,25 +142,27 @@ const styles = ExtendedStyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    paddingVertical: '0.2rem'
+    paddingVertical: '0.3rem'
   },
 
   text: {
-    fontSize: '1.4rem',
+    fontSize: '1.2rem',
     fontWeight: 'bold',
-    color: '#333333'
+    color: '#333333',
+    marginTop: '-0.2rem'
   },
 
   textDecrease: {
-    fontSize: '1.4rem',
-    fontWeight: 'bold',
     color: '#AA2222'
   },
 
   textIncrease: {
-    fontSize: '1.4rem',
-    fontWeight: 'bold',
     color: '#22AA22'
+  },
+
+  textTime: {
+    fontSize: '0.8rem',
+    color: '#222222'
   }
 
 });

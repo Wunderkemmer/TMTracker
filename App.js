@@ -71,7 +71,7 @@ export default class App extends Component<Props> {
   }
 
   addHistoryAndSetState (state, event, payload) {
-    this.history.push({ state, event, payload });
+    this.history.push({ state, event, payload, time: Date.now() });
 
     this.undoneHistory = [];
 
