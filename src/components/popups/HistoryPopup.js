@@ -15,10 +15,15 @@ export default class HistoryPopup extends Component {
 
   keyExtractor = (item, index) => `${ item.event }.${ index }`;
 
-  static renderHistoryIconRow (item, icon, text, textStyle) {
+  static renderHistoryIconRow (item, icon, text, textStyle, isProduction) {
+    const frameStyle = isProduction ? styles.production : styles.resource;
+    const iconStyle = isProduction ? styles.iconProduction : styles.iconResource;
+
     return (
       <View style={ styles.item }>
-        <Image style={ styles.icon } resizeMode="contain" source={ icon } />
+        <View style={ frameStyle }>
+          <Image style={ iconStyle } resizeMode="contain" source={ icon } />
+        </View>
         <View>
           <Text style={ textStyle }>{ text }</Text>
           <Text style={ styles.textTime }>{ moment(item.time).format('LLL') }</Text>
@@ -29,9 +34,11 @@ export default class HistoryPopup extends Component {
 
   static renderHistoryRow (item, text, textStyle) {
     return (
-      <View style={ styles.details }>
-        <Text style={ textStyle }>{ text }</Text>
-        <Text style={ styles.textTime }>{ moment(item.time).format('LLL') }</Text>
+      <View style={ styles.item }>
+        <View>
+          <Text style={ textStyle }>{ text }</Text>
+          <Text style={ styles.textTime }>{ moment(item.time).format('LLL') }</Text>
+        </View>
       </View>
     );
   }
@@ -40,12 +47,18 @@ export default class HistoryPopup extends Component {
     switch (item.event) {
       case 'buyGreenery':
         return HistoryPopup.renderHistoryIconRow(
-          item, ImageIconGreenery, 'Purchased Greenery', [ styles.text, styles.textIncrease ]
+          item,
+          ImageIconGreenery,
+          'Purchased Greenery',
+          [ styles.text, styles.textIncrease ]
         );
 
       case 'buyTemperature':
         return HistoryPopup.renderHistoryIconRow(
-          item, ImageIconTemperature, 'Purchased Temperature', [ styles.text, styles.textIncrease ]
+          item,
+          ImageIconTemperature,
+          'Purchased Temperature',
+          [ styles.text, styles.textIncrease ]
         );
 
       case 'decrement': {
@@ -58,17 +71,26 @@ export default class HistoryPopup extends Component {
         switch (type) {
           case TRACKER_TYPES.TERRAFORMING_RATING:
             return HistoryPopup.renderHistoryIconRow(
-              item, icon, `Decreased ${ title } by 1`, [ styles.text, styles.textDecrease ]
+              item,
+              icon,
+              `Decreased ${ title } by 1`,
+              [ styles.text, styles.textDecrease ]
             );
 
           case TRACKER_TYPES.GENERATION:
             return HistoryPopup.renderHistoryRow(
-              item, `Returning to ${ title } ${ item.state.generation }`, styles.text
+              item,
+              `Returning to ${ title } ${ item.state.generation }`,
+              styles.text
             );
 
           default:
             return HistoryPopup.renderHistoryIconRow(
-              item, icon, `Decreased ${ title } production by 1`, [ styles.text, styles.textDecrease ]
+              item,
+              icon,
+              `Decreased ${ title } production by 1`,
+              [ styles.text, styles.textDecrease ],
+              true
             );
         }
       }
@@ -83,24 +105,35 @@ export default class HistoryPopup extends Component {
         switch (type) {
           case TRACKER_TYPES.TERRAFORMING_RATING:
             return HistoryPopup.renderHistoryIconRow(
-              item, icon, `Increased ${ title } by 1`, [ styles.text, styles.textIncrease ]
+              item,
+              icon,
+              `Increased ${ title } by 1`,
+              [ styles.text, styles.textIncrease ]
             );
 
           case TRACKER_TYPES.GENERATION:
             return HistoryPopup.renderHistoryRow(
-              item, `Starting ${ title } ${ item.state.generation }`, styles.text
+              item,
+              `Starting ${ title } ${ item.state.generation }`,
+              styles.text
             );
 
           default:
             return HistoryPopup.renderHistoryIconRow(
-              item, icon, `Increased ${ title } production by 1`, [ styles.text, styles.textIncrease ]
+              item,
+              icon,
+              `Increased ${ title } production by 1`,
+              [ styles.text, styles.textIncrease ],
+              true
             );
         }
       }
 
       case 'newGame':
         return HistoryPopup.renderHistoryRow(
-          item, 'New Game!', styles.text
+          item,
+          'New Game!',
+          styles.text
         );
     }
   }
@@ -128,14 +161,14 @@ const styles = ExtendedStyleSheet.create({
     paddingVertical: '0.8rem'
   },
 
-  details: {
-    paddingVertical: '0.3rem'
+  iconResource: {
+    width: '2.2rem',
+    height: '2.2rem'
   },
 
-  icon: {
-    width: '2.2rem',
-    height: '2.2rem',
-    marginRight: '0.5rem'
+  iconProduction: {
+    width: '1.8rem',
+    height: '1.8rem'
   },
 
   item: {
@@ -145,11 +178,21 @@ const styles = ExtendedStyleSheet.create({
     paddingVertical: '0.3rem'
   },
 
+  production: {
+    backgroundColor: '#B37D43',
+    marginRight: '0.5rem',
+    padding: '0.25rem'
+  },
+
+  resource: {
+    marginRight: '0.5rem'
+  },
+
   text: {
     fontSize: '1.2rem',
     fontWeight: 'bold',
     color: '#333333',
-    marginTop: '-0.2rem'
+    marginTop: '-0.175rem'
   },
 
   textDecrease: {
