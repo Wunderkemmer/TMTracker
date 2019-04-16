@@ -1,19 +1,21 @@
+import { cloneDeep } from 'lodash';
+
 import React, { Component, Fragment } from 'react';
 
 import { Alert, Dimensions, Image, SafeAreaView, View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 
-import Button from './components/Button';
+import Button from './src/components/Button';
 
-import CalculatorPopup from './components/popups/CalculatorPopup';
-import HistoryPopup from './components/popups/HistoryPopup';
-import InfoPopup from './components/popups/InfoPopup';
-import { Popup, Popups, showPopup } from './components/popups/Popups';
-import ProjectsPopup from './components/popups/ProjectsPopup';
+import CalculatorPopup from './src/components/popups/CalculatorPopup';
+import HistoryPopup from './src/components/popups/HistoryPopup';
+import InfoPopup from './src/components/popups/InfoPopup';
+import { Popup, Popups, showPopup } from './src/components/popups/Popups';
+import ProjectsPopup from './src/components/popups/ProjectsPopup';
 
-import Tracker, { TRACKER_TYPES } from './components/Tracker';
-import TransactionButton from './components/TransactionButton';
+import Tracker, { TRACKER_TYPES } from './src/components/Tracker';
+import TransactionButton from './src/components/TransactionButton';
 import ImageMars from './resources/images/background_mars.jpg';
 
 import ImageIconGreenery from './resources/images/icon_greenery.png';
@@ -22,8 +24,10 @@ import ImageIconTemperature from './resources/images/icon_temperature.png';
 const { width, height } = Dimensions.get('window');
 
 ExtendedStyleSheet.build({
-  $rem: height > 375 ? 23 : width > 568 ? 16 : 12
+  $rem: width * 0.02
 });
+
+console.log('Dimensions:', width, height);
 
 type Props = {};
 
@@ -32,7 +36,6 @@ export default class App extends Component<Props> {
   defaultState = {
 
     generation: 1,
-    isShowingHistory: false,
     terraformingRating: 20,
 
     resourceCount: {
@@ -54,7 +57,7 @@ export default class App extends Component<Props> {
     },
 
     historyCount: 0,
-    undoneHistoryCount: 0,
+    undoneHistoryCount: 0
 
   };
 
@@ -67,19 +70,15 @@ export default class App extends Component<Props> {
     this.startGame();
   }
 
-  addHistory (event, payload) {
-    const state = JSON.parse(JSON.stringify(this.state));
-
-    this.history.push({ event, payload, state });
+  addHistoryAndSetState (state, event, payload) {
+    this.history.push({ state, event, payload });
 
     this.undoneHistory = [];
 
-    this.updateHistory(state);
+    this.updateHistoryCountsAndSetState(state, false);
   }
 
-  updateHistory (state) {
-    state = JSON.parse(JSON.stringify(state));
-
+  updateHistoryCountsAndSetState (state) {
     state.historyCount = this.history.length;
     state.undoneHistoryCount = this.undoneHistory.length;
 
@@ -87,47 +86,35 @@ export default class App extends Component<Props> {
   }
 
   startGame = () => {
-    const state = JSON.parse(JSON.stringify(this.defaultState));
+    const state = cloneDeep(this.defaultState);
 
-    this.setState(state, () => this.addHistory('newGame'));
+    this.addHistoryAndSetState(state, 'newGame');
   };
 
   onBuyTemperature = () => {
     if (this.state.resourceCount[TRACKER_TYPES.HEAT] >= 8) {
-      const state = JSON.parse(JSON.stringify(this.state));
+      const state = cloneDeep(this.state);
 
       state.terraformingRating += 1;
       state.resourceCount[TRACKER_TYPES.HEAT] -= 8;
 
-      this.setState(state, () => this.addHistory('buyTemperature'));
+      this.addHistoryAndSetState(state, 'buyTemperature');
     }
   };
 
   onBuyGreenery = () => {
     if (this.state.resourceCount[TRACKER_TYPES.PLANTS] >= 8) {
-      const state = JSON.parse(JSON.stringify(this.state));
+      const state = cloneDeep(this.state);
 
       state.terraformingRating += 1;
       state.resourceCount[TRACKER_TYPES.PLANTS] -= 8;
 
-      this.setState(state, () => this.addHistory('buyGreenery'));
+      this.addHistoryAndSetState(state, 'buyGreenery');
     }
   };
 
-  onBuyWithSteel = () => {
-    // TODO: Buy card with megacredits and steel
-
-    console.log('onBuyWithSteel');
-  };
-
-  onBuyWithTitanium = () => {
-    // TODO: Buy card with megacredits and titanium
-
-    console.log('onBuyWithTitanium');
-  };
-
   onDecrement = (type) => {
-    const state = JSON.parse(JSON.stringify(this.state));
+    const state = cloneDeep(this.state);
 
     let oldValue = null;
     let didSomething = false;
@@ -154,7 +141,7 @@ export default class App extends Component<Props> {
     }
 
     if (didSomething) {
-      this.setState(state, () => this.addHistory('decrement', { type }));
+      this.addHistoryAndSetState(state, 'decrement', { type });
     }
   };
 
@@ -169,7 +156,7 @@ export default class App extends Component<Props> {
   };
 
   onIncrement = (type) => {
-    const state = JSON.parse(JSON.stringify(this.state));
+    const state = cloneDeep(this.state);
 
     switch (type) {
       case TRACKER_TYPES.TERRAFORMING_RATING:
@@ -197,7 +184,7 @@ export default class App extends Component<Props> {
         state.resourceRate[type] += 1;
     }
 
-    this.setState(state, () => this.addHistory('increment', { type }));
+    this.addHistoryAndSetState(state, 'increment', { type });
   };
 
   onNewGame = () => {
@@ -218,7 +205,7 @@ export default class App extends Component<Props> {
 
       this.history.push(historyItem);
 
-      this.updateHistory(historyItem.state);
+      this.updateHistoryCountsAndSetState(cloneDeep(historyItem.state));
     }
   };
 
@@ -234,11 +221,11 @@ export default class App extends Component<Props> {
           state: this.state,
           type,
           onChange: (change) => {
-            const state = JSON.parse(JSON.stringify(this.state));
+            const state = cloneDeep(this.state);
 
             state.resourceCount[type] += change;
 
-            this.setState(state, () => this.addHistory('calculation', { type, change }));
+            this.addHistoryAndSetState(state, 'calculation', { type, change });
           }
         });
     }
@@ -260,7 +247,7 @@ export default class App extends Component<Props> {
 
       this.undoneHistory.push(historyItem);
 
-      this.updateHistory(this.history[length - 2].state);
+      this.updateHistoryCountsAndSetState(cloneDeep(this.history[length - 2].state));
     }
   };
 
@@ -335,7 +322,7 @@ export default class App extends Component<Props> {
     const plantsIcon = Tracker.getTrackerInfo(TRACKER_TYPES.PLANTS).icon;
     const heatIcon = Tracker.getTrackerInfo(TRACKER_TYPES.HEAT).icon;
 
-    const isUndoDisabled = this.state.historyCount < 2;
+    const isUndoDisabled = this.history[this.history.length - 1].event === 'newGame';
     const isRedoDisabled = !this.state.undoneHistoryCount;
     const isBuyGreeneryDisabled = this.state.resourceCount[TRACKER_TYPES.PLANTS] < 8;
     const isBuyTemperatureDisabled = this.state.resourceCount[TRACKER_TYPES.HEAT] < 8;

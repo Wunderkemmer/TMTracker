@@ -5,6 +5,7 @@ import React, { Component } from 'react';
 import { Text, View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
+
 import Button from '../Button';
 import { TRACKER_INFOS } from '../Tracker';
 
@@ -285,7 +286,7 @@ const styles = ExtendedStyleSheet.create({
     fontSize: '1.5rem',
     borderTopRightRadius: '0.5rem',
     borderBottomRightRadius: '0.5rem',
-    marginLeft: '-0.25rem',
+    marginLeft: '-0.3rem',
     paddingRight: '0.5rem'
   },
 

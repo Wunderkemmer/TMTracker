@@ -96,7 +96,7 @@ export class Popup extends Component {
   renderTitle = () => {
     const { type, title } = this.props;
 
-    const displayTitle = type ? TRACKER_INFOS[type].title + ' Calculator' : title;
+    const displayTitle = type ? 'Adjust ' + TRACKER_INFOS[type].title : title;
 
     if (displayTitle) {
       return (
@@ -110,7 +110,7 @@ export class Popup extends Component {
   render () {
     const { component, id, style, show, type } = this.props;
 
-    const headerStyle = { backgroundColor: type ? TRACKER_INFOS[type].color : '#ED721F' };
+    const headerStyle = { backgroundColor: type ? TRACKER_INFOS[type].color : '#5B8BDD' };
 
     return (
       <PopupDialog
@@ -159,7 +159,7 @@ const styles = ExtendedStyleSheet.create({
 
   defaultPopup: {
     backgroundColor: 'transparent',
-    minWidth: '50%',
+    minWidth: '40%',
     height: '95%',
     padding: '0rem',
     paddingBottom: '0.75rem'

@@ -4,12 +4,11 @@ import { Text, View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 
-export default class InfoPopup extends Component {
+export default class ProjectsPopup extends Component {
 
   render () {
     return (
       <View style={ styles.container }>
-        <Text>Info</Text>
       </View>
     );
   }

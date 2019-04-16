@@ -4,13 +4,13 @@ import { Image, Text, TouchableWithoutFeedback, View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 
-import ImageIconEnergy from '../resources/images/icon_energy.png';
-import ImageIconHeat from '../resources/images/icon_heat.png';
-import ImageIconMegaCredits from '../resources/images/icon_mega_credits.png';
-import ImageIconPlants from '../resources/images/icon_plants.png';
-import ImageIconSteel from '../resources/images/icon_steel.png';
-import ImageIconTerraformingRating from '../resources/images/icon_terraforming_rating.png';
-import ImageIconTitanium from '../resources/images/icon_titanium.png';
+import ImageIconEnergy from '../../resources/images/icon_energy.png';
+import ImageIconHeat from '../../resources/images/icon_heat.png';
+import ImageIconMegaCredits from '../../resources/images/icon_mega_credits.png';
+import ImageIconPlants from '../../resources/images/icon_plants.png';
+import ImageIconSteel from '../../resources/images/icon_steel.png';
+import ImageIconTerraformingRating from '../../resources/images/icon_terraforming_rating.png';
+import ImageIconTitanium from '../../resources/images/icon_titanium.png';
 
 import Button from './Button';
 
@@ -25,7 +25,7 @@ export const TRACKER_TYPES = {
   GENERATION: 'generation'
 };
 
-export const     TRACKER_INFOS = {
+export const TRACKER_INFOS = {
       [TRACKER_TYPES.TERRAFORMING_RATING]: {
         icon: ImageIconTerraformingRating,
         hideTitleInTracker: true,
@@ -239,7 +239,7 @@ const styles = ExtendedStyleSheet.create({
   },
 
   countTextLarge: {
-    fontSize: '4.25rem',
+    fontSize: '4.5rem',
     textAlign: 'center',
     color: '#333333',
     shadowColor: '#000000',
@@ -284,7 +284,7 @@ const styles = ExtendedStyleSheet.create({
 
   headerTextLarge: {
     flex: 4,
-    fontSize: '1.2rem',
+    fontSize: '1.1rem',
     fontWeight: 'bold',
     color: '#222222',
     margin: '0.2rem'
