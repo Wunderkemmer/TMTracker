@@ -185,8 +185,8 @@ const styles = ExtendedStyleSheet.create({
   },
 
   iconProduction: {
-    width: '1.8rem',
-    height: '1.8rem'
+    width: '1.7rem',
+    height: '1.7rem'
   },
 
   item: {
