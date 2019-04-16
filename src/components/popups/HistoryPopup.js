@@ -61,6 +61,24 @@ export default class HistoryPopup extends Component {
           [ styles.text, styles.textIncrease ]
         );
 
+      case 'calculation': {
+        const { type, change } = item.payload;
+
+        const trackerInfo = TRACKER_INFOS[type];
+        const icon = trackerInfo.icon;
+        const title = trackerInfo.title;
+
+        const changeText = change >= 0 ? '+' + change : change;
+        const changeStyle = change >= 0 ? styles.textIncrease : styles.textDecrease;
+
+        return HistoryPopup.renderHistoryIconRow(
+          item,
+          icon,
+          `Adjusted ${ title } by ${ changeText }`,
+          [ styles.text, changeStyle ]
+        );
+      }
+
       case 'decrement': {
         const type = item.payload.type;
 
@@ -180,11 +198,15 @@ const styles = ExtendedStyleSheet.create({
 
   production: {
     backgroundColor: '#B37D43',
+    borderColor: '#222222',
+    borderWidth: 1,
     marginRight: '0.5rem',
     padding: '0.25rem'
   },
 
   resource: {
+    borderColor: '#FFFFFF',
+    borderWidth: 1,
     marginRight: '0.5rem'
   },
 
