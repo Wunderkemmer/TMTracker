@@ -159,7 +159,7 @@ const styles = ExtendedStyleSheet.create({
 
   defaultPopup: {
     backgroundColor: 'transparent',
-    minWidth: '40%',
+    minWidth: '50%',
     height: '95%',
     padding: '0rem',
     paddingBottom: '0.75rem'

@@ -2,12 +2,13 @@ import Color from 'color';
 
 import React, { Component } from 'react';
 
-import { Text, View } from 'react-native';
+import { ImageBackground, Text, TouchableOpacity, View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 
 import Button from '../Button';
-import { TRACKER_INFOS } from '../Tracker';
+import { TRACKER_INFOS, TRACKER_TYPES } from '../Tracker';
 
 export default class CalculatorPopup extends Component {
 
@@ -20,8 +21,33 @@ export default class CalculatorPopup extends Component {
 
   state = {
     change: 0,
-    isNegative: false
+    isNegativeZero: true,
+
+    resourceCount: {
+      [TRACKER_TYPES.HEAT]: 0,
+      [TRACKER_TYPES.STEEL]: 0,
+      [TRACKER_TYPES.TITANIUM]: 0
+    }
   };
+
+  getResourcesValue () {
+    const { state } = this;
+    const { resourceCount } = state;
+
+    return state.change > 0 ?
+      0 :
+      resourceCount[TRACKER_TYPES.HEAT] +
+      resourceCount[TRACKER_TYPES.STEEL] * 2 +
+      resourceCount[TRACKER_TYPES.TITANIUM] * 3;
+  }
+
+  onAdjustResource (type, value) {
+    const { state } = this;
+
+    state.resourceCount[type] += value;
+
+    this.setState(state);
+  }
 
   onChange = () => {
     this.props.onChange(this.state.change);
@@ -60,15 +86,15 @@ export default class CalculatorPopup extends Component {
   };
 
   renderActionButton = () => {
-    const { type, state: parentState } = this.props;
     const { state } = this;
+    const { type, state: parentState } = this.props;
 
     const resourceCount = parentState.resourceCount[type];
-    const resourceTotal = resourceCount + state.change;
+    const resourceTotal = resourceCount + state.change + this.getResourcesValue();
 
     const isDisabled = state.change === 0 || resourceTotal < 0;
-    const backgroundColor = state.change < 0 ? '#ED4E44' : '#5FB365';
-    const name = state.change < 0 ? 'Deduct' : 'Credit';
+    const backgroundColor = state.change <= 0 ? '#ED4E44' : '#5FB365';
+    const name = state.change <= 0 ? 'Deduct' : 'Credit';
 
     return (
       <Button
@@ -123,9 +149,56 @@ export default class CalculatorPopup extends Component {
     }
   };
 
-  render () {
-    const { type, state: parentState } = this.props;
+  renderAdditionalResource = (type) => {
     const { state } = this;
+    const { state: parentState } = this.props;
+
+    const parentResourceCount = parentState.resourceCount[type];
+
+    if (!parentResourceCount) {
+      return null;
+    }
+
+    const resourceCount = state.resourceCount[type];
+    const resourceTotal = parentResourceCount - resourceCount;
+
+    const isDownDisabled = resourceCount === 0;
+    const isUpDisabled = resourceTotal <= 0;
+
+    const trackerInfo = TRACKER_INFOS[type];
+    const icon = trackerInfo.icon;
+
+    return (
+      <View style={ styles.resourceAdjuster }>
+        { this.renderResourceButton(type, 'angle-up', 1, isUpDisabled) }
+        <ImageBackground style={ styles.resourceIcon } resizeMode="contain" source={ icon }>
+          <Text style={ styles.resourceText }>{ state.resourceCount[type] }</Text>
+        </ImageBackground>
+        { this.renderResourceButton(type, 'angle-down', -1, isDownDisabled) }
+      </View>
+    );
+  };
+
+  renderResourceButton = (type, icon, value, isDisabled) => {
+    const { type: calculatorType } = this.props;
+
+    const style = isDisabled ? styles.resourceDisabled : null;
+    const colorStyle = { color: TRACKER_INFOS[calculatorType].color };
+
+    return (
+      <TouchableOpacity
+        style={ style }
+        disabled={ isDisabled }
+        onPress={ () => this.onAdjustResource(type, value) }
+      >
+        <FontAwesome5 style={ [ styles.resourceButton, colorStyle ] } name={ icon } />
+      </TouchableOpacity>
+    );
+  };
+
+  render () {
+    const { state } = this;
+    const { type, state: parentState } = this.props;
 
     const trackerInfo =  TRACKER_INFOS[type];
     const backgroundColorStyle = { backgroundColor: type ? trackerInfo.color : '#EEEEEE' };
@@ -133,11 +206,17 @@ export default class CalculatorPopup extends Component {
 
     const resourceCount = parentState.resourceCount[type];
 
-    const lighterColor = Color(trackerInfo.color).mix(Color('#FFFFFF'), 0.65);
+    const color = Color(trackerInfo.color);
+    const white = Color('#FFFFFF');
+
+    const lighterColor = color.mix(white, 0.65);
+    const lighterBackgroundColorStyle = { backgroundColor: color.mix(white, 0.85) };
 
     const changeText = state.isNegativeZero ?
       '-0' :
       state.change >= 0 ? '+' + state.change : state.change;
+
+    const resourcesText = '+' + this.getResourcesValue();
 
     return (
       <View style={ styles.container }>
@@ -165,22 +244,30 @@ export default class CalculatorPopup extends Component {
             </View>
           </View>
           <View style={ styles.steppers }>
-            { this.renderKeyPadButton(10, lighterColor, true) }
             { this.renderKeyPadButton(5, lighterColor, true) }
             { this.renderKeyPadButton(1, lighterColor, true) }
             { this.renderKeyPadButton(-1, lighterColor, true) }
             { this.renderKeyPadButton(-5, lighterColor, true) }
-            { this.renderKeyPadButton(-10, lighterColor, true) }
           </View>
         </View>
         <View style={ styles.tabulator }>
-          <Text style={ styles.infoText }>{ `Current ${ trackerInfo.title }` }</Text>
-          <Text style={ [ styles.currentText, colorStyle ] }>
-            { resourceCount }
-          </Text>
+          <View style={ styles.tabulatorRow }>
+            <Text style={ [ styles.tabulatorText, colorStyle ] }>{ `Current:` }</Text>
+            <Text style={ [ styles.currentText, colorStyle ] }>
+              { resourceCount }
+            </Text>
+          </View>
           <View style={ [ styles.keyPadTab, backgroundColorStyle ] }>
-            <Text style={ styles.infoTextTab }>{ `Change in ${ trackerInfo.title }` }</Text>
+            <Text style={ styles.keyPadTabText }>{ `Change:` }</Text>
             <Text style={ styles.changeText }>{ changeText }</Text>
+          </View>
+          <View style={ styles.tabulatorTab }>
+            <View style={ styles.tabulatorRow }>
+              { this.renderAdditionalResource(TRACKER_TYPES.HEAT) }
+              { this.renderAdditionalResource(TRACKER_TYPES.STEEL) }
+              { this.renderAdditionalResource(TRACKER_TYPES.TITANIUM) }
+            </View>
+            <Text style={ [ styles.changeText, colorStyle ] }>{ resourcesText }</Text>
           </View>
           { this.renderActionButton() }
         </View>
@@ -194,9 +281,10 @@ const styles = ExtendedStyleSheet.create({
 
   actionButton: {
     borderRadius: '0.5rem',
-    marginTop: '0.5rem',
+    marginTop: '-0.025rem',
     marginRight: '-0.025rem',
-    marginBottom: '-0.025rem'
+    marginBottom: '-0.025rem',
+    marginLeft: '0.5rem'
   },
 
   actionButtonRow: {
@@ -218,12 +306,12 @@ const styles = ExtendedStyleSheet.create({
   actionNameText: {
     fontSize: '1.5rem',
     fontWeight: 'bold',
-    color: '#FFFFFF'
+    color: '#FFFFFF',
+    marginVertical: '-0.1rem'
   },
 
   actionNewText: {
     fontSize: '1rem',
-    fontWeight: 'bold',
     color: '#FFFFFF'
   },
 
@@ -244,25 +332,8 @@ const styles = ExtendedStyleSheet.create({
     fontSize: '3rem',
     textAlign: 'right',
     color: '#FFCC33',
-    marginTop: '-0.25rem',
+    marginTop: '-0.5rem',
     marginRight: '0.35rem'
-  },
-
-  infoText: {
-    fontSize: '0.8rem',
-    fontWeight: 'bold',
-    textAlign: 'right',
-    color: '#444444',
-    marginRight: '0.5rem'
-  },
-
-  infoTextTab: {
-    fontSize: '0.8rem',
-    fontWeight: 'bold',
-    textAlign: 'right',
-    color: '#FFFFFF',
-    marginTop: '0.5rem',
-    marginBottom: '-0.2rem'
   },
 
   keyPad: {
@@ -282,16 +353,20 @@ const styles = ExtendedStyleSheet.create({
   },
 
   keyPadTab: {
-    alignItems: 'flex-end',
-    fontSize: '1.5rem',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
     borderTopRightRadius: '0.5rem',
     borderBottomRightRadius: '0.5rem',
-    marginLeft: '-0.3rem',
-    paddingRight: '0.5rem'
+    paddingHorizontal: '0.5rem'
   },
 
-  keyPadTextLarge: {
-    fontSize: '1.9rem'
+  keyPadTabText: {
+    fontSize: '0.8rem',
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginTop: '0.5rem',
+    marginBottom: '-0.2rem'
   },
 
   keyPadPlusMinus: {
@@ -304,23 +379,84 @@ const styles = ExtendedStyleSheet.create({
     marginVertical: '-0.65rem'
   },
 
+  keyPadTextLarge: {
+    fontSize: '1.9rem'
+  },
+
   keyPadTextSmall: {
-    fontSize: '1.25rem'
+    fontSize: '1.7rem'
   },
 
   numPad: {
     flex: 3
   },
 
+  resourceAdjuster: {
+    alignItems: 'center',
+    marginLeft: '0.15rem',
+    marginRight: '0.25rem'
+  },
+
+  resourceButton: {
+    fontSize: '2rem',
+    color: '#222222'
+  },
+
+  resourceDisabled: {
+    opacity: 0.25
+  },
+
+  resourceIcon: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '1.8rem',
+    height: '1.8rem'
+  },
+
+  resourcesText: {
+    fontSize: '3rem',
+    color: '#FFFFFF',
+    marginRight: '-0.1rem'
+  },
+
+  resourceText: {
+    fontSize: '1.2rem',
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    textShadowColor: '#000000',
+    textShadowOffset: { height: 0.1 },
+    textShadowRadius: 4
+  },
+
   steppers: {
     flex: 1,
-    marginLeft: '0.25rem'
+    marginLeft: '0.5rem'
   },
 
   tabulator: {
     flex: 1,
-    alignItems: 'stretch',
-    paddingLeft: '0.25rem'
+    alignItems: 'stretch'
+  },
+
+  tabulatorRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+
+  tabulatorTab: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    borderTopRightRadius: '0.5rem',
+    borderBottomRightRadius: '0.5rem',
+    paddingHorizontal: '0.5rem'
+  },
+
+  tabulatorText: {
+    fontSize: '0.8rem',
+    fontWeight: 'bold',
+    color: '#444444',
+    marginLeft: '0.5rem'
   }
 
 });
