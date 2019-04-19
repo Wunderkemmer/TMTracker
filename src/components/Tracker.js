@@ -75,19 +75,19 @@ export default class Tracker extends Component {
     return TRACKER_INFOS[type]
   };
 
-  renderDecrement = () => {
-    const { onDecrement, type } = this.props;
+  renderButton = (icon, onPress) => {
+    const { type } = this.props;
 
     const trackerInfo = TRACKER_INFOS[type];
 
-    if (onDecrement) {
+    if (onPress) {
       return (
         <Button
           style={ styles.button }
           backgroundColor="#FFFFFF"
           color="#222222"
-          icon="minus"
-          onPress={ () => onDecrement(type) }
+          icon={ icon }
+          onPress={ () => onPress(type) }
           useDebounce={ trackerInfo.useDebounce }
         />
       );
@@ -106,27 +106,6 @@ export default class Tracker extends Component {
     if (icon && !hideIconInTracker) {
       return (
         <Image style={ styles.headerIcon } resizeMode="contain" source={ icon } />
-      );
-    }
-
-    return null;
-  };
-
-  renderIncrement = () => {
-    const { onIncrement, type } = this.props;
-
-    const trackerInfo = TRACKER_INFOS[type];
-
-    if (onIncrement) {
-      return (
-        <Button
-          style={ styles.button }
-          backgroundColor="#FFFFFF"
-          color="#222222"
-          icon="plus"
-          onPress={ () => onIncrement(type) }
-          useDebounce={ trackerInfo.useDebounce }
-        />
       );
     }
 
@@ -174,11 +153,9 @@ export default class Tracker extends Component {
   };
 
   render () {
-    const { count, onDecrement, onIncrement, onPress, style, type } = this.props;
+    const { count, onDecrement, onHistory, onIncrement, onPress, style, type } = this.props;
 
     const trackerInfo = TRACKER_INFOS[type];
-
-    const rateStyle = onDecrement && onIncrement ? styles.rateDual : styles.rateSingle;
 
     let colorStyle;
     let countTextStyle;
@@ -210,10 +187,11 @@ export default class Tracker extends Component {
         </View>
         <TouchableWithoutFeedback>
           <View style={ styles.footer }>
-            <View style={ rateStyle }>
-              { this.renderDecrement() }
+            <View style={ styles.rate }>
+              { this.renderButton('bars', onHistory) }
+              { this.renderButton('minus', onDecrement) }
               { this.renderRate() }
-              { this.renderIncrement() }
+              { this.renderButton('plus', onIncrement) }
             </View>
           </View>
         </TouchableWithoutFeedback>
@@ -298,26 +276,19 @@ const styles = ExtendedStyleSheet.create({
     width: '100%'
   },
 
-  rateDual: {
+  rate: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: '0.2rem'
   },
 
-  rateSingle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: '0.2rem'
-  },
-
   rateText: {
-    fontSize: '2.3rem',
+    fontSize: '2.75rem',
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#FFFFFF',
-    marginVertical: '-0.5rem'
+    marginVertical: '-1rem'
   }
 
 });

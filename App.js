@@ -2,7 +2,7 @@ import { cloneDeep } from 'lodash';
 
 import React, { Component, Fragment } from 'react';
 
-import { Alert, Dimensions, Image, SafeAreaView, View } from 'react-native';
+import { Alert, Dimensions, Image, SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 
@@ -19,6 +19,8 @@ import TransactionButton from './src/components/TransactionButton';
 import ImageMars from './resources/images/background_mars.jpg';
 
 import ImageIconGreenery from './resources/images/icon_greenery.png';
+import ImageIconOcean from './resources/images/icon_ocean.png';
+import ImageIconOxygen from './resources/images/icon_oxygen.png';
 import ImageIconTemperature from './resources/images/icon_temperature.png';
 
 const { width, height } = Dimensions.get('window');
@@ -37,6 +39,10 @@ export default class App extends Component<Props> {
 
     generation: 1,
     terraformingRating: 20,
+
+    oceanCount: 0,
+    oxygenLevel: 0,
+    temperature: -30,
 
     resourceCount: {
       [TRACKER_TYPES.MEGACREDITS]: 20,
@@ -199,6 +205,26 @@ export default class App extends Component<Props> {
     );
   };
 
+  onOcean = () => {
+    const state = cloneDeep(this.state);
+
+    state.oceanCount = Math.min(state.oceanCount + 1, 9);
+
+    this.addHistoryAndSetState(state, 'oceanCount', { oceanCount: state.oceanCount });
+  };
+
+  onOxygen = () => {
+    const state = cloneDeep(this.state);
+
+    state.oxygenLevel = Math.min(state.oxygenLevel + 1, 14);
+
+    this.addHistoryAndSetState(state, 'oxygenLevel', { oxygenLevel: state.oxygenLevel });
+  };
+
+  onProjects = () => {
+    showPopup('projects');
+  };
+
   onRedo = () => {
     if (this.undoneHistory.length) {
       const historyItem = this.undoneHistory.pop();
@@ -207,6 +233,14 @@ export default class App extends Component<Props> {
 
       this.updateHistoryCountsAndSetState(cloneDeep(historyItem.state));
     }
+  };
+
+  onTemperature = () => {
+    const state = cloneDeep(this.state);
+
+    state.temperature = Math.min(state.temperature + 2, 8);
+
+    this.addHistoryAndSetState(state, 'temperature', { temperature: state.temperature });
   };
 
   onTracker = (type) => {
@@ -229,10 +263,6 @@ export default class App extends Component<Props> {
           }
         });
     }
-  };
-
-  onProjects = () => {
-    showPopup('projects');
   };
 
   onUndo = () => {
@@ -283,6 +313,7 @@ export default class App extends Component<Props> {
     let count;
     let rate;
     let onDecrement;
+    let onHistory;
 
     switch (type) {
       case TRACKER_TYPES.TERRAFORMING_RATING:
@@ -295,6 +326,7 @@ export default class App extends Component<Props> {
       case TRACKER_TYPES.GENERATION:
         style = styles.flex;
         count = generation;
+        onHistory = this.onHistory;
 
         break;
 
@@ -313,12 +345,15 @@ export default class App extends Component<Props> {
         rate={ rate }
         onPress={ this.onTracker }
         onDecrement={ onDecrement }
+        onHistory={ onHistory }
         onIncrement={ this.onIncrement }
       />
     );
   };
 
   render () {
+    const { oceanCount, oxygenLevel, temperature } = this.state;
+
     const plantsIcon = Tracker.getTrackerInfo(TRACKER_TYPES.PLANTS).icon;
     const heatIcon = Tracker.getTrackerInfo(TRACKER_TYPES.HEAT).icon;
 
@@ -326,6 +361,9 @@ export default class App extends Component<Props> {
     const isRedoDisabled = !this.state.undoneHistoryCount;
     const isBuyGreeneryDisabled = this.state.resourceCount[TRACKER_TYPES.PLANTS] < 8;
     const isBuyTemperatureDisabled = this.state.resourceCount[TRACKER_TYPES.HEAT] < 8;
+
+    const temperatureText = (temperature > 0 ? '+' + temperature : temperature) + '°';
+    const oxygenLevelText = oxygenLevel + '%';
 
     return (
       <Fragment>
@@ -336,16 +374,35 @@ export default class App extends Component<Props> {
               <View style={ styles.sidebarTracker }>
                 { this.renderTracker(TRACKER_TYPES.TERRAFORMING_RATING) }
               </View>
-              <View style={ styles.sidebarButtons }>
+              <View style={ styles.sidebarButtonsLeft }>
                 <View style={ styles.sidebarButtonRow }>
                   { this.renderButton('#5B8BDD', 'undo-alt', null, isUndoDisabled, this.onUndo) }
                   { this.renderButton('#5B8BDD', 'redo-alt', null, isRedoDisabled, this.onRedo) }
                 </View>
                 <View style={ styles.sidebarButtonRow }>
                   { this.renderButton('#5B8BDD', 'info-circle', null, false, this.onInfo) }
-                  { this.renderButton('#5B8BDD', 'list-ul', null, false, () => this.onHistory(true)) }
+                  { this.renderButton('#5B8BDD', 'file', null, false, this.onNewGame) }
                 </View>
-                { this.renderButton('#5B8BDD', null, 'New Game', false, this.onNewGame) }
+                <View style={ styles.sidebarToggleRow }>
+                  <View style={ styles.sidebarToggleColumn }>
+                    <TouchableOpacity onPress={ this.onOcean }>
+                      <Image style={ styles.toggleOcean } source={ ImageIconOcean } />
+                    </TouchableOpacity>
+                    <Text style={ styles.toggleBottomText }>{ oceanCount }</Text>
+                  </View>
+                  <View style={ styles.sidebarToggleColumn }>
+                    <TouchableOpacity onPress={ this.onTemperature }>
+                      <Text style={ styles.toggleTopText }>{ temperatureText }</Text>
+                      <Image style={ styles.toggleTemperature } source={ ImageIconTemperature } />
+                    </TouchableOpacity>
+                  </View>
+                  <View style={ styles.sidebarToggleColumn }>
+                    <TouchableOpacity onPress={ this.onOxygen }>
+                      <Image style={ styles.toggleOxygen } source={ ImageIconOxygen } />
+                    </TouchableOpacity>
+                    <Text style={ styles.toggleBottomText }>{ oxygenLevelText }</Text>
+                  </View>
+                </View>
               </View>
             </View>
             <View style={ styles.resources }>
@@ -364,7 +421,7 @@ export default class App extends Component<Props> {
               <View style={ styles.sidebarTracker }>
                 { this.renderTracker(TRACKER_TYPES.GENERATION) }
               </View>
-              <View style={ styles.sidebarButtons }>
+              <View style={ styles.sidebarButtonsRight }>
                 { this.renderTransactionButton('#5FB365', plantsIcon, ImageIconGreenery, 'arrow-right', isBuyGreeneryDisabled, this.onBuyGreenery) }
                 { this.renderTransactionButton('#ED4E44', heatIcon, ImageIconTemperature, 'arrow-right', isBuyTemperatureDisabled, this.onBuyTemperature) }
                 { this.renderButton('#5B8BDD', null, 'Projects', false, this.onProjects) }
@@ -443,18 +500,71 @@ const styles = ExtendedStyleSheet.create({
   },
 
   sidebarButtonRow: {
-    flex: 1.25,
-    flexDirection: 'row'
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between'
   },
 
-  sidebarButtons: {
+  sidebarButtonsLeft: {
     flex: 0.56,
-    maxHeight: '9rem'
+    maxHeight: '10rem'
+  },
+
+  sidebarButtonsRight: {
+    flex: 0.56,
+    maxHeight: '8.5rem'
+  },
+
+  sidebarToggleColumn: {
+    flex: 1,
+    alignItems: 'center'
+  },
+
+  sidebarToggleRow: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: '1.5rem',
+    marginHorizontal: '0.25rem'
   },
 
   sidebarTracker: {
     flex: 0.44,
     maxHeight: '10rem'
+  },
+
+  toggleOcean: {
+    width: '2.35rem',
+    height: '2.35rem'
+  },
+
+  toggleOxygen: {
+    width: '2.35rem',
+    height: '2.35rem'
+  },
+
+  toggleTemperature: {
+    width: '1rem',
+    height: '3rem',
+    marginTop: '0.5rem',
+  },
+
+  toggleTopText: {
+    fontSize: '0.9rem',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#FFFFFF',
+    marginTop: '-0.75rem',
+    marginHorizontal: '-1rem'
+  },
+
+  toggleBottomText: {
+    fontSize: '0.9rem',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#FFFFFF',
+    marginTop: '0.5rem',
+    marginHorizontal: '-1rem'
   }
 
 });

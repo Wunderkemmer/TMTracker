@@ -26,7 +26,7 @@ export default class HistoryPopup extends Component {
         </View>
         <View>
           <Text style={ textStyle }>{ text }</Text>
-          <Text style={ styles.textTime }>{ moment(item.time).format('LLL') }</Text>
+          <Text style={ styles.textTime }>{ moment(item.time).format('LL LTS') }</Text>
         </View>
       </View>
     );
@@ -37,7 +37,7 @@ export default class HistoryPopup extends Component {
       <View style={ styles.item }>
         <View>
           <Text style={ textStyle }>{ text }</Text>
-          <Text style={ styles.textTime }>{ moment(item.time).format('LLL') }</Text>
+          <Text style={ styles.textTime }>{ moment(item.time).format('LL LTS') }</Text>
         </View>
       </View>
     );

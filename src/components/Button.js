@@ -16,7 +16,7 @@ export default class Button extends Component {
       const colorStyle = color ? { color } : null;
 
       return (
-        <FontAwesome5 style={ [ styles.icon, colorStyle ] } name={ icon } />
+        <FontAwesome5 style={ [ styles.icon, colorStyle ] } name={ icon } solid={ true }/>
       );
     }
 
