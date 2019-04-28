@@ -294,7 +294,13 @@ export default class App extends Component<Props> {
         const state = cloneDeep(this.state);
         const types = Object.keys(change);
 
-        types.forEach((type) => state.resourceCount[type] += change[type]);
+        types.forEach((type) => {
+          if (type === TRACKER_TYPES.TERRAFORMING_RATING) {
+            state.terraformingRating += change[type]
+          } else {
+            state.resourceCount[type] += change[type]
+          }
+        });
 
         this.addHistoryAndSetState(state, 'calculation', { type, change });
       }
