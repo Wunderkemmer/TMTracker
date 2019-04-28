@@ -72,7 +72,6 @@ export default class CalculatorPopup extends Component {
 
     const newCount = state.resourceCount[type] + value;
     const trackerInfo = TRACKER_INFOS[type];
-
     const total = newCount * trackerInfo.multiplier;
 
     if (total > -state.change) {
@@ -106,6 +105,22 @@ export default class CalculatorPopup extends Component {
 
     this.props.onChange(change);
     this.props.dismiss();
+  };
+
+  onFastForwardResource = (type) => {
+    const { state } = this;
+    const { state: parentState } = this.props;
+
+    const trackerInfo = TRACKER_INFOS[type];
+
+    // Calculate the max number of resources we can add
+
+    const value = Math.min(
+      Math.floor(-(state.change + this.getResourcesValue()) / trackerInfo.multiplier),
+      parentState.resourceCount[type] - state.resourceCount[type]
+    );
+
+    this.onAdjustResource(type, value);
   };
 
   onKeyPad = (value) => {
@@ -169,7 +184,6 @@ export default class CalculatorPopup extends Component {
     const isDisabled = state.change === 0 || resourceTotal < 0;
     const threshold = TRACKER_INFOS[type].usePositiveCalculator ? -1 : 0;
     const backgroundColor = state.change <= threshold ? '#ED4E44' : '#5FB365';
-    const name = state.change <= threshold ? 'Deduct' : 'Credit';
 
     return (
       <Button
@@ -179,10 +193,7 @@ export default class CalculatorPopup extends Component {
         onPress={ this.onChange }
       >
         <View style={ styles.actionButtonRow }>
-          <View>
-            <Text style={ styles.actionNameText }>{ name }</Text>
-            <Text style={ styles.actionNewText }>New Total:</Text>
-          </View>
+          <Text style={ styles.actionText }>New Total:</Text>
           <Text style={ styles.actionChangeText }>{ Math.max(resourceTotal, 0) }</Text>
         </View>
       </Button>
@@ -225,11 +236,12 @@ export default class CalculatorPopup extends Component {
     return (
       <View style={ styles.tabulatorTab }>
         <View style={ styles.resourceAdjuster }>
-          { this.renderResourceButton(type, 'minus', -1, isDownDisabled) }
+          { this.renderResourceButton(type, 'minus', () => this.onAdjustResource(type, -1), isDownDisabled) }
           <ImageBackground style={ resourceImageStyle } resizeMode="contain" source={ image }>
             { this.renderAdditionalResourceCount(type) }
           </ImageBackground>
-          { this.renderResourceButton(type, 'plus', 1, isUpDisabled) }
+          { this.renderResourceButton(type, 'plus', () => this.onAdjustResource(type, 1), isUpDisabled) }
+          { this.renderResourceButton(type, 'chevron-right', () => this.onFastForwardResource(type), isUpDisabled) }
         </View>
         <Text style={ [ resourceChangeTextStyle, colorStyle ] }>{ resourcesText }</Text>
       </View>
@@ -288,18 +300,14 @@ export default class CalculatorPopup extends Component {
     }
   };
 
-  renderResourceButton = (type, icon, value, isDisabled) => {
+  renderResourceButton = (type, icon, onPress, isDisabled) => {
     const { type: calculatorType } = this.props;
 
     const style = isDisabled ? styles.resourceDisabled : null;
     const colorStyle = { color: TRACKER_INFOS[calculatorType].color };
 
     return (
-      <TouchableOpacity
-        style={ style }
-        disabled={ isDisabled }
-        onPress={ () => this.onAdjustResource(type, value) }
-      >
+      <TouchableOpacity style={ style } disabled={ isDisabled } onPress={ onPress }>
         <FontAwesome5 style={ [ styles.resourceButton, colorStyle ] } name={ icon } />
       </TouchableOpacity>
     );
@@ -356,7 +364,7 @@ export default class CalculatorPopup extends Component {
     return (
       <Fragment>
         <View style={ styles.resourceTint } />
-        <FontAwesome5 style={ styles.toggleButtonIcon } name="arrow-alt-circle-down" solid={ true } />
+        <FontAwesome5 style={ styles.toggleButtonIcon } name="chevron-circle-down" solid={ true } />
       </Fragment>
     );
   };
@@ -444,29 +452,26 @@ const styles = ExtendedStyleSheet.create({
   actionButtonRow: {
     flex: 1,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
-    paddingLeft: '0.5rem',
+    paddingLeft: '0.55rem',
     paddingRight: '0.25rem'
   },
 
   actionChangeText: {
+    alignSelf: 'center',
     fontSize: '3rem',
+    textAlign: 'center',
     color: '#FFFFFF',
-    // marginRight: '-0.1rem',
     marginVertical: '-0.5rem'
   },
 
-  actionNameText: {
-    fontSize: '1.5rem',
+  actionText: {
+    flex: 1,
+    fontSize: '1.2rem',
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginVertical: '-0.1rem'
-  },
-
-  actionNewText: {
-    fontSize: '1rem',
-    color: '#FFFFFF'
+    marginTop: '0.4rem'
   },
 
   button: {
@@ -495,7 +500,7 @@ const styles = ExtendedStyleSheet.create({
   },
 
   keyPad: {
-    flex: 1.25,
+    flex: 1.1,
     flexDirection: 'row',
     borderRadius: '0.5rem',
     padding: '0.5rem'
@@ -516,12 +521,14 @@ const styles = ExtendedStyleSheet.create({
     justifyContent: 'space-between',
     borderTopRightRadius: '0.5rem',
     borderBottomRightRadius: '0.5rem',
-    paddingHorizontal: '0.5rem',
-    marginBottom: '0.5rem'
+    paddingRight: '0.5rem',
+    paddingLeft: '0.6rem',
+    marginBottom: '0.5rem',
+    marginLeft: '-0.1rem'
   },
 
   keyPadTabText: {
-    fontSize: '1rem',
+    fontSize: '1.2rem',
     fontWeight: 'bold',
     color: '#FFFFFF',
     marginTop: '0.5rem',
@@ -554,7 +561,7 @@ const styles = ExtendedStyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    width: '45%',
+    width: '8rem',
     marginLeft: '0.15rem',
     marginRight: '0.25rem'
   },
@@ -647,15 +654,13 @@ const styles = ExtendedStyleSheet.create({
   },
 
   tabulatorText: {
-    fontSize: '1rem',
+    fontSize: '1.2rem',
     fontWeight: 'bold',
     color: '#444444',
     marginLeft: '0.5rem'
   },
 
   toggleButton: {
-    backgroundColor: 'red',
-
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: '0.5rem'
@@ -672,15 +677,15 @@ const styles = ExtendedStyleSheet.create({
   toggleButtonResourceImage: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: '2.1rem',
-    height: '2.1rem',
+    width: '2.2rem',
+    height: '2.2rem',
   },
 
   toggleButtons: {
     flexDirection: 'row',
     position: 'absolute',
-    top: '-2.5rem',
-    right: '3rem'
+    top: '-2.7rem',
+    right: '3.25rem'
   }
 
 });

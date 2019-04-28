@@ -38,9 +38,9 @@ export default class Button extends Component {
   }
 
   render () {
-    const { useDebounce = false, backgroundColor, isDisabled, style } = this.props;
+    const { useDebounce = false, backgroundColor, isDisabled, hideShadow, style } = this.props;
 
-    const borderStyle = { ...style };
+    const borderStyle = { ...(hideShadow ? styles.border : styles.borderShadow), ...style };
     const containerStyle = {};
 
     if (isDisabled) {
@@ -81,6 +81,13 @@ export default class Button extends Component {
 const styles = ExtendedStyleSheet.create({
 
   border: {
+    backgroundColor: '#222222',
+    flex: 1,
+    borderRadius: '0.8rem',
+    padding: '0.15rem'
+  },
+
+  borderShadow: {
     backgroundColor: '#222222',
     flex: 1,
     borderRadius: '0.8rem',

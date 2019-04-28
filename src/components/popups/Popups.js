@@ -97,7 +97,7 @@ export class Popup extends Component {
   renderTitle = () => {
     const { type, title } = this.props;
 
-    const displayTitle = type ? 'Adjust ' + TRACKER_INFOS[type].title : title;
+    const displayTitle = type ? 'Update ' + TRACKER_INFOS[type].title : title;
 
     if (displayTitle) {
       return (
@@ -131,6 +131,7 @@ export class Popup extends Component {
                 backgroundColor="#FF0000"
                 color="#FFFFFF"
                 icon="times"
+                hideShadow={ true }
                 onPress={ this.props.dismiss }
               />
             </View>
@@ -162,8 +163,8 @@ const styles = ExtendedStyleSheet.create({
 
   button: {
     borderRadius: '0.5rem',
-    maxWidth: '2.1rem',
-    height: '2.1rem'
+    maxWidth: '2.3rem',
+    height: '2.3rem'
   },
 
   container: {
@@ -190,21 +191,21 @@ const styles = ExtendedStyleSheet.create({
     alignItems: 'center',
     borderTopRightRadius: '0.7rem',
     borderTopLeftRadius: '0.7rem',
-    height: '3rem',
+    height: '3.2rem',
     paddingHorizontal: '0.45rem'
   },
 
   headerImage: {
-    width: '2rem',
-    height: '2rem'
+    width: '2.2rem',
+    height: '2.2rem'
   },
 
   headerText: {
-    fontSize: '1.5rem',
+    fontSize: '1.8rem',
     fontWeight: 'bold',
     color: '#222222',
     margin: '0.2rem',
-    paddingLeft: '0.25rem'
+    paddingLeft: '0.35rem'
   }
 
 });
