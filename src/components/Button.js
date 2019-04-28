@@ -16,7 +16,7 @@ export default class Button extends Component {
       const colorStyle = color ? { color } : null;
 
       return (
-        <FontAwesome5 style={ [ styles.icon, colorStyle ] } name={ icon } solid={ true }/>
+        <FontAwesome5 style={ [ styles.icon, colorStyle ] } name={ icon } solid={ true } />
       );
     }
 
@@ -84,7 +84,6 @@ const styles = ExtendedStyleSheet.create({
     backgroundColor: '#222222',
     flex: 1,
     borderRadius: '0.8rem',
-    margin: '0.2rem',
     padding: '0.15rem',
     shadowColor: '#000000',
     shadowOffset: {
@@ -103,7 +102,7 @@ const styles = ExtendedStyleSheet.create({
   },
 
   icon: {
-    fontSize: '1.2rem',
+    fontSize: '1.3rem',
     textAlign: 'center',
     color: '#FFFFFF'
   },

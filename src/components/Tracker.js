@@ -27,40 +27,43 @@ export const TRACKER_TYPES = {
 
 export const TRACKER_INFOS = {
       [TRACKER_TYPES.TERRAFORMING_RATING]: {
-        icon: ImageIconTerraformingRating,
+        image: ImageIconTerraformingRating,
         hideTitleInTracker: true,
         title: 'Terraforming Rating',
         color: '#ED721F'
       },
       [TRACKER_TYPES.MEGACREDITS]: {
-        icon: ImageIconMegaCredits,
+        image: ImageIconMegaCredits,
         title: 'MegaCredits',
         color: '#FFCC33'
       },
       [TRACKER_TYPES.STEEL]: {
-        icon: ImageIconSteel,
+        image: ImageIconSteel,
         title: 'Steel',
-        color: '#B37D43'
+        color: '#B37D43',
+        multiplier: 2
       },
       [TRACKER_TYPES.TITANIUM]: {
-        icon: ImageIconTitanium,
+        image: ImageIconTitanium,
         title: 'Titanium',
-        color: '#777777'
+        color: '#777777',
+        multiplier: 3
       },
       [TRACKER_TYPES.PLANTS]: {
-        icon: ImageIconPlants,
+        image: ImageIconPlants,
         title: 'Plants',
         color: '#5FB365'
       },
       [TRACKER_TYPES.ENERGY]: {
-        icon: ImageIconEnergy,
+        image: ImageIconEnergy,
         title: 'Energy',
         color: '#A34Cb8'
       },
       [TRACKER_TYPES.HEAT]: {
-        icon: ImageIconHeat,
+        image: ImageIconHeat,
         title: 'Heat',
-        color: '#ED4E44'
+        color: '#ED4E44',
+        multiplier: 1
       },
       [TRACKER_TYPES.GENERATION]: {
         title: 'Generation',
@@ -96,11 +99,11 @@ export default class Tracker extends Component {
     return null;
   };
 
-  renderIcon = () => {
+  renderImage = () => {
     const { type } = this.props;
 
     const trackerInfo = TRACKER_INFOS[type];
-    const icon = trackerInfo.icon;
+    const icon = trackerInfo.image;
     const hideIconInTracker = trackerInfo.hideIconInTracker;
 
     if (icon && !hideIconInTracker) {
@@ -179,7 +182,7 @@ export default class Tracker extends Component {
         onPress={ () => onPress(type) }
       >
         <View style={ styles.header }>
-          { this.renderIcon() }
+          { this.renderImage() }
           { this.renderTitle() }
         </View>
         <View style={ styles.count }>
@@ -205,8 +208,9 @@ const styles = ExtendedStyleSheet.create({
 
   button: {
     borderRadius: '0.5rem',
-    maxWidth: '2.1rem',
-    height: '2.1rem'
+    maxWidth: '2.3rem',
+    height: '2.3rem',
+    margin: '0.1rem'
   },
 
   count: {

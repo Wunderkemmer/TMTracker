@@ -25,6 +25,10 @@ import ImageIconTemperature from './resources/images/icon_temperature.png';
 
 const { width, height } = Dimensions.get('window');
 
+const MAX_OCEAN_COUNT = 9;
+const MAX_OXYGEN_LEVEL = 14;
+const MAX_TEMPERATURE = 8;
+
 ExtendedStyleSheet.build({
   $rem: width * 0.02
 });
@@ -98,22 +102,37 @@ export default class App extends Component<Props> {
   };
 
   onBuyTemperature = () => {
-    if (this.state.resourceCount[TRACKER_TYPES.HEAT] >= 8) {
-      const state = cloneDeep(this.state);
+    let { state } = this;
 
-      state.terraformingRating += 1;
-      state.resourceCount[TRACKER_TYPES.HEAT] -= 8;
+    if (state.resourceCount[TRACKER_TYPES.HEAT] >= 8) {
+      const newTemperature = Math.min(state.temperature + 2, MAX_TEMPERATURE);
 
-      this.addHistoryAndSetState(state, 'buyTemperature');
+      if (state.temperature !== newTemperature) {
+        state = cloneDeep(state);
+
+        state.temperature = newTemperature;
+        state.terraformingRating += 1;
+        state.resourceCount[TRACKER_TYPES.HEAT] -= 8;
+
+        this.addHistoryAndSetState(state, 'buyTemperature');
+      }
     }
   };
 
   onBuyGreenery = () => {
-    if (this.state.resourceCount[TRACKER_TYPES.PLANTS] >= 8) {
-      const state = cloneDeep(this.state);
+    let { state } = this;
 
-      state.terraformingRating += 1;
-      state.resourceCount[TRACKER_TYPES.PLANTS] -= 8;
+    if (state.resourceCount[TRACKER_TYPES.PLANTS] >= 8) {
+      state = cloneDeep(state);
+
+      const newOxygenLevel = Math.min(state.oxygenLevel + 1, MAX_OXYGEN_LEVEL);
+
+      if (state.oxygenLevel !== newOxygenLevel) {
+        state.oxygenLevel = newOxygenLevel;
+        state.terraformingRating += 1;
+      }
+
+      state.resourceCount[TRACKER_TYPES.HEAT] -= 8;
 
       this.addHistoryAndSetState(state, 'buyGreenery');
     }
@@ -206,19 +225,31 @@ export default class App extends Component<Props> {
   };
 
   onOcean = () => {
-    const state = cloneDeep(this.state);
+    let { state } = this;
 
-    state.oceanCount = Math.min(state.oceanCount + 1, 9);
+    const newOceanCount = Math.min(state.oceanCount + 1, MAX_OCEAN_COUNT);
 
-    this.addHistoryAndSetState(state, 'oceanCount', { oceanCount: state.oceanCount });
+    if (state.oceanCount !== newOceanCount) {
+      state = cloneDeep(state);
+
+      state.oceanCount = newOceanCount;
+
+      this.addHistoryAndSetState(state, 'oceanCount', { value: state.oceanCount });
+    }
   };
 
   onOxygen = () => {
-    const state = cloneDeep(this.state);
+    let { state } = this;
 
-    state.oxygenLevel = Math.min(state.oxygenLevel + 1, 14);
+    const newOxygenLevel = Math.min(state.oxygenLevel + 1, MAX_OXYGEN_LEVEL);
 
-    this.addHistoryAndSetState(state, 'oxygenLevel', { oxygenLevel: state.oxygenLevel });
+    if (state.oxygenLevel !== newOxygenLevel) {
+      state = cloneDeep(state);
+
+      state.oxygenLevel = newOxygenLevel;
+
+      this.addHistoryAndSetState(state, 'oxygenLevel', { value: state.oxygenLevel });
+    }
   };
 
   onProjects = () => {
@@ -236,33 +267,39 @@ export default class App extends Component<Props> {
   };
 
   onTemperature = () => {
-    const state = cloneDeep(this.state);
+    let { state } = this;
 
-    state.temperature = Math.min(state.temperature + 2, 8);
+    const newTemperature = Math.min(state.temperature + 2, MAX_TEMPERATURE);
 
-    this.addHistoryAndSetState(state, 'temperature', { temperature: state.temperature });
+    if (state.temperature !== newTemperature) {
+      state = cloneDeep(state);
+
+      state.temperature = newTemperature;
+
+      this.addHistoryAndSetState(state, 'temperature', { value: state.temperature });
+    }
   };
 
   onTracker = (type) => {
-    switch (type) {
-      case TRACKER_TYPES.TERRAFORMING_RATING:
-      case TRACKER_TYPES.GENERATION:
-        this.onHistory();
-        break;
+    if (type === TRACKER_TYPES.GENERATION) {
+      this.onHistory();
 
-      default:
-        showPopup('calculator', {
-          state: this.state,
-          type,
-          onChange: (change) => {
-            const state = cloneDeep(this.state);
-
-            state.resourceCount[type] += change;
-
-            this.addHistoryAndSetState(state, 'calculation', { type, change });
-          }
-        });
+      return;
     }
+
+    showPopup('calculator', {
+      state: this.state,
+      type,
+      onChange: (change) => {
+        const state = cloneDeep(this.state);
+
+        const types = Object.keys(change);
+
+        types.forEach((type) => state.resourceCount[type] += change[type]);
+
+        this.addHistoryAndSetState(state, 'calculation', { type, change });
+      }
+    });
   };
 
   onUndo = () => {
@@ -284,22 +321,10 @@ export default class App extends Component<Props> {
   renderButton = (backgroundColor, icon, text, isDisabled, onPress) => {
     return (
       <Button
+        style={ styles.button }
         backgroundColor={ backgroundColor }
         icon={ icon }
         text={ text }
-        isDisabled={ isDisabled }
-        onPress={ onPress }
-      />
-    );
-  };
-
-  renderTransactionButton = (backgroundColor, image1, image2, icon, isDisabled, onPress) => {
-    return (
-      <TransactionButton
-        backgroundColor={ backgroundColor }
-        icon={ icon }
-        image1={ image1 }
-        image2={ image2 }
         isDisabled={ isDisabled }
         onPress={ onPress }
       />
@@ -313,27 +338,40 @@ export default class App extends Component<Props> {
     let count;
     let rate;
     let onDecrement;
+    let onIncrement;
     let onHistory;
 
     switch (type) {
       case TRACKER_TYPES.TERRAFORMING_RATING:
-        style = styles.flex;
+        style = styles.trackerTiny;
         count = terraformingRating;
         onDecrement = this.onDecrement;
+        onIncrement = this.onIncrement;
 
         break;
 
       case TRACKER_TYPES.GENERATION:
-        style = styles.flex;
+        style = styles.trackerTiny;
         count = generation;
         onHistory = this.onHistory;
+        onIncrement = this.onIncrement;
 
         break;
 
-      default:
+      case TRACKER_TYPES.MEGACREDITS:
+        style = styles.tracker;
         count = resourceCount[type];
         rate = resourceRate[type];
         onDecrement = this.onDecrement;
+        onIncrement = this.onIncrement;
+        break;
+
+      default:
+        style = styles.tracker;
+        count = resourceCount[type];
+        rate = resourceRate[type];
+        onDecrement = this.onDecrement;
+        onIncrement = this.onIncrement;
     }
 
     return (
@@ -346,21 +384,39 @@ export default class App extends Component<Props> {
         onPress={ this.onTracker }
         onDecrement={ onDecrement }
         onHistory={ onHistory }
-        onIncrement={ this.onIncrement }
+        onIncrement={ onIncrement }
+      />
+    );
+  };
+
+  renderTransactionButton = (backgroundColor, image1, image2, icon, isDisabled, onPress) => {
+    return (
+      <TransactionButton
+        style={ styles.button }
+        backgroundColor={ backgroundColor }
+        icon={ icon }
+        image1={ image1 }
+        image2={ image2 }
+        isDisabled={ isDisabled }
+        onPress={ onPress }
       />
     );
   };
 
   render () {
-    const { oceanCount, oxygenLevel, temperature } = this.state;
+    const { oceanCount, oxygenLevel, resourceCount, temperature } = this.state;
 
-    const plantsIcon = Tracker.getTrackerInfo(TRACKER_TYPES.PLANTS).icon;
-    const heatIcon = Tracker.getTrackerInfo(TRACKER_TYPES.HEAT).icon;
+    const plantsImage = Tracker.getTrackerInfo(TRACKER_TYPES.PLANTS).image;
+    const heatImage = Tracker.getTrackerInfo(TRACKER_TYPES.HEAT).image;
 
     const isUndoDisabled = this.history[this.history.length - 1].event === 'newGame';
     const isRedoDisabled = !this.state.undoneHistoryCount;
-    const isBuyGreeneryDisabled = this.state.resourceCount[TRACKER_TYPES.PLANTS] < 8;
-    const isBuyTemperatureDisabled = this.state.resourceCount[TRACKER_TYPES.HEAT] < 8;
+
+    const isBuyGreeneryDisabled =
+      resourceCount[TRACKER_TYPES.PLANTS] < 8;
+
+    const isBuyTemperatureDisabled =
+      resourceCount[TRACKER_TYPES.HEAT] < 8 || temperature >= MAX_TEMPERATURE;
 
     const temperatureText = (temperature > 0 ? '+' + temperature : temperature) + '°';
     const oxygenLevelText = oxygenLevel + '%';
@@ -383,6 +439,7 @@ export default class App extends Component<Props> {
                   { this.renderButton('#5B8BDD', 'info-circle', null, false, this.onInfo) }
                   { this.renderButton('#5B8BDD', 'file', null, false, this.onNewGame) }
                 </View>
+                <View style={ styles.flex } />
                 <View style={ styles.sidebarToggleRow }>
                   <View style={ styles.sidebarToggleColumn }>
                     <TouchableOpacity onPress={ this.onOcean }>
@@ -422,8 +479,8 @@ export default class App extends Component<Props> {
                 { this.renderTracker(TRACKER_TYPES.GENERATION) }
               </View>
               <View style={ styles.sidebarButtonsRight }>
-                { this.renderTransactionButton('#5FB365', plantsIcon, ImageIconGreenery, 'arrow-right', isBuyGreeneryDisabled, this.onBuyGreenery) }
-                { this.renderTransactionButton('#ED4E44', heatIcon, ImageIconTemperature, 'arrow-right', isBuyTemperatureDisabled, this.onBuyTemperature) }
+                { this.renderTransactionButton('#5FB365', plantsImage, ImageIconGreenery, 'arrow-right', isBuyGreeneryDisabled, this.onBuyGreenery) }
+                { this.renderTransactionButton('#ED4E44', heatImage, ImageIconTemperature, 'arrow-right', isBuyTemperatureDisabled, this.onBuyTemperature) }
                 { this.renderButton('#5B8BDD', null, 'Projects', false, this.onProjects) }
               </View>
             </View>
@@ -468,6 +525,12 @@ const styles = ExtendedStyleSheet.create({
     height: '100%'
   },
 
+  button: {
+    maxHeight: '2.6rem',
+    minHeight: '2.6rem',
+    margin: '0.2rem'
+  },
+
   container: {
     flex: 1,
     flexDirection: 'row',
@@ -479,7 +542,7 @@ const styles = ExtendedStyleSheet.create({
   },
 
   resources: {
-    flex: 4.65,
+    flex: 4,
     paddingVertical: '0.25rem'
   },
 
@@ -500,19 +563,17 @@ const styles = ExtendedStyleSheet.create({
   },
 
   sidebarButtonRow: {
-    flex: 1,
     flexDirection: 'row',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
+    // maxHeight: '3.2rem'
   },
 
   sidebarButtonsLeft: {
-    flex: 0.56,
-    maxHeight: '10rem'
+    flex: 1
   },
 
   sidebarButtonsRight: {
-    flex: 0.56,
-    maxHeight: '8.5rem'
+    flex: 1
   },
 
   sidebarToggleColumn: {
@@ -521,50 +582,60 @@ const styles = ExtendedStyleSheet.create({
   },
 
   sidebarToggleRow: {
-    flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: '1.5rem',
-    marginHorizontal: '0.25rem'
+    marginTop: '0.2rem',
+    marginBottom: '0.25rem',
+    marginHorizontal: '0.35rem'
   },
 
   sidebarTracker: {
-    flex: 0.44,
+    flex: 1,
     maxHeight: '10rem'
   },
 
   toggleOcean: {
     width: '2.35rem',
-    height: '2.35rem'
+    height: '2.35rem',
+    marginTop: '1rem'
   },
 
   toggleOxygen: {
     width: '2.35rem',
-    height: '2.35rem'
+    height: '2.35rem',
+    marginTop: '1rem'
   },
 
   toggleTemperature: {
-    width: '1rem',
+    width: '1.5rem',
     height: '3rem',
-    marginTop: '0.5rem',
+    marginTop: '0.4rem',
   },
 
   toggleTopText: {
-    fontSize: '0.9rem',
+    fontSize: '1rem',
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#FFFFFF',
-    marginTop: '-0.75rem',
     marginHorizontal: '-1rem'
   },
 
   toggleBottomText: {
-    fontSize: '0.9rem',
+    fontSize: '1rem',
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#FFFFFF',
-    marginTop: '0.5rem',
+    marginTop: '0.4rem',
     marginHorizontal: '-1rem'
+  },
+
+  tracker: {
+    margin: '0.2rem'
+  },
+
+  trackerTiny: {
+    flex: 1,
+    margin: '0.2rem'
   }
 
 });

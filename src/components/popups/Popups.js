@@ -5,6 +5,7 @@ import { Image, Text, View } from 'react-native';
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 import PopupDialog, { SlideAnimation } from 'react-native-popup-dialog';
 
+import Button from '../Button';
 import { TRACKER_INFOS } from '../Tracker';
 
 const popupManagers = [];
@@ -76,16 +77,16 @@ export class Popup extends Component {
 
   slideAnimation = new SlideAnimation({ slideFrom: 'bottom' });
 
-  renderIcon = () => {
+  renderImage = () => {
     const { type } = this.props;
 
     if (type) {
       const trackerInfo = TRACKER_INFOS[type];
-      const icon = trackerInfo.icon;
+      const image = trackerInfo.image;
 
-      if (icon) {
+      if (image) {
         return (
-          <Image style={ styles.headerIcon } resizeMode="contain" source={ icon } />
+          <Image style={ styles.headerImage } resizeMode="contain" source={ image } />
         );
       }
     }
@@ -122,8 +123,16 @@ export class Popup extends Component {
         <View style={ styles.border }>
           <View style={ styles.container }>
             <View style={ [ styles.header, headerStyle ] }>
-              { this.renderIcon() }
+              { this.renderImage() }
               { this.renderTitle() }
+              <View style={ styles.filler } />
+              <Button
+                style={ styles.button }
+                backgroundColor="#FF0000"
+                color="#FFFFFF"
+                icon="times"
+                onPress={ this.props.dismiss }
+              />
             </View>
             { React.createElement(component, this.props) }
           </View>
@@ -151,6 +160,12 @@ const styles = ExtendedStyleSheet.create({
     shadowOpacity: 0.5
   },
 
+  button: {
+    borderRadius: '0.5rem',
+    maxWidth: '2.1rem',
+    height: '2.1rem'
+  },
+
   container: {
     backgroundColor: '#FFFFFF',
     borderRadius: '0.7rem',
@@ -165,6 +180,10 @@ const styles = ExtendedStyleSheet.create({
     paddingBottom: '0.75rem'
   },
 
+  filler: {
+    flex: 1
+  },
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -174,7 +193,7 @@ const styles = ExtendedStyleSheet.create({
     paddingHorizontal: '0.45rem'
   },
 
-  headerIcon: {
+  headerImage: {
     width: '2rem',
     height: '2rem'
   },

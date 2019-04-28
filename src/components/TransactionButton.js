@@ -45,7 +45,8 @@ const styles = ExtendedStyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-evenly'
+    justifyContent: 'space-between',
+    paddingHorizontal: '0.4rem'
   }
 
 });

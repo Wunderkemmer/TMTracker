@@ -27,8 +27,34 @@ export default class CalculatorPopup extends Component {
       [TRACKER_TYPES.HEAT]: 0,
       [TRACKER_TYPES.STEEL]: 0,
       [TRACKER_TYPES.TITANIUM]: 0
+    },
+
+    useResource: {
+      [TRACKER_TYPES.HEAT]: false,
+      [TRACKER_TYPES.STEEL]: false,
+      [TRACKER_TYPES.TITANIUM]: false,
     }
   };
+
+  capResourceValues (state) {
+    if (state.useResource[TRACKER_TYPES.HEAT]) {
+      while (state.resourceCount[TRACKER_TYPES.HEAT] > 0 && this.getResourcesValue() > -state.change) {
+        state.resourceCount[TRACKER_TYPES.HEAT]--;
+      }
+    }
+
+    if (state.useResource[TRACKER_TYPES.STEEL]) {
+      while (state.resourceCount[TRACKER_TYPES.STEEL] > 0 && this.getResourcesValue() > -state.change) {
+        state.resourceCount[TRACKER_TYPES.STEEL]--;
+      }
+    }
+
+    if (state.useResource[TRACKER_TYPES.TITANIUM]) {
+      while (state.resourceCount[TRACKER_TYPES.TITANIUM] > 0 && this.getResourcesValue() > -state.change) {
+        state.resourceCount[TRACKER_TYPES.TITANIUM]--;
+      }
+    }
+  }
 
   getResourcesValue () {
     const { state } = this;
@@ -36,13 +62,22 @@ export default class CalculatorPopup extends Component {
 
     return state.change > 0 ?
       0 :
-      resourceCount[TRACKER_TYPES.HEAT] +
-      resourceCount[TRACKER_TYPES.STEEL] * 2 +
-      resourceCount[TRACKER_TYPES.TITANIUM] * 3;
+      (state.useResource[TRACKER_TYPES.HEAT] ? resourceCount[TRACKER_TYPES.HEAT] : 0) +
+      (state.useResource[TRACKER_TYPES.STEEL] ? resourceCount[TRACKER_TYPES.STEEL] * 2 : 0) +
+      (state.useResource[TRACKER_TYPES.TITANIUM] ? resourceCount[TRACKER_TYPES.TITANIUM] * 3 : 0);
   }
 
   onAdjustResource (type, value) {
     const { state } = this;
+
+    const newCount = state.resourceCount[type] + value;
+    const trackerInfo = TRACKER_INFOS[type];
+
+    const total = newCount * trackerInfo.multiplier;
+
+    if (total > -state.change) {
+      return;
+    }
 
     state.resourceCount[type] += value;
 
@@ -50,7 +85,26 @@ export default class CalculatorPopup extends Component {
   }
 
   onChange = () => {
-    this.props.onChange(this.state.change);
+    const { state } = this;
+    const { type } = this.props;
+
+    const change = {
+      [type]: state.change + this.getResourcesValue()
+    };
+
+    if (state.useResource[TRACKER_TYPES.HEAT]) {
+      change[TRACKER_TYPES.HEAT] = -state.resourceCount[TRACKER_TYPES.HEAT];
+    }
+
+    if (state.useResource[TRACKER_TYPES.STEEL]) {
+      change[TRACKER_TYPES.STEEL] = -state.resourceCount[TRACKER_TYPES.STEEL];
+    }
+
+    if (state.useResource[TRACKER_TYPES.TITANIUM]) {
+      change[TRACKER_TYPES.TITANIUM] = -state.resourceCount[TRACKER_TYPES.TITANIUM];
+    }
+
+    this.props.onChange(change);
     this.props.dismiss();
   };
 
@@ -59,7 +113,11 @@ export default class CalculatorPopup extends Component {
 
     if (value === 'C') {
       state.change = 0;
-      state.isNegativeZero = false;
+      state.isNegativeZero = true;
+
+      state.resourceCount[TRACKER_TYPES.HEAT] = 0;
+      state.resourceCount[TRACKER_TYPES.STEEL] = 0;
+      state.resourceCount[TRACKER_TYPES.TITANIUM] = 0;
     } else if (value === '±') {
       if (state.change === 0) {
         state.isNegativeZero = !state.isNegativeZero;
@@ -82,6 +140,22 @@ export default class CalculatorPopup extends Component {
       state.isNegativeZero = false;
     }
 
+    this.capResourceValues(state);
+    this.setState(state);
+  };
+
+  onToggle = (type) => {
+    const { state } = this;
+
+    state.useResource[type] = !state.useResource[type];
+
+    if (type === TRACKER_TYPES.STEEL) {
+      state.useResource[TRACKER_TYPES.TITANIUM] = false;
+    } else if (type === TRACKER_TYPES.TITANIUM) {
+      state.useResource[TRACKER_TYPES.STEEL] = false;
+    }
+
+    this.capResourceValues(state);
     this.setState(state);
   };
 
@@ -154,27 +228,36 @@ export default class CalculatorPopup extends Component {
     const { state: parentState } = this.props;
 
     const parentResourceCount = parentState.resourceCount[type];
+    const useResource = state.useResource[type];
 
-    if (!parentResourceCount) {
+    if (!parentResourceCount || !useResource) {
       return null;
     }
 
     const resourceCount = state.resourceCount[type];
     const resourceTotal = parentResourceCount - resourceCount;
 
-    const isDownDisabled = resourceCount === 0;
-    const isUpDisabled = resourceTotal <= 0;
-
     const trackerInfo = TRACKER_INFOS[type];
-    const icon = trackerInfo.icon;
+    const isDownDisabled = resourceCount === 0;
+
+    const isUpDisabled =
+      resourceTotal <= 0 ||
+      this.getResourcesValue() + trackerInfo.multiplier > -state.change;
+
+    const image = trackerInfo.image;
+    const colorStyle = { color: type ? trackerInfo.color : '#222222' };
+    const resourcesText = '+' + resourceCount * trackerInfo.multiplier;
 
     return (
-      <View style={ styles.resourceAdjuster }>
-        { this.renderResourceButton(type, 'angle-up', 1, isUpDisabled) }
-        <ImageBackground style={ styles.resourceIcon } resizeMode="contain" source={ icon }>
-          <Text style={ styles.resourceText }>{ state.resourceCount[type] }</Text>
-        </ImageBackground>
-        { this.renderResourceButton(type, 'angle-down', -1, isDownDisabled) }
+      <View style={ styles.tabulatorTab }>
+        <View style={ styles.resourceAdjuster }>
+          { this.renderResourceButton(type, 'minus', -1, isDownDisabled) }
+          <ImageBackground style={ styles.resourceImage } resizeMode="contain" source={ image }>
+            <Text style={ styles.resourceText }>{ state.resourceCount[type] }</Text>
+          </ImageBackground>
+          { this.renderResourceButton(type, 'plus', 1, isUpDisabled) }
+        </View>
+        <Text style={ [ styles.resourceChangeText, colorStyle ] }>{ resourcesText }</Text>
       </View>
     );
   };
@@ -196,6 +279,56 @@ export default class CalculatorPopup extends Component {
     );
   };
 
+  renderResourceToggleButtons = () => {
+    const { type } = this.props;
+
+    if (type !== TRACKER_TYPES.MEGACREDITS) {
+      return null;
+    }
+
+    const toggleTypes = [ TRACKER_TYPES.HEAT, TRACKER_TYPES.STEEL, TRACKER_TYPES.TITANIUM ];
+
+    return (
+      <View style={ styles.toggleButtons }>
+        { toggleTypes.map((type) => this.renderToggleButton(type)) }
+      </View>
+    );
+  };
+
+  renderToggleButton = (type) => {
+    const { state: parentState } = this.props;
+
+    const parentResourceCount = parentState.resourceCount[type];
+
+    if (!parentResourceCount) {
+      return null;
+    }
+
+    const trackerInfo = TRACKER_INFOS[type];
+    const image = trackerInfo.image;
+
+    return (
+      <TouchableOpacity
+        key={ type }
+        style={ styles.toggleButton }
+        onPress={ () => this.onToggle(type) }
+      >
+        <ImageBackground style={ styles.toggleButtonResourceImage } resizeMode="contain" source={ image }>
+          { this.renderToggleIcon(type) }
+        </ImageBackground>
+      </TouchableOpacity>
+    );
+  };
+
+  renderToggleIcon = (type) => {
+    const useResource = this.state.useResource[type];
+    const icon = useResource ? 'arrow-alt-circle-down' : 'times';
+
+    return (
+      <FontAwesome5 style={ styles.toggleButtonIcon } name={ icon } solid={ true } />
+    );
+  };
+
   render () {
     const { state } = this;
     const { type, state: parentState } = this.props;
@@ -210,16 +343,14 @@ export default class CalculatorPopup extends Component {
     const white = Color('#FFFFFF');
 
     const lighterColor = color.mix(white, 0.65);
-    const lighterBackgroundColorStyle = { backgroundColor: color.mix(white, 0.85) };
 
     const changeText = state.isNegativeZero ?
       '-0' :
       state.change >= 0 ? '+' + state.change : state.change;
 
-    const resourcesText = '+' + this.getResourcesValue();
-
     return (
       <View style={ styles.container }>
+        { this.renderResourceToggleButtons() }
         <View style={ [ styles.keyPad, backgroundColorStyle ] }>
           <View style={ styles.numPad}>
             <View style={ styles.keyPadRow }>
@@ -261,14 +392,9 @@ export default class CalculatorPopup extends Component {
             <Text style={ styles.keyPadTabText }>{ `Change:` }</Text>
             <Text style={ styles.changeText }>{ changeText }</Text>
           </View>
-          <View style={ styles.tabulatorTab }>
-            <View style={ styles.tabulatorRow }>
-              { this.renderAdditionalResource(TRACKER_TYPES.HEAT) }
-              { this.renderAdditionalResource(TRACKER_TYPES.STEEL) }
-              { this.renderAdditionalResource(TRACKER_TYPES.TITANIUM) }
-            </View>
-            <Text style={ [ styles.changeText, colorStyle ] }>{ resourcesText }</Text>
-          </View>
+          { this.renderAdditionalResource(TRACKER_TYPES.HEAT) }
+          { this.renderAdditionalResource(TRACKER_TYPES.STEEL) }
+          { this.renderAdditionalResource(TRACKER_TYPES.TITANIUM) }
           { this.renderActionButton() }
         </View>
       </View>
@@ -281,9 +407,6 @@ const styles = ExtendedStyleSheet.create({
 
   actionButton: {
     borderRadius: '0.5rem',
-    marginTop: '-0.025rem',
-    marginRight: '-0.025rem',
-    marginBottom: '-0.025rem',
     marginLeft: '0.5rem'
   },
 
@@ -299,7 +422,7 @@ const styles = ExtendedStyleSheet.create({
   actionChangeText: {
     fontSize: '3rem',
     color: '#FFFFFF',
-    marginRight: '0.1rem',
+    // marginRight: '-0.1rem',
     marginVertical: '-0.5rem'
   },
 
@@ -313,6 +436,10 @@ const styles = ExtendedStyleSheet.create({
   actionNewText: {
     fontSize: '1rem',
     color: '#FFFFFF'
+  },
+
+  button: {
+    margin: '0.2rem',
   },
 
   changeText: {
@@ -358,7 +485,8 @@ const styles = ExtendedStyleSheet.create({
     justifyContent: 'space-between',
     borderTopRightRadius: '0.5rem',
     borderBottomRightRadius: '0.5rem',
-    paddingHorizontal: '0.5rem'
+    paddingHorizontal: '0.5rem',
+    marginBottom: '0.5rem'
   },
 
   keyPadTabText: {
@@ -392,25 +520,35 @@ const styles = ExtendedStyleSheet.create({
   },
 
   resourceAdjuster: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '45%',
     marginLeft: '0.15rem',
     marginRight: '0.25rem'
   },
 
   resourceButton: {
-    fontSize: '2rem',
+    fontSize: '1.8rem',
     color: '#222222'
+  },
+
+  resourceChangeText: {
+    fontSize: '3rem',
+    color: '#FFFFFF',
+    marginRight: '0.35rem',
+    marginVertical: '-0.6rem'
   },
 
   resourceDisabled: {
     opacity: 0.25
   },
 
-  resourceIcon: {
+  resourceImage: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: '1.8rem',
-    height: '1.8rem'
+    width: '2.2rem',
+    height: '2.2rem'
   },
 
   resourcesText: {
@@ -420,7 +558,7 @@ const styles = ExtendedStyleSheet.create({
   },
 
   resourceText: {
-    fontSize: '1.2rem',
+    fontSize: '1.4rem',
     fontWeight: 'bold',
     color: '#FFFFFF',
     textShadowColor: '#000000',
@@ -445,11 +583,10 @@ const styles = ExtendedStyleSheet.create({
 
   tabulatorTab: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    borderTopRightRadius: '0.5rem',
-    borderBottomRightRadius: '0.5rem',
-    paddingHorizontal: '0.5rem'
+    marginLeft: '0.5rem',
+    marginBottom: '0.5rem'
   },
 
   tabulatorText: {
@@ -457,6 +594,36 @@ const styles = ExtendedStyleSheet.create({
     fontWeight: 'bold',
     color: '#444444',
     marginLeft: '0.5rem'
+  },
+
+  toggleButton: {
+    backgroundColor: 'red',
+
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: '0.5rem'
+  },
+
+  toggleButtonIcon: {
+    fontSize: '1.3rem',
+    color: '#FFFFFF',
+    textShadowColor: '#000000',
+    textShadowOffset: { height: 0.1 },
+    textShadowRadius: 4
+  },
+
+  toggleButtonResourceImage: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '2.1rem',
+    height: '2.1rem',
+  },
+
+  toggleButtons: {
+    flexDirection: 'row',
+    position: 'absolute',
+    top: '-2.5rem',
+    right: '3rem'
   }
 
 });
