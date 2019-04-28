@@ -108,9 +108,7 @@ export default class App extends Component<Props> {
 
     this.undoneHistory = [];
 
-    this.updateHistoryCountsAndSetState(state);
-
-    AsyncStorage.setItem('gameHistory', JSON.stringify(this.history));
+    this.updateHistoryAndSetState(state);
   }
 
   getIsGameInProgress (history) {
@@ -129,7 +127,7 @@ export default class App extends Component<Props> {
 
     const lastState = history[history.length - 1].state;
 
-    this.updateHistoryCountsAndSetState(lastState);
+    this.updateHistoryAndSetState(lastState);
   };
 
   startGame = () => {
@@ -140,11 +138,13 @@ export default class App extends Component<Props> {
     this.addHistoryAndSetState(state, 'newGame');
   };
 
-  updateHistoryCountsAndSetState (state) {
+  updateHistoryAndSetState (state) {
     state.historyCount = this.history.length;
     state.undoneHistoryCount = this.undoneHistory.length;
 
     this.setState(state);
+
+    AsyncStorage.setItem('gameHistory', JSON.stringify(this.history));
   }
 
   onBuyTemperature = () => {
@@ -310,7 +310,7 @@ export default class App extends Component<Props> {
 
       this.history.push(historyItem);
 
-      this.updateHistoryCountsAndSetState(cloneDeep(historyItem.state));
+      this.updateHistoryAndSetState(cloneDeep(historyItem.state));
     }
   };
 
@@ -359,7 +359,7 @@ export default class App extends Component<Props> {
 
       this.undoneHistory.push(historyItem);
 
-      this.updateHistoryCountsAndSetState(cloneDeep(this.history[length - 2].state));
+      this.updateHistoryAndSetState(cloneDeep(this.history[length - 2].state));
     }
   };
 
