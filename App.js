@@ -35,7 +35,9 @@ ExtendedStyleSheet.build({
   $rem: width * 0.02
 });
 
-console.log('Dimensions:', width, height);
+Text.defaultProps = Text.defaultProps || {};
+
+Text.defaultProps.allowFontScaling = false;
 
 type Props = {};
 
@@ -338,15 +340,14 @@ export default class App extends Component<Props> {
     showPopup('calculator', {
       state: this.state,
       type,
-      onChange: (change) => {
+      onChange: (changes) => {
         const state = cloneDeep(this.state);
-        const types = Object.keys(change);
 
-        types.forEach((type) => {
-          state.resourceCount[type] += change[type];
+        changes.forEach((change) => {
+          state.resourceCount[change.type] += change.value;
         });
 
-        this.addHistoryAndSetState(state, 'calculation', { type, change });
+        this.addHistoryAndSetState(state, 'calculation', { type, changes });
       }
     });
   };

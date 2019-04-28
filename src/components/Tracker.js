@@ -222,7 +222,7 @@ const styles = ExtendedStyleSheet.create({
   },
 
   countTextLarge: {
-    fontSize: '4.5rem',
+    fontSize: '4rem',
     textAlign: 'center',
     color: '#333333',
     shadowColor: '#000000',
@@ -232,14 +232,16 @@ const styles = ExtendedStyleSheet.create({
     },
     shadowRadius: 1,
     shadowOpacity: 0.4,
-    marginVertical: '-1rem'
+    marginTop: '-1.1rem',
+    marginBottom: '-1rem'
   },
 
   countTextSmall: {
     fontSize: '3rem',
     textAlign: 'center',
     color: '#333333',
-    marginVertical: '-1rem'
+    marginTop: '-1.05rem',
+    marginBottom: '-1rem'
   },
 
   footer: {
@@ -262,23 +264,22 @@ const styles = ExtendedStyleSheet.create({
   headerIcon: {
     flex: 1,
     height: '1.6rem',
-    marginRight: '0.2rem'
+    marginRight: '0.4rem'
   },
 
   headerTextLarge: {
     flex: 4,
-    fontSize: '1.1rem',
+    fontSize: '1rem',
     fontWeight: 'bold',
-    color: '#222222',
-    margin: '0.2rem'
+    color: '#222222'
   },
 
   headerTextSmall: {
+    flex: 1,
     fontSize: '0.9rem',
     fontWeight: 'bold',
     textAlign: 'center',
-    color: '#FFFFFF',
-    width: '100%'
+    color: '#FFFFFF'
   },
 
   rate: {
@@ -289,7 +290,7 @@ const styles = ExtendedStyleSheet.create({
   },
 
   rateText: {
-    fontSize: '2.75rem',
+    fontSize: '2.5rem',
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#FFFFFF',

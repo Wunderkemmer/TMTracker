@@ -201,7 +201,7 @@ const styles = ExtendedStyleSheet.create({
   },
 
   headerText: {
-    fontSize: '1.8rem',
+    fontSize: '1.5rem',
     fontWeight: 'bold',
     color: '#222222',
     margin: '0.2rem',

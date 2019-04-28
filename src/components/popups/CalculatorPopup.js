@@ -15,8 +15,8 @@ export default class CalculatorPopup extends Component {
   static publicStyles = ExtendedStyleSheet.create({
     popup: {
       width: '75%',
-      maxHeight: '22rem'
-    },
+      maxHeight: '24rem'
+    }
   });
 
   state = {
@@ -32,7 +32,7 @@ export default class CalculatorPopup extends Component {
     useResource: {
       [TRACKER_TYPES.HEAT]: false,
       [TRACKER_TYPES.STEEL]: false,
-      [TRACKER_TYPES.TITANIUM]: false,
+      [TRACKER_TYPES.TITANIUM]: false
     }
   };
 
@@ -87,23 +87,32 @@ export default class CalculatorPopup extends Component {
     const { state } = this;
     const { type } = this.props;
 
-    const change = {
-      [type]: state.change + this.getResourcesValue()
-    };
+    const changes = [
+      { type, value: state.change + this.getResourcesValue() }
+    ];
 
     if (state.useResource[TRACKER_TYPES.HEAT]) {
-      change[TRACKER_TYPES.HEAT] = -state.resourceCount[TRACKER_TYPES.HEAT];
+      changes.push({
+        type: TRACKER_TYPES.HEAT,
+        value: -state.resourceCount[TRACKER_TYPES.HEAT]
+      });
     }
 
     if (state.useResource[TRACKER_TYPES.STEEL]) {
-      change[TRACKER_TYPES.STEEL] = -state.resourceCount[TRACKER_TYPES.STEEL];
+      changes.push({
+        type: TRACKER_TYPES.STEEL,
+        value: -state.resourceCount[TRACKER_TYPES.STEEL]
+      });
     }
 
     if (state.useResource[TRACKER_TYPES.TITANIUM]) {
-      change[TRACKER_TYPES.TITANIUM] = -state.resourceCount[TRACKER_TYPES.TITANIUM];
+      changes.push({
+        type: TRACKER_TYPES.TITANIUM,
+        value: -state.resourceCount[TRACKER_TYPES.TITANIUM]
+      });
     }
 
-    this.props.onChange(change);
+    this.props.onChange(changes);
     this.props.dismiss();
   };
 
@@ -347,7 +356,11 @@ export default class CalculatorPopup extends Component {
         style={ styles.toggleButton }
         onPress={ () => this.onToggle(type) }
       >
-        <ImageBackground style={ styles.toggleButtonResourceImage } resizeMode="contain" source={ image }>
+        <ImageBackground
+          style={ styles.toggleButtonResourceImage }
+          resizeMode="contain"
+          source={ image }
+        >
           { this.renderToggleIcon(type) }
         </ImageBackground>
       </TouchableOpacity>
@@ -373,9 +386,13 @@ export default class CalculatorPopup extends Component {
     const { state } = this;
     const { type, state: parentState } = this.props;
 
+    if (!parentState) {
+      return null;
+    }
+
     const resourceCount = parentState.resourceCount[type];
 
-    const trackerInfo =  TRACKER_INFOS[type];
+    const trackerInfo = TRACKER_INFOS[type];
     const backgroundColorStyle = { backgroundColor: type ? trackerInfo.color : '#EEEEEE' };
     const colorStyle = { color: type ? trackerInfo.color : '#222222' };
 
@@ -391,7 +408,7 @@ export default class CalculatorPopup extends Component {
       <View style={ styles.container }>
         { this.renderResourceToggleButtons() }
         <View style={ [ styles.keyPad, backgroundColorStyle ] }>
-          <View style={ styles.numPad}>
+          <View style={ styles.numPad }>
             <View style={ styles.keyPadRow }>
               { this.renderKeyPadButton('7', '#FFFFFF') }
               { this.renderKeyPadButton('8', '#FFFFFF') }
@@ -475,7 +492,7 @@ const styles = ExtendedStyleSheet.create({
   },
 
   button: {
-    margin: '0.2rem',
+    margin: '0.2rem'
   },
 
   changeText: {
@@ -507,7 +524,7 @@ const styles = ExtendedStyleSheet.create({
   },
 
   keyPadButton: {
-    borderRadius: '0.5rem',
+    borderRadius: '0.5rem'
   },
 
   keyPadRow: {
@@ -612,7 +629,7 @@ const styles = ExtendedStyleSheet.create({
   },
 
   resourceText: {
-    fontSize: '1.4rem',
+    fontSize: '1.75rem',
     fontWeight: 'bold',
     color: '#FFFFFF',
     textShadowColor: '#000000',
@@ -642,7 +659,7 @@ const styles = ExtendedStyleSheet.create({
 
   tabulatorRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-between'
   },
 
   tabulatorTab: {
@@ -678,7 +695,7 @@ const styles = ExtendedStyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: '2.2rem',
-    height: '2.2rem',
+    height: '2.2rem'
   },
 
   toggleButtons: {

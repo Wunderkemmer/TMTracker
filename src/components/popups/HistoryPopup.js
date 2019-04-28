@@ -15,72 +15,81 @@ export default class HistoryPopup extends Component {
 
   keyExtractor = (item, index) => `${ item.event }.${ index }`;
 
-  static renderHistoryImageRow (item, image, text, textStyle, isProduction) {
+  static renderHistoryImageRow (image, text, textStyle, time, isProduction, key = '') {
     const frameStyle = isProduction ? styles.production : styles.resource;
     const iconStyle = isProduction ? styles.iconProduction : styles.iconResource;
 
     return (
-      <View style={ styles.item }>
+      <View style={ styles.item } key={ key }>
         <View style={ frameStyle }>
           <Image style={ iconStyle } resizeMode="contain" source={ image } />
         </View>
         <View>
           <Text style={ textStyle }>{ text }</Text>
-          <Text style={ styles.textTime }>{ moment(item.time).format('LL LTS') }</Text>
+          <Text style={ styles.textTime }>{ moment(time).format('LL LTS') }</Text>
         </View>
       </View>
     );
   }
 
-  static renderHistoryRow (item, text, textStyle) {
+  static renderHistoryRow (text, textStyle, time, key = '') {
     return (
-      <View style={ styles.item }>
+      <View style={ styles.item } key={ key }>
         <View>
           <Text style={ textStyle }>{ text }</Text>
-          <Text style={ styles.textTime }>{ moment(item.time).format('LL LTS') }</Text>
+          <Text style={ styles.textTime }>{ moment(time).format('LL LTS') }</Text>
         </View>
       </View>
     );
   }
 
   renderHistoryItem ({ item }) {
-    switch (item.event) {
+    const { event, payload, state, time } = item;
+
+    switch (event) {
       case 'buyGreenery':
         return HistoryPopup.renderHistoryImageRow(
-          item,
           ImageIconGreenery,
           'Purchased Greenery',
-          [ styles.text, styles.textIncrease ]
+          [ styles.text, styles.textIncrease ],
+          time
         );
 
       case 'buyTemperature':
         return HistoryPopup.renderHistoryImageRow(
-          item,
           ImageIconTemperature,
           'Purchased Temperature',
-          [ styles.text, styles.textIncrease ]
+          [ styles.text, styles.textIncrease ],
+          time
         );
 
       case 'calculation': {
-        const { type, change } = item.payload;
+        const { changes } = payload;
 
-        const trackerInfo = TRACKER_INFOS[type];
-        const image = trackerInfo.image;
-        const title = trackerInfo.title;
+        return changes.map((change, index) => {
+          const type = change.type;
+          const value = change.value;
 
-        const changeText = change >= 0 ? '+' + change : change;
-        const changeStyle = change >= 0 ? styles.textIncrease : styles.textDecrease;
+          const trackerInfo = TRACKER_INFOS[type];
+          const image = trackerInfo.image;
+          const title = trackerInfo.title;
 
-        return HistoryPopup.renderHistoryImageRow(
-          item,
-          image,
-          `Adjusted ${ title } by ${ changeText }`,
-          [ styles.text, changeStyle ]
-        );
+          const changeText = value >= 0 ? '+' + value : value;
+          const changeStyle = value >= 0 ? styles.textIncrease : styles.textDecrease;
+
+          return HistoryPopup.renderHistoryImageRow(
+            image,
+            `Changed ${ title } by ${ changeText }`,
+            [ styles.text, changeStyle ],
+            time,
+            false,
+            `change.${ index }`
+          );
+        });
       }
 
       case 'decrement': {
-        const type = item.payload.type;
+        const { type } = payload;
 
         const trackerInfo = TRACKER_INFOS[type];
         const image = trackerInfo.image;
@@ -89,32 +98,32 @@ export default class HistoryPopup extends Component {
         switch (type) {
           case TRACKER_TYPES.TERRAFORMING_RATING:
             return HistoryPopup.renderHistoryImageRow(
-              item,
               image,
               `Decreased ${ title } by 1`,
-              [ styles.text, styles.textDecrease ]
+              [ styles.text, styles.textDecrease ],
+              time
             );
 
           case TRACKER_TYPES.GENERATION:
             return HistoryPopup.renderHistoryRow(
-              item,
-              `Returning to ${ title } ${ item.state.generation }`,
-              styles.text
+              `Returning to ${ title } ${ state.generation }`,
+              styles.text,
+              time
             );
 
           default:
             return HistoryPopup.renderHistoryImageRow(
-              item,
               image,
               `Decreased ${ title } production by 1`,
               [ styles.text, styles.textDecrease ],
+              time,
               true
             );
         }
       }
 
       case 'increment': {
-        const type = item.payload.type;
+        const { type } = payload;
 
         const trackerInfo = TRACKER_INFOS[type];
         const image = trackerInfo.image;
@@ -123,25 +132,25 @@ export default class HistoryPopup extends Component {
         switch (type) {
           case TRACKER_TYPES.TERRAFORMING_RATING:
             return HistoryPopup.renderHistoryImageRow(
-              item,
               image,
               `Increased ${ title } by 1`,
-              [ styles.text, styles.textIncrease ]
+              [ styles.text, styles.textIncrease ],
+              time
             );
 
           case TRACKER_TYPES.GENERATION:
             return HistoryPopup.renderHistoryRow(
-              item,
-              `Starting ${ title } ${ item.state.generation }`,
-              styles.text
+              `Starting ${ title } ${ state.generation }`,
+              styles.text,
+              time
             );
 
           default:
             return HistoryPopup.renderHistoryImageRow(
-              item,
               image,
               `Increased ${ title } production by 1`,
               [ styles.text, styles.textIncrease ],
+              time,
               true
             );
         }
@@ -149,9 +158,9 @@ export default class HistoryPopup extends Component {
 
       case 'newGame':
         return HistoryPopup.renderHistoryRow(
-          item,
           'New Game!',
-          styles.text
+          styles.text,
+          time
         );
     }
   }
@@ -162,7 +171,7 @@ export default class HistoryPopup extends Component {
     return (
       <FlatList
         contentContainerStyle={ styles.container }
-        data={ history.reverse() }
+        data={ [ ...history ].reverse() }
         keyExtractor={ this.keyExtractor }
         renderItem={ this.renderHistoryItem }
       />
