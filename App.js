@@ -292,7 +292,6 @@ export default class App extends Component<Props> {
       type,
       onChange: (change) => {
         const state = cloneDeep(this.state);
-
         const types = Object.keys(change);
 
         types.forEach((type) => state.resourceCount[type] += change[type]);

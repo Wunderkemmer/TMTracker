@@ -21,7 +21,7 @@ export default class CalculatorPopup extends Component {
 
   state = {
     change: 0,
-    isNegativeZero: true,
+    isNegativeZero: !TRACKER_INFOS[this.props.type].usePositiveCalculator,
 
     resourceCount: {
       [TRACKER_TYPES.HEAT]: 0,
@@ -110,10 +110,11 @@ export default class CalculatorPopup extends Component {
 
   onKeyPad = (value) => {
     const { state } = this;
+    const { type } = this.props;
 
     if (value === 'C') {
       state.change = 0;
-      state.isNegativeZero = true;
+      state.isNegativeZero = !TRACKER_INFOS[type].usePositiveCalculator;
 
       state.resourceCount[TRACKER_TYPES.HEAT] = 0;
       state.resourceCount[TRACKER_TYPES.STEEL] = 0;
@@ -163,7 +164,10 @@ export default class CalculatorPopup extends Component {
     const { state } = this;
     const { type, state: parentState } = this.props;
 
-    const resourceCount = parentState.resourceCount[type];
+    const resourceCount = type === TRACKER_TYPES.TERRAFORMING_RATING ?
+      parentState.terraformingRating :
+      parentState.resourceCount[type];
+
     const resourceTotal = resourceCount + state.change + this.getResourcesValue();
 
     const isDisabled = state.change === 0 || resourceTotal < 0;
@@ -337,7 +341,9 @@ export default class CalculatorPopup extends Component {
     const backgroundColorStyle = { backgroundColor: type ? trackerInfo.color : '#EEEEEE' };
     const colorStyle = { color: type ? trackerInfo.color : '#222222' };
 
-    const resourceCount = parentState.resourceCount[type];
+    const resourceCount = type === TRACKER_TYPES.TERRAFORMING_RATING ?
+      parentState.terraformingRating :
+      parentState.resourceCount[type];
 
     const color = Color(trackerInfo.color);
     const white = Color('#FFFFFF');

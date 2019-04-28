@@ -29,8 +29,9 @@ export const TRACKER_INFOS = {
       [TRACKER_TYPES.TERRAFORMING_RATING]: {
         image: ImageIconTerraformingRating,
         hideTitleInTracker: true,
+        usePositiveCalculator: true,
         title: 'Terraforming Rating',
-        color: '#ED721F'
+        color: '#ED721F',
       },
       [TRACKER_TYPES.MEGACREDITS]: {
         image: ImageIconMegaCredits,
