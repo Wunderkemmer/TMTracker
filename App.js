@@ -42,13 +42,12 @@ export default class App extends Component<Props> {
   defaultState = {
 
     generation: 1,
-    terraformingRating: 20,
-
     oceanCount: 0,
     oxygenLevel: 0,
     temperature: -30,
 
     resourceCount: {
+      [TRACKER_TYPES.TERRAFORMING_RATING]: 20,
       [TRACKER_TYPES.MEGACREDITS]: 20,
       [TRACKER_TYPES.STEEL]: 0,
       [TRACKER_TYPES.TITANIUM]: 0,
@@ -111,7 +110,7 @@ export default class App extends Component<Props> {
         state = cloneDeep(state);
 
         state.temperature = newTemperature;
-        state.terraformingRating += 1;
+        state.resourceCount[TRACKER_TYPES.TERRAFORMING_RATING] += 1;
         state.resourceCount[TRACKER_TYPES.HEAT] -= 8;
 
         this.addHistoryAndSetState(state, 'buyTemperature');
@@ -129,10 +128,11 @@ export default class App extends Component<Props> {
 
       if (state.oxygenLevel !== newOxygenLevel) {
         state.oxygenLevel = newOxygenLevel;
-        state.terraformingRating += 1;
+
+        state.resourceCount[TRACKER_TYPES.TERRAFORMING_RATING] += 1;
       }
 
-      state.resourceCount[TRACKER_TYPES.HEAT] -= 8;
+      state.resourceCount[TRACKER_TYPES.PLANTS] -= 8;
 
       this.addHistoryAndSetState(state, 'buyGreenery');
     }
@@ -146,9 +146,9 @@ export default class App extends Component<Props> {
 
     switch (type) {
       case TRACKER_TYPES.TERRAFORMING_RATING:
-        oldValue = state.terraformingRating;
-        state.terraformingRating = Math.max(state.terraformingRating - 1, 0);
-        didSomething = oldValue !== state.terraformingRating;
+        oldValue = state.resourceCount[type];
+        state.resourceCount[type] = Math.max(state.resourceCount[type] - 1, 0);
+        didSomething = oldValue !== state.resourceCount[type];
 
         break;
 
@@ -185,7 +185,7 @@ export default class App extends Component<Props> {
 
     switch (type) {
       case TRACKER_TYPES.TERRAFORMING_RATING:
-        state.terraformingRating += 1;
+        state.resourceCount[type] += 1;
 
         break;
 
@@ -193,7 +193,8 @@ export default class App extends Component<Props> {
         state.generation += 1;
 
         state.resourceCount[TRACKER_TYPES.MEGACREDITS] +=
-          state.resourceRate[TRACKER_TYPES.MEGACREDITS] + state.terraformingRating;
+          state.resourceRate[TRACKER_TYPES.MEGACREDITS] +
+          state.resourceCount[TRACKER_TYPES.TERRAFORMING_RATING];
 
         state.resourceCount[TRACKER_TYPES.HEAT] +=
           state.resourceRate[TRACKER_TYPES.HEAT] + state.resourceCount[TRACKER_TYPES.ENERGY];
@@ -295,11 +296,7 @@ export default class App extends Component<Props> {
         const types = Object.keys(change);
 
         types.forEach((type) => {
-          if (type === TRACKER_TYPES.TERRAFORMING_RATING) {
-            state.terraformingRating += change[type]
-          } else {
-            state.resourceCount[type] += change[type]
-          }
+          state.resourceCount[type] += change[type]
         });
 
         this.addHistoryAndSetState(state, 'calculation', { type, change });
@@ -337,7 +334,7 @@ export default class App extends Component<Props> {
   };
 
   renderTracker = (type) => {
-    const { generation, resourceCount, resourceRate, terraformingRating } = this.state;
+    const { generation, resourceCount, resourceRate } = this.state;
 
     let style;
     let count;
@@ -349,7 +346,7 @@ export default class App extends Component<Props> {
     switch (type) {
       case TRACKER_TYPES.TERRAFORMING_RATING:
         style = styles.trackerTiny;
-        count = terraformingRating;
+        count = resourceCount[type];
         onDecrement = this.onDecrement;
         onIncrement = this.onIncrement;
 
@@ -361,14 +358,6 @@ export default class App extends Component<Props> {
         onHistory = this.onHistory;
         onIncrement = this.onIncrement;
 
-        break;
-
-      case TRACKER_TYPES.MEGACREDITS:
-        style = styles.tracker;
-        count = resourceCount[type];
-        rate = resourceRate[type];
-        onDecrement = this.onDecrement;
-        onIncrement = this.onIncrement;
         break;
 
       default:

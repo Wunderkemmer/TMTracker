@@ -15,14 +15,14 @@ export default class HistoryPopup extends Component {
 
   keyExtractor = (item, index) => `${ item.event }.${ index }`;
 
-  static renderHistoryIconRow (item, icon, text, textStyle, isProduction) {
+  static renderHistoryImageRow (item, image, text, textStyle, isProduction) {
     const frameStyle = isProduction ? styles.production : styles.resource;
     const iconStyle = isProduction ? styles.iconProduction : styles.iconResource;
 
     return (
       <View style={ styles.item }>
         <View style={ frameStyle }>
-          <Image style={ iconStyle } resizeMode="contain" source={ icon } />
+          <Image style={ iconStyle } resizeMode="contain" source={ image } />
         </View>
         <View>
           <Text style={ textStyle }>{ text }</Text>
@@ -46,7 +46,7 @@ export default class HistoryPopup extends Component {
   renderHistoryItem ({ item }) {
     switch (item.event) {
       case 'buyGreenery':
-        return HistoryPopup.renderHistoryIconRow(
+        return HistoryPopup.renderHistoryImageRow(
           item,
           ImageIconGreenery,
           'Purchased Greenery',
@@ -54,7 +54,7 @@ export default class HistoryPopup extends Component {
         );
 
       case 'buyTemperature':
-        return HistoryPopup.renderHistoryIconRow(
+        return HistoryPopup.renderHistoryImageRow(
           item,
           ImageIconTemperature,
           'Purchased Temperature',
@@ -65,15 +65,15 @@ export default class HistoryPopup extends Component {
         const { type, change } = item.payload;
 
         const trackerInfo = TRACKER_INFOS[type];
-        const icon = trackerInfo.icon;
+        const image = trackerInfo.image;
         const title = trackerInfo.title;
 
         const changeText = change >= 0 ? '+' + change : change;
         const changeStyle = change >= 0 ? styles.textIncrease : styles.textDecrease;
 
-        return HistoryPopup.renderHistoryIconRow(
+        return HistoryPopup.renderHistoryImageRow(
           item,
-          icon,
+          image,
           `Adjusted ${ title } by ${ changeText }`,
           [ styles.text, changeStyle ]
         );
@@ -83,14 +83,14 @@ export default class HistoryPopup extends Component {
         const type = item.payload.type;
 
         const trackerInfo = TRACKER_INFOS[type];
-        const icon = trackerInfo.icon;
+        const image = trackerInfo.image;
         const title = trackerInfo.title;
 
         switch (type) {
           case TRACKER_TYPES.TERRAFORMING_RATING:
-            return HistoryPopup.renderHistoryIconRow(
+            return HistoryPopup.renderHistoryImageRow(
               item,
-              icon,
+              image,
               `Decreased ${ title } by 1`,
               [ styles.text, styles.textDecrease ]
             );
@@ -103,9 +103,9 @@ export default class HistoryPopup extends Component {
             );
 
           default:
-            return HistoryPopup.renderHistoryIconRow(
+            return HistoryPopup.renderHistoryImageRow(
               item,
-              icon,
+              image,
               `Decreased ${ title } production by 1`,
               [ styles.text, styles.textDecrease ],
               true
@@ -117,14 +117,14 @@ export default class HistoryPopup extends Component {
         const type = item.payload.type;
 
         const trackerInfo = TRACKER_INFOS[type];
-        const icon = trackerInfo.icon;
+        const image = trackerInfo.image;
         const title = trackerInfo.title;
 
         switch (type) {
           case TRACKER_TYPES.TERRAFORMING_RATING:
-            return HistoryPopup.renderHistoryIconRow(
+            return HistoryPopup.renderHistoryImageRow(
               item,
-              icon,
+              image,
               `Increased ${ title } by 1`,
               [ styles.text, styles.textIncrease ]
             );
@@ -137,9 +137,9 @@ export default class HistoryPopup extends Component {
             );
 
           default:
-            return HistoryPopup.renderHistoryIconRow(
+            return HistoryPopup.renderHistoryImageRow(
               item,
-              icon,
+              image,
               `Increased ${ title } production by 1`,
               [ styles.text, styles.textIncrease ],
               true

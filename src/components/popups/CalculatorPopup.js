@@ -1,6 +1,6 @@
 import Color from 'color';
 
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 
 import { ImageBackground, Text, TouchableOpacity, View } from 'react-native';
 
@@ -164,15 +164,12 @@ export default class CalculatorPopup extends Component {
     const { state } = this;
     const { type, state: parentState } = this.props;
 
-    const resourceCount = type === TRACKER_TYPES.TERRAFORMING_RATING ?
-      parentState.terraformingRating :
-      parentState.resourceCount[type];
-
+    const resourceCount = parentState.resourceCount[type];
     const resourceTotal = resourceCount + state.change + this.getResourcesValue();
-
     const isDisabled = state.change === 0 || resourceTotal < 0;
-    const backgroundColor = state.change <= 0 ? '#ED4E44' : '#5FB365';
-    const name = state.change <= 0 ? 'Deduct' : 'Credit';
+    const threshold = TRACKER_INFOS[type].usePositiveCalculator ? -1 : 0;
+    const backgroundColor = state.change <= threshold ? '#ED4E44' : '#5FB365';
+    const name = state.change <= threshold ? 'Deduct' : 'Credit';
 
     return (
       <Button
@@ -189,6 +186,70 @@ export default class CalculatorPopup extends Component {
           <Text style={ styles.actionChangeText }>{ Math.max(resourceTotal, 0) }</Text>
         </View>
       </Button>
+    );
+  };
+
+  renderAdditionalResource = (type) => {
+    const { state } = this;
+    const { state: parentState } = this.props;
+
+    const parentResourceCount = parentState.resourceCount[type];
+    const useResource = state.useResource[type];
+
+    if (!parentResourceCount || !useResource) {
+      return null;
+    }
+
+    const resourceCount = state.resourceCount[type];
+    const resourceTotal = parentResourceCount - resourceCount;
+
+    const trackerInfo = TRACKER_INFOS[type];
+    const isDownDisabled = resourceCount === 0;
+
+    const isUpDisabled =
+      resourceTotal <= 0 ||
+      this.getResourcesValue() + trackerInfo.multiplier > -state.change;
+
+    const resourceImageStyle = isDownDisabled && isUpDisabled ?
+      styles.resourceImageDisabled :
+      styles.resourceImage;
+
+    const resourceChangeTextStyle = isDownDisabled && isUpDisabled ?
+      styles.resourceChangeTextDisabled :
+      styles.resourceChangeText;
+
+    const image = trackerInfo.image;
+    const colorStyle = { color: type ? trackerInfo.color : '#222222' };
+    const resourcesText = '+' + resourceCount * trackerInfo.multiplier;
+
+    return (
+      <View style={ styles.tabulatorTab }>
+        <View style={ styles.resourceAdjuster }>
+          { this.renderResourceButton(type, 'minus', -1, isDownDisabled) }
+          <ImageBackground style={ resourceImageStyle } resizeMode="contain" source={ image }>
+            { this.renderAdditionalResourceCount(type) }
+          </ImageBackground>
+          { this.renderResourceButton(type, 'plus', 1, isUpDisabled) }
+        </View>
+        <Text style={ [ resourceChangeTextStyle, colorStyle ] }>{ resourcesText }</Text>
+      </View>
+    );
+  };
+
+  renderAdditionalResourceCount = (type) => {
+    const { state } = this;
+
+    const resourceCount = state.resourceCount[type];
+
+    if (!resourceCount) {
+      return null;
+    }
+
+    return (
+      <Fragment>
+        <View style={ styles.resourceTint } />
+        <Text style={ styles.resourceText }>{ resourceCount }</Text>
+      </Fragment>
     );
   };
 
@@ -225,45 +286,6 @@ export default class CalculatorPopup extends Component {
         />
       );
     }
-  };
-
-  renderAdditionalResource = (type) => {
-    const { state } = this;
-    const { state: parentState } = this.props;
-
-    const parentResourceCount = parentState.resourceCount[type];
-    const useResource = state.useResource[type];
-
-    if (!parentResourceCount || !useResource) {
-      return null;
-    }
-
-    const resourceCount = state.resourceCount[type];
-    const resourceTotal = parentResourceCount - resourceCount;
-
-    const trackerInfo = TRACKER_INFOS[type];
-    const isDownDisabled = resourceCount === 0;
-
-    const isUpDisabled =
-      resourceTotal <= 0 ||
-      this.getResourcesValue() + trackerInfo.multiplier > -state.change;
-
-    const image = trackerInfo.image;
-    const colorStyle = { color: type ? trackerInfo.color : '#222222' };
-    const resourcesText = '+' + resourceCount * trackerInfo.multiplier;
-
-    return (
-      <View style={ styles.tabulatorTab }>
-        <View style={ styles.resourceAdjuster }>
-          { this.renderResourceButton(type, 'minus', -1, isDownDisabled) }
-          <ImageBackground style={ styles.resourceImage } resizeMode="contain" source={ image }>
-            <Text style={ styles.resourceText }>{ state.resourceCount[type] }</Text>
-          </ImageBackground>
-          { this.renderResourceButton(type, 'plus', 1, isUpDisabled) }
-        </View>
-        <Text style={ [ styles.resourceChangeText, colorStyle ] }>{ resourcesText }</Text>
-      </View>
-    );
   };
 
   renderResourceButton = (type, icon, value, isDisabled) => {
@@ -325,11 +347,17 @@ export default class CalculatorPopup extends Component {
   };
 
   renderToggleIcon = (type) => {
-    const useResource = this.state.useResource[type];
-    const icon = useResource ? 'arrow-alt-circle-down' : 'times';
+    const { useResource } = this.state;
+
+    if (!useResource[type]) {
+      return null;
+    }
 
     return (
-      <FontAwesome5 style={ styles.toggleButtonIcon } name={ icon } solid={ true } />
+      <Fragment>
+        <View style={ styles.resourceTint } />
+        <FontAwesome5 style={ styles.toggleButtonIcon } name="arrow-alt-circle-down" solid={ true } />
+      </Fragment>
     );
   };
 
@@ -337,17 +365,14 @@ export default class CalculatorPopup extends Component {
     const { state } = this;
     const { type, state: parentState } = this.props;
 
+    const resourceCount = parentState.resourceCount[type];
+
     const trackerInfo =  TRACKER_INFOS[type];
     const backgroundColorStyle = { backgroundColor: type ? trackerInfo.color : '#EEEEEE' };
     const colorStyle = { color: type ? trackerInfo.color : '#222222' };
 
-    const resourceCount = type === TRACKER_TYPES.TERRAFORMING_RATING ?
-      parentState.terraformingRating :
-      parentState.resourceCount[type];
-
     const color = Color(trackerInfo.color);
     const white = Color('#FFFFFF');
-
     const lighterColor = color.mix(white, 0.65);
 
     const changeText = state.isNegativeZero ?
@@ -496,7 +521,7 @@ const styles = ExtendedStyleSheet.create({
   },
 
   keyPadTabText: {
-    fontSize: '0.8rem',
+    fontSize: '1rem',
     fontWeight: 'bold',
     color: '#FFFFFF',
     marginTop: '0.5rem',
@@ -546,6 +571,14 @@ const styles = ExtendedStyleSheet.create({
     marginVertical: '-0.6rem'
   },
 
+  resourceChangeTextDisabled: {
+    fontSize: '3rem',
+    color: '#FFFFFF',
+    marginRight: '0.35rem',
+    marginVertical: '-0.6rem',
+    opacity: 0.5
+  },
+
   resourceDisabled: {
     opacity: 0.25
   },
@@ -555,6 +588,14 @@ const styles = ExtendedStyleSheet.create({
     justifyContent: 'center',
     width: '2.2rem',
     height: '2.2rem'
+  },
+
+  resourceImageDisabled: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '2.2rem',
+    height: '2.2rem',
+    opacity: 0.5
   },
 
   resourcesText: {
@@ -569,7 +610,17 @@ const styles = ExtendedStyleSheet.create({
     color: '#FFFFFF',
     textShadowColor: '#000000',
     textShadowOffset: { height: 0.1 },
-    textShadowRadius: 4
+    textShadowRadius: 5
+  },
+
+  resourceTint: {
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    padding: '0.1rem'
   },
 
   steppers: {
@@ -596,7 +647,7 @@ const styles = ExtendedStyleSheet.create({
   },
 
   tabulatorText: {
-    fontSize: '0.8rem',
+    fontSize: '1rem',
     fontWeight: 'bold',
     color: '#444444',
     marginLeft: '0.5rem'
@@ -615,7 +666,7 @@ const styles = ExtendedStyleSheet.create({
     color: '#FFFFFF',
     textShadowColor: '#000000',
     textShadowOffset: { height: 0.1 },
-    textShadowRadius: 4
+    textShadowRadius: 5
   },
 
   toggleButtonResourceImage: {

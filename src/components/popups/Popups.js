@@ -176,6 +176,7 @@ const styles = ExtendedStyleSheet.create({
     backgroundColor: 'transparent',
     minWidth: '50%',
     height: '95%',
+    margin: '0.2rem',
     padding: '0rem',
     paddingBottom: '0.75rem'
   },
