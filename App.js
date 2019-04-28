@@ -1,3 +1,5 @@
+import AsyncStorage from '@react-native-community/async-storage';
+
 import { cloneDeep } from 'lodash';
 
 import React, { Component, Fragment } from 'react';
@@ -5,6 +7,12 @@ import React, { Component, Fragment } from 'react';
 import { Alert, Dimensions, Image, SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
+
+import ImageMars from './resources/images/background_mars.jpg';
+import ImageIconGreenery from './resources/images/icon_greenery.png';
+import ImageIconOcean from './resources/images/icon_ocean.png';
+import ImageIconOxygen from './resources/images/icon_oxygen.png';
+import ImageIconTemperature from './resources/images/icon_temperature.png';
 
 import Button from './src/components/Button';
 
@@ -16,12 +24,6 @@ import ProjectsPopup from './src/components/popups/ProjectsPopup';
 
 import Tracker, { TRACKER_TYPES } from './src/components/Tracker';
 import TransactionButton from './src/components/TransactionButton';
-import ImageMars from './resources/images/background_mars.jpg';
-
-import ImageIconGreenery from './resources/images/icon_greenery.png';
-import ImageIconOcean from './resources/images/icon_ocean.png';
-import ImageIconOxygen from './resources/images/icon_oxygen.png';
-import ImageIconTemperature from './resources/images/icon_temperature.png';
 
 const { width, height } = Dimensions.get('window');
 
@@ -40,7 +42,6 @@ type Props = {};
 export default class App extends Component<Props> {
 
   defaultState = {
-
     generation: 1,
     oceanCount: 0,
     oxygenLevel: 0,
@@ -67,16 +68,39 @@ export default class App extends Component<Props> {
 
     historyCount: 0,
     undoneHistoryCount: 0
-
   };
 
   state = {};
 
+  isLoading = true;
+
   history = [];
   undoneHistory = [];
 
-  componentWillMount () {
-    this.startGame();
+  componentDidMount () {
+    AsyncStorage.getItem('gameHistory').then((history) => {
+      this.isLoading = false;
+
+      if (history) {
+        history = JSON.parse(history);
+
+        if (this.getIsGameInProgress(history)) {
+          Alert.alert(
+            'An in-progress game was found, do you want to restore it?',
+            null,
+            [
+              { text: 'No', style: 'cancel', onPress: this.startGame },
+              { text: 'Yes', onPress: () => this.restoreGame(history) }
+            ],
+            'default'
+          );
+
+          return;
+        }
+      }
+
+      this.startGame();
+    });
   }
 
   addHistoryAndSetState (state, event, payload) {
@@ -84,8 +108,37 @@ export default class App extends Component<Props> {
 
     this.undoneHistory = [];
 
-    this.updateHistoryCountsAndSetState(state, false);
+    this.updateHistoryCountsAndSetState(state);
+
+    AsyncStorage.setItem('gameHistory', JSON.stringify(this.history));
   }
+
+  getIsGameInProgress (history) {
+    const lastEntry = history[history.length - 1];
+    const lastEvent = lastEntry.event;
+    const lastState = lastEntry.state;
+
+    return lastEvent !== 'newGame' &&
+      lastState.oceanCount < MAX_OCEAN_COUNT &&
+      lastState.oxygenLevel < MAX_OXYGEN_LEVEL &&
+      lastState.temperature < MAX_TEMPERATURE;
+  }
+
+  restoreGame = (history) => {
+    this.history = history;
+
+    const lastState = history[history.length - 1].state;
+
+    this.updateHistoryCountsAndSetState(lastState);
+  };
+
+  startGame = () => {
+    const state = cloneDeep(this.defaultState);
+
+    this.history = [];
+
+    this.addHistoryAndSetState(state, 'newGame');
+  };
 
   updateHistoryCountsAndSetState (state) {
     state.historyCount = this.history.length;
@@ -93,12 +146,6 @@ export default class App extends Component<Props> {
 
     this.setState(state);
   }
-
-  startGame = () => {
-    const state = cloneDeep(this.defaultState);
-
-    this.addHistoryAndSetState(state, 'newGame');
-  };
 
   onBuyTemperature = () => {
     let { state } = this;
@@ -296,7 +343,7 @@ export default class App extends Component<Props> {
         const types = Object.keys(change);
 
         types.forEach((type) => {
-          state.resourceCount[type] += change[type]
+          state.resourceCount[type] += change[type];
         });
 
         this.addHistoryAndSetState(state, 'calculation', { type, change });
@@ -307,11 +354,7 @@ export default class App extends Component<Props> {
   onUndo = () => {
     const length = this.history.length;
 
-    if (length) {
-      if (this.history[length - 1].event === 'newGame') {
-        return;
-      }
-
+    if (length > 1) {
       const historyItem = this.history.pop();
 
       this.undoneHistory.push(historyItem);
@@ -398,19 +441,41 @@ export default class App extends Component<Props> {
   };
 
   render () {
+    if (this.isLoading) {
+      return (
+        <Image style={ styles.background } resizeMode="cover" source={ ImageMars } />
+      );
+    }
+
     const { oceanCount, oxygenLevel, resourceCount, temperature } = this.state;
 
     const plantsImage = Tracker.getTrackerInfo(TRACKER_TYPES.PLANTS).image;
     const heatImage = Tracker.getTrackerInfo(TRACKER_TYPES.HEAT).image;
 
-    const isUndoDisabled = this.history[this.history.length - 1].event === 'newGame';
-    const isRedoDisabled = !this.state.undoneHistoryCount;
+    const isUndoDisabled = this.state.historyCount < 2;
+    const isRedoDisabled = this.state.undoneHistoryCount < 1;
 
     const isBuyGreeneryDisabled =
       resourceCount[TRACKER_TYPES.PLANTS] < 8;
 
     const isBuyTemperatureDisabled =
       resourceCount[TRACKER_TYPES.HEAT] < 8 || temperature >= MAX_TEMPERATURE;
+
+    const isOceanComplete = oceanCount >= MAX_OCEAN_COUNT;
+    const isTemperatureComplete = temperature >= MAX_TEMPERATURE;
+    const isOxygenComplete = oxygenLevel >= MAX_OXYGEN_LEVEL;
+
+    const oceanTextStyle = isOceanComplete ?
+      styles.toggleBottomTextComplete :
+      styles.toggleBottomText;
+
+    const temperatureTextStyle = isTemperatureComplete ?
+      styles.toggleTopTextComplete :
+      styles.toggleTopText;
+
+    const oxygenTextStyle = isOxygenComplete ?
+      styles.toggleBottomTextComplete :
+      styles.toggleBottomText;
 
     const temperatureText = (temperature > 0 ? '+' + temperature : temperature) + '°';
     const oxygenLevelText = oxygenLevel + '%';
@@ -436,22 +501,28 @@ export default class App extends Component<Props> {
                 <View style={ styles.flex } />
                 <View style={ styles.sidebarToggleRow }>
                   <View style={ styles.sidebarToggleColumn }>
-                    <TouchableOpacity onPress={ this.onOcean }>
+                    <TouchableOpacity onPress={ this.onOcean } disabled={ isOceanComplete }>
                       <Image style={ styles.toggleOcean } source={ ImageIconOcean } />
                     </TouchableOpacity>
-                    <Text style={ styles.toggleBottomText }>{ oceanCount }</Text>
+                    <TouchableOpacity onPress={ this.onOcean } disabled={ isOceanComplete }>
+                      <Text style={ oceanTextStyle }>{ oceanCount }</Text>
+                    </TouchableOpacity>
                   </View>
                   <View style={ styles.sidebarToggleColumn }>
-                    <TouchableOpacity onPress={ this.onTemperature }>
-                      <Text style={ styles.toggleTopText }>{ temperatureText }</Text>
+                    <TouchableOpacity onPress={ this.onTemperature } disabled={ isTemperatureComplete }>
+                      <Text style={ temperatureTextStyle }>{ temperatureText }</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={ this.onTemperature } disabled={ isTemperatureComplete }>
                       <Image style={ styles.toggleTemperature } source={ ImageIconTemperature } />
                     </TouchableOpacity>
                   </View>
                   <View style={ styles.sidebarToggleColumn }>
-                    <TouchableOpacity onPress={ this.onOxygen }>
+                    <TouchableOpacity onPress={ this.onOxygen } disabled={ isOxygenComplete }>
                       <Image style={ styles.toggleOxygen } source={ ImageIconOxygen } />
                     </TouchableOpacity>
-                    <Text style={ styles.toggleBottomText }>{ oxygenLevelText }</Text>
+                    <TouchableOpacity onPress={ this.onOxygen } disabled={ isOxygenComplete }>
+                      <Text style={ oxygenTextStyle }>{ oxygenLevelText }</Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
               </View>
@@ -558,8 +629,7 @@ const styles = ExtendedStyleSheet.create({
 
   sidebarButtonRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    // maxHeight: '3.2rem'
+    justifyContent: 'space-between'
   },
 
   sidebarButtonsLeft: {
@@ -571,7 +641,6 @@ const styles = ExtendedStyleSheet.create({
   },
 
   sidebarToggleColumn: {
-    flex: 1,
     alignItems: 'center'
   },
 
@@ -603,7 +672,7 @@ const styles = ExtendedStyleSheet.create({
   toggleTemperature: {
     width: '1.5rem',
     height: '3rem',
-    marginTop: '0.4rem',
+    marginTop: '0.4rem'
   },
 
   toggleTopText: {
@@ -614,13 +683,28 @@ const styles = ExtendedStyleSheet.create({
     marginHorizontal: '-1rem'
   },
 
+  toggleTopTextComplete: {
+    fontSize: '1rem',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#00FF00',
+    marginHorizontal: '-1rem'
+  },
+
   toggleBottomText: {
     fontSize: '1rem',
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#FFFFFF',
-    marginTop: '0.4rem',
-    marginHorizontal: '-1rem'
+    marginTop: '0.4rem'
+  },
+
+  toggleBottomTextComplete: {
+    fontSize: '1rem',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#00FF00',
+    marginTop: '0.4rem'
   },
 
   tracker: {
