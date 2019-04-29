@@ -112,7 +112,7 @@ export default class CalculatorPopup extends Component {
       });
     }
 
-    this.props.onChange(changes);
+    this.props.onChange(type, changes);
     this.props.dismiss();
   };
 
@@ -203,7 +203,7 @@ export default class CalculatorPopup extends Component {
       >
         <View style={ styles.actionButtonRow }>
           <Text style={ styles.actionText }>New Total:</Text>
-          <Text style={ styles.actionChangeText }>{ Math.max(resourceTotal, 0) }</Text>
+          <Text style={ styles.actionChangeText }>{ resourceTotal }</Text>
         </View>
       </Button>
     );
@@ -629,7 +629,7 @@ const styles = ExtendedStyleSheet.create({
   },
 
   resourceText: {
-    fontSize: '1.75rem',
+    fontSize: '1.5rem',
     fontWeight: 'bold',
     color: '#FFFFFF',
     textShadowColor: '#000000',

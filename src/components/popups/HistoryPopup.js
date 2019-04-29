@@ -1,6 +1,6 @@
 import moment from 'moment';
 
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 
 import { FlatList, Image, Text, View } from 'react-native';
 
@@ -9,24 +9,55 @@ import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 import { TRACKER_INFOS, TRACKER_TYPES } from '../Tracker';
 
 import ImageIconGreenery from '../../../resources/images/icon_greenery.png';
+import ImageIconOxygen from '../../../resources/images/icon_oxygen.png';
 import ImageIconTemperature from '../../../resources/images/icon_temperature.png';
+import ImageIconTerraformingRating from '../../../resources/images/icon_terraforming_rating.png';
+
+import { PROJECT_INFOS, PROJECT_TYPES } from './ProjectsPopup';
 
 export default class HistoryPopup extends Component {
 
   keyExtractor = (item, index) => `${ item.event }.${ index }`;
 
+  static renderChange (type, change, time, index = 0) {
+    const trackerInfo = TRACKER_INFOS[type];
+    const image = trackerInfo.image;
+    const title = trackerInfo.title;
+
+    const changeText = change > 0 ? '+' + change : change;
+
+    const changeStyle = change === 0 ?
+      styles.text :
+      (change > 0 ? styles.textIncrease : styles.textDecrease);
+
+    return HistoryPopup.renderHistoryImageRow(
+      image,
+      `${ changeText } ${ title }`,
+      [ styles.text, changeStyle ],
+      time,
+      false,
+      `change.${ index }`
+    );
+  }
+
   static renderHistoryImageRow (image, text, textStyle, time, isProduction, key = '') {
     const frameStyle = isProduction ? styles.production : styles.resource;
-    const iconStyle = isProduction ? styles.iconProduction : styles.iconResource;
+    const itemStyle = time ? styles.item : styles.itemSecondary;
+
+    const iconStyle = time ?
+      (isProduction ? styles.iconProduction : styles.iconResource) :
+      styles.iconResourceSecondary;
+
+    const textSizeStyle = time ? styles.textSize : styles.textSizeSecondary;
 
     return (
-      <View style={ styles.item } key={ key }>
+      <View style={ itemStyle } key={ key }>
         <View style={ frameStyle }>
           <Image style={ iconStyle } resizeMode="contain" source={ image } />
         </View>
         <View>
-          <Text style={ textStyle }>{ text }</Text>
-          <Text style={ styles.textTime }>{ moment(time).format('LL LTS') }</Text>
+          <Text style={ [ textStyle, textSizeStyle ] }>{ text }</Text>
+          { this.renderTime(time) }
         </View>
       </View>
     );
@@ -37,54 +68,86 @@ export default class HistoryPopup extends Component {
       <View style={ styles.item } key={ key }>
         <View>
           <Text style={ textStyle }>{ text }</Text>
-          <Text style={ styles.textTime }>{ moment(time).format('LL LTS') }</Text>
+          { this.renderTime(time) }
         </View>
       </View>
     );
   }
 
-  renderHistoryItem ({ item }) {
+  static renderHistoryItem ({ item }) {
     const { event, payload, state, time } = item;
 
     switch (event) {
-      case 'buyGreenery':
-        return HistoryPopup.renderHistoryImageRow(
-          ImageIconGreenery,
-          'Purchased Greenery',
-          [ styles.text, styles.textIncrease ],
-          time
-        );
+      case 'buyGreenery': {
+        const { type, oxygen } = payload;
 
-      case 'buyTemperature':
-        return HistoryPopup.renderHistoryImageRow(
-          ImageIconTemperature,
-          'Purchased Temperature',
-          [ styles.text, styles.textIncrease ],
-          time
-        );
+        const plantCost = 8;
+        const megaCreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_GREENERY].cost;
 
-      case 'calculation': {
+        const isPlants = type === TRACKER_TYPES.PLANTS;
+
+        const change = isPlants ? -plantCost : -megaCreditCost;
+        const title = isPlants ? 'Purchased Greenery' : 'Purchased Greenery';
+
+        return (
+          <Fragment>
+            {
+              HistoryPopup.renderHistoryImageRow(
+                ImageIconGreenery,
+                title,
+                [ styles.text, styles.textIncrease ],
+                time
+              )
+            }
+            { HistoryPopup.renderOxygen(oxygen) }
+            { HistoryPopup.renderChange(type, change) }
+          </Fragment>
+        );
+      }
+
+      case 'buyTemperature': {
+        const { type } = payload;
+
+        const heatCost = 8;
+        const megaCreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_ASTEROID].cost;
+
+        const isHeat = type === TRACKER_TYPES.HEAT;
+
+        const change = isHeat ? -heatCost : -megaCreditCost;
+        const title = isHeat ? 'Purchased Temperature' : 'Purchased Asteroid';
+
+        return (
+          <Fragment>
+            {
+              HistoryPopup.renderHistoryImageRow(
+                ImageIconTemperature,
+                title,
+                [ styles.text, styles.textIncrease ],
+                time
+              )
+            }
+            {
+              HistoryPopup.renderHistoryImageRow(
+                ImageIconTerraformingRating,
+                `+1 Terraforming Rating`,
+                [ styles.text, styles.textIncrease ],
+                null,
+                false,
+                `terraformingRating`
+              )
+            }
+            { HistoryPopup.renderChange(type, change) }
+          </Fragment>
+        );
+      }
+
+      case 'change': {
         const { changes } = payload;
 
         return changes.map((change, index) => {
-          const type = change.type;
-          const value = change.value;
+          const { type, value } = change;
 
-          const trackerInfo = TRACKER_INFOS[type];
-          const image = trackerInfo.image;
-          const title = trackerInfo.title;
-
-          const changeText = value >= 0 ? '+' + value : value;
-          const changeStyle = value >= 0 ? styles.textIncrease : styles.textDecrease;
-
-          return HistoryPopup.renderHistoryImageRow(
-            image,
-            `Changed ${ title } by ${ changeText }`,
-            [ styles.text, changeStyle ],
-            time,
-            false,
-            `change.${ index }`
-          );
+          return HistoryPopup.renderChange(type, value, index === 0 ? time : null, index);
         });
       }
 
@@ -165,6 +228,53 @@ export default class HistoryPopup extends Component {
     }
   }
 
+  static renderOxygen (change) {
+    if (!change) {
+      return null;
+    }
+
+    const changeText = change > 0 ? '+' + change : change;
+
+    const changeStyle = change === 0 ?
+      styles.text :
+      (change > 0 ? styles.textIncrease : styles.textDecrease);
+
+    return (
+      <Fragment>
+        {
+          HistoryPopup.renderHistoryImageRow(
+            ImageIconTerraformingRating,
+            `${ changeText } Terraforming Rating`,
+            [ styles.text, changeStyle ],
+            null,
+            false,
+            `terraformingRating`
+          )
+        }
+        {
+          HistoryPopup.renderHistoryImageRow(
+            ImageIconOxygen,
+            `${ changeText } Oxygen`,
+            [ styles.text, changeStyle ],
+            null,
+            false,
+            `oxygen`
+          )
+        }
+      </Fragment>
+    )
+  }
+
+  static renderTime (time) {
+    if (!time) {
+      return null;
+    }
+
+    return (
+      <Text style={ styles.textTime }>{ moment(time).format('LL LTS') }</Text>
+    );
+  }
+
   render () {
     const { history = [] } = this.props;
 
@@ -173,7 +283,7 @@ export default class HistoryPopup extends Component {
         contentContainerStyle={ styles.container }
         data={ [ ...history ].reverse() }
         keyExtractor={ this.keyExtractor }
-        renderItem={ this.renderHistoryItem }
+        renderItem={ HistoryPopup.renderHistoryItem }
       />
     );
   }
@@ -193,6 +303,11 @@ const styles = ExtendedStyleSheet.create({
     height: '2.2rem'
   },
 
+  iconResourceSecondary: {
+    width: '2.2rem',
+    height: '1.2rem'
+  },
+
   iconProduction: {
     width: '1.7rem',
     height: '1.7rem'
@@ -202,21 +317,28 @@ const styles = ExtendedStyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    paddingVertical: '0.3rem'
+    paddingTop: '0.6rem'
+  },
+
+  itemSecondary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: '0.2rem'
   },
 
   production: {
     backgroundColor: '#B37D43',
     borderColor: '#222222',
     borderWidth: 1,
-    marginRight: '0.5rem',
+    marginRight: '0.3rem',
     padding: '0.25rem'
   },
 
   resource: {
     borderColor: '#FFFFFF',
     borderWidth: 1,
-    marginRight: '0.5rem'
+    marginRight: '0.3rem'
   },
 
   text: {
@@ -224,6 +346,14 @@ const styles = ExtendedStyleSheet.create({
     fontWeight: 'bold',
     color: '#333333',
     marginTop: '-0.175rem'
+  },
+
+  textSize: {
+    fontSize: '1.2rem',
+  },
+
+  textSizeSecondary: {
+    fontSize: '0.9rem',
   },
 
   textDecrease: {

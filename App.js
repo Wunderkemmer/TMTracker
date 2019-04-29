@@ -20,16 +20,18 @@ import CalculatorPopup from './src/components/popups/CalculatorPopup';
 import HistoryPopup from './src/components/popups/HistoryPopup';
 import InfoPopup from './src/components/popups/InfoPopup';
 import { Popup, Popups, showPopup } from './src/components/popups/Popups';
-import ProjectsPopup from './src/components/popups/ProjectsPopup';
+import ProjectsPopup, { PROJECT_INFOS, PROJECT_TYPES } from './src/components/popups/ProjectsPopup';
 
 import Tracker, { TRACKER_TYPES } from './src/components/Tracker';
 import TransactionButton from './src/components/TransactionButton';
 
-const { width, height } = Dimensions.get('window');
+import { contants } from './src/lib/utils';
 
-const MAX_OCEAN_COUNT = 9;
-const MAX_OXYGEN_LEVEL = 14;
-const MAX_TEMPERATURE = 8;
+const MAX_OCEAN_COUNT = contants.MAX_OCEAN_COUNT;
+const MAX_OXYGEN_LEVEL = contants.MAX_OXYGEN_LEVEL;
+const MAX_TEMPERATURE = contants.MAX_TEMPERATURE;
+
+const { width } = Dimensions.get('window');
 
 ExtendedStyleSheet.build({
   $rem: width * 0.02
@@ -149,10 +151,17 @@ export default class App extends Component<Props> {
     AsyncStorage.setItem('gameHistory', JSON.stringify(this.history));
   }
 
-  onBuyTemperature = () => {
+  onBuyTemperature = (type) => {
     let { state } = this;
 
-    if (state.resourceCount[TRACKER_TYPES.HEAT] >= 8) {
+    const heatCost = 8;
+    const megaCreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_ASTEROID].cost;
+
+    const canPurchase = type === TRACKER_TYPES.HEAT ?
+      state.resourceCount[TRACKER_TYPES.HEAT] >= heatCost :
+      state.resourceCount[TRACKER_TYPES.MEGACREDITS] >= megaCreditCost;
+
+    if (canPurchase) {
       const newTemperature = Math.min(state.temperature + 2, MAX_TEMPERATURE);
 
       if (state.temperature !== newTemperature) {
@@ -160,31 +169,61 @@ export default class App extends Component<Props> {
 
         state.temperature = newTemperature;
         state.resourceCount[TRACKER_TYPES.TERRAFORMING_RATING] += 1;
-        state.resourceCount[TRACKER_TYPES.HEAT] -= 8;
 
-        this.addHistoryAndSetState(state, 'buyTemperature');
+        if (type === TRACKER_TYPES.HEAT) {
+          state.resourceCount[TRACKER_TYPES.HEAT] -= heatCost;
+        } else {
+          state.resourceCount[TRACKER_TYPES.MEGACREDITS] -= megaCreditCost;
+        }
+
+        this.addHistoryAndSetState(state, 'buyTemperature', { type });
       }
     }
   };
 
-  onBuyGreenery = () => {
+  onBuyGreenery = (type) => {
     let { state } = this;
 
-    if (state.resourceCount[TRACKER_TYPES.PLANTS] >= 8) {
+    const plantCost = 8;
+    const megaCreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_GREENERY].cost;
+
+    const canPurchase = type === TRACKER_TYPES.PLANTS ?
+      state.resourceCount[TRACKER_TYPES.PLANTS] >= plantCost :
+      state.resourceCount[TRACKER_TYPES.MEGACREDITS] >= megaCreditCost;
+
+    if (canPurchase) {
       state = cloneDeep(state);
 
       const newOxygenLevel = Math.min(state.oxygenLevel + 1, MAX_OXYGEN_LEVEL);
+
+      let oxygen = 0;
 
       if (state.oxygenLevel !== newOxygenLevel) {
         state.oxygenLevel = newOxygenLevel;
 
         state.resourceCount[TRACKER_TYPES.TERRAFORMING_RATING] += 1;
+
+        oxygen = 1;
       }
 
-      state.resourceCount[TRACKER_TYPES.PLANTS] -= 8;
+      if (type === TRACKER_TYPES.PLANTS) {
+        state.resourceCount[TRACKER_TYPES.PLANTS] -= plantCost;
+      } else {
+        state.resourceCount[TRACKER_TYPES.MEGACREDITS] -= megaCreditCost;
+      }
 
-      this.addHistoryAndSetState(state, 'buyGreenery');
+      this.addHistoryAndSetState(state, 'buyGreenery', { type, oxygen });
     }
+  };
+
+  onChange = (type, changes) => {
+    const state = cloneDeep(this.state);
+
+    changes.forEach((change) => {
+      state.resourceCount[change.type] += change.value;
+    });
+
+    this.addHistoryAndSetState(state, 'change', { type, changes });
   };
 
   onDecrement = (type) => {
@@ -302,8 +341,26 @@ export default class App extends Component<Props> {
     }
   };
 
+  onProject = (type, cost) => {
+    console.log(type, cost);
+
+    switch (type) {
+      case PROJECT_TYPES.BUY_ASTEROID:
+        this.onBuyTemperature(TRACKER_TYPES.MEGACREDITS);
+
+        break;
+
+      case PROJECT_TYPES.BUY_GREENERY:
+        this.onBuyGreenery(TRACKER_TYPES.MEGACREDITS);
+
+        break;
+    }
+  };
+
   onProjects = () => {
-    showPopup('projects');
+    const { onProject, state } = this;
+
+    showPopup('projects', { state, onProject });
   };
 
   onRedo = () => {
@@ -337,19 +394,9 @@ export default class App extends Component<Props> {
       return;
     }
 
-    showPopup('calculator', {
-      state: this.state,
-      type,
-      onChange: (changes) => {
-        const state = cloneDeep(this.state);
+    const { onChange, state } = this;
 
-        changes.forEach((change) => {
-          state.resourceCount[change.type] += change.value;
-        });
-
-        this.addHistoryAndSetState(state, 'calculation', { type, changes });
-      }
-    });
+    showPopup('calculator', { state, type, onChange });
   };
 
   onUndo = () => {
@@ -545,8 +592,26 @@ export default class App extends Component<Props> {
                 { this.renderTracker(TRACKER_TYPES.GENERATION) }
               </View>
               <View style={ styles.sidebarButtonsRight }>
-                { this.renderTransactionButton('#5FB365', plantsImage, ImageIconGreenery, 'arrow-right', isBuyGreeneryDisabled, this.onBuyGreenery) }
-                { this.renderTransactionButton('#ED4E44', heatImage, ImageIconTemperature, 'arrow-right', isBuyTemperatureDisabled, this.onBuyTemperature) }
+                {
+                  this.renderTransactionButton(
+                    '#5FB365',
+                    plantsImage,
+                    ImageIconGreenery,
+                    'arrow-right',
+                    isBuyGreeneryDisabled,
+                    () => this.onBuyGreenery(TRACKER_TYPES.PLANTS)
+                  )
+                }
+                {
+                  this.renderTransactionButton(
+                    '#ED4E44',
+                    heatImage,
+                    ImageIconTemperature,
+                    'arrow-right',
+                    isBuyTemperatureDisabled,
+                    () => this.onBuyTemperature(TRACKER_TYPES.HEAT)
+                  )
+                }
                 { this.renderButton('#5B8BDD', null, 'Projects', false, this.onProjects) }
               </View>
             </View>
@@ -572,6 +637,7 @@ export default class App extends Component<Props> {
               id="projects"
               title="Projects"
               component={ ProjectsPopup }
+              style={ ProjectsPopup.publicStyles.popup }
             />
           </Popups>
         </SafeAreaView>
