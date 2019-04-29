@@ -202,8 +202,12 @@ export default class App extends Component<Props> {
 
       const oxygenLevel = Math.min(state.oxygenLevel + 1, MAX_OXYGEN_LEVEL);
 
+      let wasOxygenAdded = false;
+
       if (state.oxygenLevel !== oxygenLevel) {
         state.oxygenLevel = oxygenLevel;
+
+        wasOxygenAdded = true;
 
         state.resourceCount[TRACKER_TYPES.TERRAFORMING_RATING] += 1;
       }
@@ -214,7 +218,7 @@ export default class App extends Component<Props> {
         state.resourceCount[TRACKER_TYPES.MEGACREDITS] -= megaCreditCost;
       }
 
-      this.addHistoryAndSetState(state, 'buyGreenery', { type, oxygenLevel });
+      this.addHistoryAndSetState(state, 'buyGreenery', { type, wasOxygenAdded });
     }
   };
 

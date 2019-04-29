@@ -6,6 +6,8 @@ import { FlatList, Image, Text, View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 
+import { contants as constants } from '../../lib/utils';
+
 import { TRACKER_INFOS, TRACKER_TYPES } from '../Tracker';
 
 import ImageIconCard from '../../../resources/images/icon_card.png';
@@ -17,6 +19,8 @@ import ImageIconTemperature from '../../../resources/images/icon_temperature.png
 
 import { PROJECT_INFOS, PROJECT_TYPES } from './ProjectsPopup';
 
+const MAX_OXYGEN_LEVEL = constants.MAX_OXYGEN_LEVEL;
+
 export default class HistoryPopup extends Component {
 
   keyExtractor = (item, index) => `${ item.event }.${ index }`;
@@ -26,9 +30,10 @@ export default class HistoryPopup extends Component {
     const image = trackerInfo.image;
     const title = trackerInfo.title;
 
-    const changeText = isProduction ?
-      `${ title } production +` + change :
-      (change > 0 ? `+${change} ${ title }` : `${change} ${ title }`);
+    let changeText = `${change} ${ title }`;
+
+    changeText = change > 0 ? `+${changeText}` : changeText;
+    changeText = isProduction ? `${changeText} production` : changeText;
 
     const changeStyle = change === 0 ?
       styles.text :
@@ -95,9 +100,21 @@ export default class HistoryPopup extends Component {
             {
               HistoryPopup.renderHistoryImageRow(
                 ImageIconOcean,
-                `Purchased Ocean ${ oceanCount }`,
+                `Purchased Aquifer`,
                 [ styles.text, styles.textIncrease ],
-                time
+                time,
+                false,
+                'aquifer'
+              )
+            }
+            {
+              HistoryPopup.renderHistoryImageRow(
+                ImageIconOcean,
+                `Ocean ${ oceanCount } added`,
+                [ styles.text, styles.textIncrease ],
+                null,
+                false,
+                'ocean'
               )
             }
             {
@@ -148,15 +165,14 @@ export default class HistoryPopup extends Component {
       }
 
       case 'buyGreenery': {
-        const { type } = payload;
+        const { type, wasOxygenAdded } = payload;
 
         const plantCost = 8;
         const megaCreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_GREENERY].cost;
 
         const isPlants = type === TRACKER_TYPES.PLANTS;
-
         const change = isPlants ? -plantCost : -megaCreditCost;
-        const title = isPlants ? 'Purchased Greenery' : 'Purchased Greenery';
+        const title = isPlants ? 'Exchanged Plants for Greenery' : 'Purchased Greenery';
 
         return (
           <Fragment>
@@ -168,7 +184,7 @@ export default class HistoryPopup extends Component {
                 time
               )
             }
-            { HistoryPopup.renderOxygen(state.oxygenLevel) }
+            { HistoryPopup.renderOxygen(wasOxygenAdded, state.oxygenLevel) }
             { HistoryPopup.renderChange(type, change) }
           </Fragment>
         );
@@ -213,7 +229,7 @@ export default class HistoryPopup extends Component {
         const isHeat = type === TRACKER_TYPES.HEAT;
 
         const change = isHeat ? -heatCost : -megaCreditCost;
-        const title = isHeat ? 'Purchased Temperature' : 'Purchased Asteroid';
+        const title = isHeat ? 'Exchanged Heat for Temperature' : 'Purchased Asteroid';
 
         const trackerInfo = TRACKER_INFOS[TRACKER_TYPES.TERRAFORMING_RATING];
 
@@ -224,7 +240,19 @@ export default class HistoryPopup extends Component {
                 ImageIconTemperature,
                 title,
                 [ styles.text, styles.textIncrease ],
-                time
+                time,
+                false,
+                'purchase'
+              )
+            }
+            {
+              HistoryPopup.renderHistoryImageRow(
+                ImageIconTemperature,
+                `Temperature at ${ state.temperature }°C`,
+                [ styles.text, styles.textIncrease ],
+                null,
+                false,
+                'temperature'
               )
             }
             {
@@ -377,8 +405,12 @@ export default class HistoryPopup extends Component {
     }
   }
 
-  static renderOxygen (oxygenLevel) {
+  static renderOxygen (wasOxygenAdded, oxygenLevel) {
     const trackerInfo = TRACKER_INFOS[TRACKER_TYPES.TERRAFORMING_RATING];
+
+    if (!wasOxygenAdded) {
+      return;
+    }
 
     return (
       <Fragment>
