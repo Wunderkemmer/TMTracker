@@ -19,8 +19,16 @@ export const PROJECT_TYPES = {
 };
 
 export const PROJECT_INFOS = {
-  [PROJECT_TYPES.BUY_ASTEROID]: { title: 'Buy Asteroid', cost: 14 },
-  [PROJECT_TYPES.BUY_AQUIFER]: { title: 'Buy Aquifer', cost: 18 },
+  [PROJECT_TYPES.BUY_ASTEROID]: {
+    title: 'Buy Asteroid',
+    cost: 14,
+    hasRunOut: (state) => state.temperature >= contants.MAX_TEMPERATURE
+  },
+  [PROJECT_TYPES.BUY_AQUIFER]: {
+    title: 'Buy Aquifer',
+    cost: 18,
+    hasRunOut: (state) => state.oceanCount >= contants.MAX_OCEAN_COUNT
+  },
   [PROJECT_TYPES.BUY_CITY]: { title: 'Buy City', cost: 25 },
   [PROJECT_TYPES.BUY_GREENERY]: { title: 'Buy Greenery', cost: 23 },
   [PROJECT_TYPES.BUY_POWER_PLANT]: { title: 'Buy Power Plant', cost: 11 },
@@ -48,20 +56,8 @@ export default class ProjectsPopup extends Component {
 
     const info = PROJECT_INFOS[type];
     const megaCredits = state.resourceCount[TRACKER_TYPES.MEGACREDITS];
-
     const isTooExpensive = info.cost > 0 && megaCredits < info.cost;
-
-    let hasRunOut = false;
-
-    switch (type) {
-      case [PROJECT_TYPES.BUY_ASTEROID]:
-        hasRunOut = state.temperature >= contants.MAX_TEMPERATURE;
-        break;
-
-      case [PROJECT_TYPES.BUY_AQUIFER]:
-        hasRunOut = state.oceanCount >= contants.MAX_OCEAN_COUNT;
-        break;
-    }
+    const hasRunOut = info.hasRunOut && info.hasRunOut(state);
 
     return (
       <Button

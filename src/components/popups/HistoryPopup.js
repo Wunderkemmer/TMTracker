@@ -8,10 +8,12 @@ import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 
 import { TRACKER_INFOS, TRACKER_TYPES } from '../Tracker';
 
+import ImageIconCard from '../../../resources/images/icon_card.png';
+import ImageIconCity from '../../../resources/images/icon_city.png';
 import ImageIconGreenery from '../../../resources/images/icon_greenery.png';
+import ImageIconOcean from '../../../resources/images/icon_ocean.png';
 import ImageIconOxygen from '../../../resources/images/icon_oxygen.png';
 import ImageIconTemperature from '../../../resources/images/icon_temperature.png';
-import ImageIconTerraformingRating from '../../../resources/images/icon_terraforming_rating.png';
 
 import { PROJECT_INFOS, PROJECT_TYPES } from './ProjectsPopup';
 
@@ -19,12 +21,14 @@ export default class HistoryPopup extends Component {
 
   keyExtractor = (item, index) => `${ item.event }.${ index }`;
 
-  static renderChange (type, change, time, index = 0) {
+  static renderChange (type, change, time, isProduction, index = 0) {
     const trackerInfo = TRACKER_INFOS[type];
     const image = trackerInfo.image;
     const title = trackerInfo.title;
 
-    const changeText = change > 0 ? '+' + change : change;
+    const changeText = isProduction ?
+      `${ title } production +` + change :
+      (change > 0 ? `+${change} ${ title }` : `${change} ${ title }`);
 
     const changeStyle = change === 0 ?
       styles.text :
@@ -32,21 +36,24 @@ export default class HistoryPopup extends Component {
 
     return HistoryPopup.renderHistoryImageRow(
       image,
-      `${ changeText } ${ title }`,
+      changeText,
       [ styles.text, changeStyle ],
       time,
-      false,
+      isProduction,
       `change.${ index }`
     );
   }
 
   static renderHistoryImageRow (image, text, textStyle, time, isProduction, key = '') {
-    const frameStyle = isProduction ? styles.production : styles.resource;
+    const frameStyle = isProduction ?
+      (time ? styles.production : styles.productionSecondary) :
+      styles.resource;
+
     const itemStyle = time ? styles.item : styles.itemSecondary;
 
     const iconStyle = time ?
       (isProduction ? styles.iconProduction : styles.iconResource) :
-      styles.iconResourceSecondary;
+      (isProduction ? styles.iconProductionSecondary : styles.iconResourceSecondary);
 
     const textSizeStyle = time ? styles.textSize : styles.textSizeSecondary;
 
@@ -78,8 +85,70 @@ export default class HistoryPopup extends Component {
     const { event, payload, state, time } = item;
 
     switch (event) {
+      case 'buyAquifer': {
+        const { oceanCount } = payload;
+
+        const trackerInfo = TRACKER_INFOS[TRACKER_TYPES.TERRAFORMING_RATING];
+
+        return (
+          <Fragment>
+            {
+              HistoryPopup.renderHistoryImageRow(
+                ImageIconOcean,
+                `Purchased Ocean ${ oceanCount }`,
+                [ styles.text, styles.textIncrease ],
+                time
+              )
+            }
+            {
+              HistoryPopup.renderHistoryImageRow(
+                trackerInfo.image,
+                `+1 Terraforming Rating`,
+                [ styles.text, styles.textIncrease ],
+                null,
+                false,
+                `terraformingRating`
+              )
+            }
+            {
+              HistoryPopup.renderChange(
+                TRACKER_TYPES.MEGACREDITS,
+                -PROJECT_INFOS[PROJECT_TYPES.BUY_AQUIFER].cost
+              )
+            }
+          </Fragment>
+        );
+      }
+
+      case 'buyCity': {
+        return (
+          <Fragment>
+            {
+              HistoryPopup.renderHistoryImageRow(
+                ImageIconCity,
+                `Purchased City`,
+                [ styles.text, styles.textIncrease ],
+                time
+              )
+            }
+            {
+              HistoryPopup.renderChange(TRACKER_TYPES.MEGACREDITS, 1, null, true, 0)
+            }
+            {
+              HistoryPopup.renderChange(
+                TRACKER_TYPES.MEGACREDITS,
+                -PROJECT_INFOS[PROJECT_TYPES.BUY_CITY].cost,
+                null,
+                false,
+                1
+              )
+            }
+          </Fragment>
+        );
+      }
+
       case 'buyGreenery': {
-        const { type, oxygen } = payload;
+        const { type } = payload;
 
         const plantCost = 8;
         const megaCreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_GREENERY].cost;
@@ -99,8 +168,38 @@ export default class HistoryPopup extends Component {
                 time
               )
             }
-            { HistoryPopup.renderOxygen(oxygen) }
+            { HistoryPopup.renderOxygen(state.oxygenLevel) }
             { HistoryPopup.renderChange(type, change) }
+          </Fragment>
+        );
+      }
+
+      case 'buyPowerPlant': {
+        const trackerInfo = TRACKER_INFOS[TRACKER_TYPES.ENERGY];
+
+        return (
+          <Fragment>
+            {
+              HistoryPopup.renderHistoryImageRow(
+                trackerInfo.image,
+                `Purchased Power Plant`,
+                [ styles.text, styles.textIncrease ],
+                time,
+                true
+              )
+            }
+            {
+              HistoryPopup.renderChange(TRACKER_TYPES.ENERGY, 1, null, true, 0)
+            }
+            {
+              HistoryPopup.renderChange(
+                TRACKER_TYPES.MEGACREDITS,
+                -PROJECT_INFOS[PROJECT_TYPES.BUY_POWER_PLANT].cost,
+                null,
+                false,
+                1
+              )
+            }
           </Fragment>
         );
       }
@@ -116,6 +215,8 @@ export default class HistoryPopup extends Component {
         const change = isHeat ? -heatCost : -megaCreditCost;
         const title = isHeat ? 'Purchased Temperature' : 'Purchased Asteroid';
 
+        const trackerInfo = TRACKER_INFOS[TRACKER_TYPES.TERRAFORMING_RATING];
+
         return (
           <Fragment>
             {
@@ -128,7 +229,7 @@ export default class HistoryPopup extends Component {
             }
             {
               HistoryPopup.renderHistoryImageRow(
-                ImageIconTerraformingRating,
+                trackerInfo.image,
                 `+1 Terraforming Rating`,
                 [ styles.text, styles.textIncrease ],
                 null,
@@ -147,7 +248,7 @@ export default class HistoryPopup extends Component {
         return changes.map((change, index) => {
           const { type, value } = change;
 
-          return HistoryPopup.renderChange(type, value, index === 0 ? time : null, index);
+          return HistoryPopup.renderChange(type, value, index === 0 ? time : null, false, index);
         });
       }
 
@@ -162,7 +263,7 @@ export default class HistoryPopup extends Component {
           case TRACKER_TYPES.TERRAFORMING_RATING:
             return HistoryPopup.renderHistoryImageRow(
               image,
-              `Decreased ${ title } by 1`,
+              `-1 ${ title }`,
               [ styles.text, styles.textDecrease ],
               time
             );
@@ -177,7 +278,7 @@ export default class HistoryPopup extends Component {
           default:
             return HistoryPopup.renderHistoryImageRow(
               image,
-              `Decreased ${ title } production by 1`,
+              `-1 ${ title } production`,
               [ styles.text, styles.textDecrease ],
               time,
               true
@@ -196,7 +297,7 @@ export default class HistoryPopup extends Component {
           case TRACKER_TYPES.TERRAFORMING_RATING:
             return HistoryPopup.renderHistoryImageRow(
               image,
-              `Increased ${ title } by 1`,
+              `+1 ${ title }`,
               [ styles.text, styles.textIncrease ],
               time
             );
@@ -211,7 +312,7 @@ export default class HistoryPopup extends Component {
           default:
             return HistoryPopup.renderHistoryImageRow(
               image,
-              `Increased ${ title } production by 1`,
+              `+1 ${ title } production`,
               [ styles.text, styles.textIncrease ],
               time,
               true
@@ -225,40 +326,80 @@ export default class HistoryPopup extends Component {
           styles.text,
           time
         );
+
+      case 'oceanCount': {
+        return HistoryPopup.renderHistoryImageRow(
+          ImageIconOcean,
+          `Ocean ${ state.oceanCount } added`,
+          [ styles.text, styles.textIncrease ],
+          time
+        );
+      }
+
+      case 'oxygenLevel': {
+        return HistoryPopup.renderHistoryImageRow(
+          ImageIconOxygen,
+          `Oxygen level at ${ state.oxygenLevel }%`,
+          [ styles.text, styles.textIncrease ],
+          time
+        );
+      }
+
+      case 'sellPatent': {
+        return (
+          <Fragment>
+            {
+              HistoryPopup.renderHistoryImageRow(
+                ImageIconCard,
+                `Sold Patent`,
+                [ styles.text, styles.textDecrease ],
+                time
+              )
+            }
+            {
+              HistoryPopup.renderChange(
+                TRACKER_TYPES.MEGACREDITS,
+                -PROJECT_INFOS[PROJECT_TYPES.SELL_PATENT].cost
+              )
+            }
+          </Fragment>
+        );
+      }
+
+      case 'temperature': {
+        return HistoryPopup.renderHistoryImageRow(
+          ImageIconTemperature,
+          `Temperature at ${ state.temperature }°C`,
+          [ styles.text, styles.textIncrease ],
+          time
+        );
+      }
     }
   }
 
-  static renderOxygen (change) {
-    if (!change) {
-      return null;
-    }
-
-    const changeText = change > 0 ? '+' + change : change;
-
-    const changeStyle = change === 0 ?
-      styles.text :
-      (change > 0 ? styles.textIncrease : styles.textDecrease);
+  static renderOxygen (oxygenLevel) {
+    const trackerInfo = TRACKER_INFOS[TRACKER_TYPES.TERRAFORMING_RATING];
 
     return (
       <Fragment>
         {
           HistoryPopup.renderHistoryImageRow(
-            ImageIconTerraformingRating,
-            `${ changeText } Terraforming Rating`,
-            [ styles.text, changeStyle ],
+            ImageIconOxygen,
+            `Oxygen level at ${ oxygenLevel }%`,
+            [ styles.text, styles.textIncrease ],
             null,
             false,
-            `terraformingRating`
+            `oxygen`
           )
         }
         {
           HistoryPopup.renderHistoryImageRow(
-            ImageIconOxygen,
-            `${ changeText } Oxygen`,
-            [ styles.text, changeStyle ],
+            trackerInfo.image,
+            `+1 Terraforming Rating`,
+            [ styles.text, styles.textIncrease ],
             null,
             false,
-            `oxygen`
+            `terraformingRating`
           )
         }
       </Fragment>
@@ -304,13 +445,18 @@ const styles = ExtendedStyleSheet.create({
   },
 
   iconResourceSecondary: {
-    width: '2.2rem',
+    width: '1.2rem',
     height: '1.2rem'
   },
 
   iconProduction: {
     width: '1.7rem',
     height: '1.7rem'
+  },
+
+  iconProductionSecondary: {
+    width: '0.8rem',
+    height: '0.8rem'
   },
 
   item: {
@@ -324,7 +470,8 @@ const styles = ExtendedStyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    paddingTop: '0.2rem'
+    paddingTop: '0.35rem',
+    marginLeft: '2.6rem'
   },
 
   production: {
@@ -339,6 +486,14 @@ const styles = ExtendedStyleSheet.create({
     borderColor: '#FFFFFF',
     borderWidth: 1,
     marginRight: '0.3rem'
+  },
+
+  productionSecondary: {
+    backgroundColor: '#B37D43',
+    borderColor: '#222222',
+    borderWidth: 1,
+    marginRight: '0.3rem',
+    padding: '0.15rem'
   },
 
   text: {

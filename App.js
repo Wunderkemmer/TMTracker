@@ -151,33 +151,39 @@ export default class App extends Component<Props> {
     AsyncStorage.setItem('gameHistory', JSON.stringify(this.history));
   }
 
-  onBuyTemperature = (type) => {
+  onBuyAquifer = () => {
     let { state } = this;
 
-    const heatCost = 8;
-    const megaCreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_ASTEROID].cost;
-
-    const canPurchase = type === TRACKER_TYPES.HEAT ?
-      state.resourceCount[TRACKER_TYPES.HEAT] >= heatCost :
-      state.resourceCount[TRACKER_TYPES.MEGACREDITS] >= megaCreditCost;
+    const megaCreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_AQUIFER].cost;
+    const canPurchase = state.resourceCount[TRACKER_TYPES.MEGACREDITS] >= megaCreditCost;
 
     if (canPurchase) {
-      const newTemperature = Math.min(state.temperature + 2, MAX_TEMPERATURE);
+      const oceanCount = Math.min(state.oceanCount + 1, MAX_OCEAN_COUNT);
 
-      if (state.temperature !== newTemperature) {
+      if (state.oceanCount !== oceanCount) {
         state = cloneDeep(state);
 
-        state.temperature = newTemperature;
+        state.oceanCount = oceanCount;
+        state.resourceCount[TRACKER_TYPES.MEGACREDITS] -= megaCreditCost;
         state.resourceCount[TRACKER_TYPES.TERRAFORMING_RATING] += 1;
 
-        if (type === TRACKER_TYPES.HEAT) {
-          state.resourceCount[TRACKER_TYPES.HEAT] -= heatCost;
-        } else {
-          state.resourceCount[TRACKER_TYPES.MEGACREDITS] -= megaCreditCost;
-        }
-
-        this.addHistoryAndSetState(state, 'buyTemperature', { type });
+        this.addHistoryAndSetState(state, 'buyAquifer', { oceanCount, cost: megaCreditCost });
       }
+    }
+  };
+
+  onBuyCity = () => {
+    let { state } = this;
+
+    const megaCreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_CITY].cost;
+    const canPurchase = state.resourceCount[TRACKER_TYPES.MEGACREDITS] >= megaCreditCost;
+
+    if (canPurchase) {
+      state = cloneDeep(state);
+
+      state.resourceRate[TRACKER_TYPES.MEGACREDITS] += 1;
+
+      this.addHistoryAndSetState(state, 'buyCity');
     }
   };
 
@@ -194,16 +200,12 @@ export default class App extends Component<Props> {
     if (canPurchase) {
       state = cloneDeep(state);
 
-      const newOxygenLevel = Math.min(state.oxygenLevel + 1, MAX_OXYGEN_LEVEL);
+      const oxygenLevel = Math.min(state.oxygenLevel + 1, MAX_OXYGEN_LEVEL);
 
-      let oxygen = 0;
-
-      if (state.oxygenLevel !== newOxygenLevel) {
-        state.oxygenLevel = newOxygenLevel;
+      if (state.oxygenLevel !== oxygenLevel) {
+        state.oxygenLevel = oxygenLevel;
 
         state.resourceCount[TRACKER_TYPES.TERRAFORMING_RATING] += 1;
-
-        oxygen = 1;
       }
 
       if (type === TRACKER_TYPES.PLANTS) {
@@ -212,7 +214,52 @@ export default class App extends Component<Props> {
         state.resourceCount[TRACKER_TYPES.MEGACREDITS] -= megaCreditCost;
       }
 
-      this.addHistoryAndSetState(state, 'buyGreenery', { type, oxygen });
+      this.addHistoryAndSetState(state, 'buyGreenery', { type, oxygenLevel });
+    }
+  };
+
+  onBuyPowerPlant = () => {
+    let { state } = this;
+
+    const megaCreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_POWER_PLANT].cost;
+    const canPurchase = state.resourceCount[TRACKER_TYPES.MEGACREDITS] >= megaCreditCost;
+
+    if (canPurchase) {
+      state = cloneDeep(state);
+
+      state.resourceRate[TRACKER_TYPES.ENERGY] += 1;
+
+      this.addHistoryAndSetState(state, 'buyPowerPlant');
+    }
+  };
+
+  onBuyTemperature = (type) => {
+    let { state } = this;
+
+    const heatCost = 8;
+    const megaCreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_ASTEROID].cost;
+
+    const canPurchase = type === TRACKER_TYPES.HEAT ?
+      state.resourceCount[TRACKER_TYPES.HEAT] >= heatCost :
+      state.resourceCount[TRACKER_TYPES.MEGACREDITS] >= megaCreditCost;
+
+    if (canPurchase) {
+      const temperature = Math.min(state.temperature + 2, MAX_TEMPERATURE);
+
+      if (state.temperature !== temperature) {
+        state = cloneDeep(state);
+
+        state.temperature = temperature;
+        state.resourceCount[TRACKER_TYPES.TERRAFORMING_RATING] += 1;
+
+        if (type === TRACKER_TYPES.HEAT) {
+          state.resourceCount[TRACKER_TYPES.HEAT] -= heatCost;
+        } else {
+          state.resourceCount[TRACKER_TYPES.MEGACREDITS] -= megaCreditCost;
+        }
+
+        this.addHistoryAndSetState(state, 'buyTemperature', { type });
+      }
     }
   };
 
@@ -316,44 +363,39 @@ export default class App extends Component<Props> {
   onOcean = () => {
     let { state } = this;
 
-    const newOceanCount = Math.min(state.oceanCount + 1, MAX_OCEAN_COUNT);
+    const oceanCount = Math.min(state.oceanCount + 1, MAX_OCEAN_COUNT);
 
-    if (state.oceanCount !== newOceanCount) {
+    if (state.oceanCount !== oceanCount) {
       state = cloneDeep(state);
 
-      state.oceanCount = newOceanCount;
+      state.oceanCount = oceanCount;
 
-      this.addHistoryAndSetState(state, 'oceanCount', { value: state.oceanCount });
+      this.addHistoryAndSetState(state, 'oceanCount');
     }
   };
 
   onOxygen = () => {
     let { state } = this;
 
-    const newOxygenLevel = Math.min(state.oxygenLevel + 1, MAX_OXYGEN_LEVEL);
+    const oxygenLevel = Math.min(state.oxygenLevel + 1, MAX_OXYGEN_LEVEL);
 
-    if (state.oxygenLevel !== newOxygenLevel) {
+    if (state.oxygenLevel !== oxygenLevel) {
       state = cloneDeep(state);
 
-      state.oxygenLevel = newOxygenLevel;
+      state.oxygenLevel = oxygenLevel;
 
-      this.addHistoryAndSetState(state, 'oxygenLevel', { value: state.oxygenLevel });
+      this.addHistoryAndSetState(state, 'oxygenLevel');
     }
   };
 
   onProject = (type, cost) => {
-    console.log(type, cost);
-
     switch (type) {
-      case PROJECT_TYPES.BUY_ASTEROID:
-        this.onBuyTemperature(TRACKER_TYPES.MEGACREDITS);
-
-        break;
-
-      case PROJECT_TYPES.BUY_GREENERY:
-        this.onBuyGreenery(TRACKER_TYPES.MEGACREDITS);
-
-        break;
+      case PROJECT_TYPES.BUY_AQUIFER: this.onBuyAquifer(); break;
+      case PROJECT_TYPES.BUY_ASTEROID: this.onBuyTemperature(TRACKER_TYPES.MEGACREDITS); break;
+      case PROJECT_TYPES.BUY_CITY: this.onBuyCity(); break;
+      case PROJECT_TYPES.BUY_GREENERY: this.onBuyGreenery(TRACKER_TYPES.MEGACREDITS); break;
+      case PROJECT_TYPES.BUY_POWER_PLANT: this.onBuyPowerPlant(); break;
+      case PROJECT_TYPES.SELL_PATENT: this.onSellPatent(); break;
     }
   };
 
@@ -373,17 +415,29 @@ export default class App extends Component<Props> {
     }
   };
 
+  onSellPatent = () => {
+    let { state } = this;
+
+    const megaCreditCost = PROJECT_INFOS[PROJECT_TYPES.SELL_PATENT].cost;
+
+    state = cloneDeep(state);
+
+    state.resourceCount[TRACKER_TYPES.MEGACREDITS] -= megaCreditCost;
+
+    this.addHistoryAndSetState(state, 'sellPatent');
+  };
+
   onTemperature = () => {
     let { state } = this;
 
-    const newTemperature = Math.min(state.temperature + 2, MAX_TEMPERATURE);
+    const temperature = Math.min(state.temperature + 2, MAX_TEMPERATURE);
 
-    if (state.temperature !== newTemperature) {
+    if (state.temperature !== temperature) {
       state = cloneDeep(state);
 
-      state.temperature = newTemperature;
+      state.temperature = temperature;
 
-      this.addHistoryAndSetState(state, 'temperature', { value: state.temperature });
+      this.addHistoryAndSetState(state, 'temperature');
     }
   };
 
