@@ -436,7 +436,8 @@ const styles = ExtendedStyleSheet.create({
   container: {
     alignItems: 'stretch',
     paddingHorizontal: '1rem',
-    paddingVertical: '0.8rem'
+    paddingTop: '0.5rem',
+    paddingBottom: '1rem'
   },
 
   iconResource: {
