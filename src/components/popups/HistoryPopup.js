@@ -6,8 +6,6 @@ import { FlatList, Image, Text, View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 
-import { contants as constants } from '../../lib/utils';
-
 import { TRACKER_INFOS, TRACKER_TYPES } from '../Tracker';
 
 import ImageIconCard from '../../../resources/images/icon_card.png';
@@ -18,8 +16,6 @@ import ImageIconOxygen from '../../../resources/images/icon_oxygen.png';
 import ImageIconTemperature from '../../../resources/images/icon_temperature.png';
 
 import { PROJECT_INFOS, PROJECT_TYPES } from './ProjectsPopup';
-
-const MAX_OXYGEN_LEVEL = constants.MAX_OXYGEN_LEVEL;
 
 export default class HistoryPopup extends Component {
 
@@ -449,12 +445,13 @@ export default class HistoryPopup extends Component {
   }
 
   render () {
-    const { history = [] } = this.props;
+    const { history } = this.props;
+    const reverseHistory = [ ...history ].reverse();
 
     return (
       <FlatList
         contentContainerStyle={ styles.container }
-        data={ [ ...history ].reverse() }
+        data={ reverseHistory }
         keyExtractor={ this.keyExtractor }
         renderItem={ HistoryPopup.renderHistoryItem }
       />
