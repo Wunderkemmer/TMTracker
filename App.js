@@ -121,9 +121,9 @@ export default class App extends Component<Props> {
     const lastState = lastEntry.state;
 
     return lastEvent !== 'newGame' &&
-      lastState.oceanCount < MAX_OCEAN_COUNT &&
-      lastState.oxygenLevel < MAX_OXYGEN_LEVEL &&
-      lastState.temperature < MAX_TEMPERATURE;
+      (lastState.oceanCount < MAX_OCEAN_COUNT ||
+      lastState.oxygenLevel < MAX_OXYGEN_LEVEL ||
+      lastState.temperature < MAX_TEMPERATURE);
   }
 
   restoreGame = (history) => {
