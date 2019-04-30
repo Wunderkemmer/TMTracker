@@ -39,10 +39,10 @@
 		817C0D84895449E6B4F0C9FD /* libRNCAsyncStorage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 79D4DC7FFF2A412680761401 /* libRNCAsyncStorage.a */; };
 		832341BD1AAA6AB300B99B32 /* libRCTText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 832341B51AAA6A8300B99B32 /* libRCTText.a */; };
 		ADBDB9381DFEBF1600ED6528 /* libRCTBlob.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ADBDB9271DFEBF0700ED6528 /* libRCTBlob.a */; };
-		D00EF76E2265741500B55F45 /* PublicSans_Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = D00EF76C226573FA00B55F45 /* PublicSans_Bold.otf */; };
-		D00EF76F2265741500B55F45 /* PublicSans_Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = D00EF76D226573FA00B55F45 /* PublicSans_Regular.otf */; };
 		D01E10942261DF960068D81C /* FontAwesome5_Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D01E10932261DF960068D81C /* FontAwesome5_Regular.ttf */; };
 		D01E10962261DFA90068D81C /* FontAwesome5_Solid.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D01E10952261DFA90068D81C /* FontAwesome5_Solid.ttf */; };
+		D063AF10227812DD00D5E492 /* background_mars.jpg in Resources */ = {isa = PBXBuildFile; fileRef = D063AF0F227812DD00D5E492 /* background_mars.jpg */; };
+		D063AF122278170C00D5E492 /* logo.png in Resources */ = {isa = PBXBuildFile; fileRef = D063AF112278170C00D5E492 /* logo.png */; };
 		ED297163215061F000B7C4FE /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ED297162215061F000B7C4FE /* JavaScriptCore.framework */; };
 		ED2971652150620600B7C4FE /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ED2971642150620600B7C4FE /* JavaScriptCore.framework */; };
 /* End PBXBuildFile section */
@@ -359,10 +359,10 @@
 		8247EC8C9EED47D4AD36771E /* RNCAsyncStorage.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNCAsyncStorage.xcodeproj; path = "../node_modules/@react-native-community/async-storage/ios/RNCAsyncStorage.xcodeproj"; sourceTree = "<group>"; };
 		832341B01AAA6A8300B99B32 /* RCTText.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTText.xcodeproj; path = "../node_modules/react-native/Libraries/Text/RCTText.xcodeproj"; sourceTree = "<group>"; };
 		ADBDB91F1DFEBF0600ED6528 /* RCTBlob.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTBlob.xcodeproj; path = "../node_modules/react-native/Libraries/Blob/RCTBlob.xcodeproj"; sourceTree = "<group>"; };
-		D00EF76C226573FA00B55F45 /* PublicSans_Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = PublicSans_Bold.otf; sourceTree = "<group>"; };
-		D00EF76D226573FA00B55F45 /* PublicSans_Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = PublicSans_Regular.otf; sourceTree = "<group>"; };
 		D01E10932261DF960068D81C /* FontAwesome5_Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = FontAwesome5_Regular.ttf; sourceTree = "<group>"; };
 		D01E10952261DFA90068D81C /* FontAwesome5_Solid.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = FontAwesome5_Solid.ttf; sourceTree = "<group>"; };
+		D063AF0F227812DD00D5E492 /* background_mars.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = background_mars.jpg; sourceTree = "<group>"; };
+		D063AF112278170C00D5E492 /* logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo.png; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
@@ -601,6 +601,7 @@
 			isa = PBXGroup;
 			children = (
 				D00EF746226573B400B55F45 /* Fonts */,
+				D063AF0A22780AF300D5E492 /* Resources */,
 				13B07FAE1A68108700A75B9A /* tmtracker */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				00E356EF1AD99517003FC87E /* tmtrackerTests */,
@@ -638,10 +639,17 @@
 			children = (
 				D01E10952261DFA90068D81C /* FontAwesome5_Solid.ttf */,
 				D01E10932261DF960068D81C /* FontAwesome5_Regular.ttf */,
-				D00EF76C226573FA00B55F45 /* PublicSans_Bold.otf */,
-				D00EF76D226573FA00B55F45 /* PublicSans_Regular.otf */,
 			);
 			path = Fonts;
+			sourceTree = "<group>";
+		};
+		D063AF0A22780AF300D5E492 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				D063AF0F227812DD00D5E492 /* background_mars.jpg */,
+				D063AF112278170C00D5E492 /* logo.png */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		D084F5D62276031600D3417B /* Recovered References */ = {
@@ -1119,9 +1127,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D00EF76E2265741500B55F45 /* PublicSans_Bold.otf in Resources */,
-				D00EF76F2265741500B55F45 /* PublicSans_Regular.otf in Resources */,
+				D063AF10227812DD00D5E492 /* background_mars.jpg in Resources */,
 				D01E10962261DFA90068D81C /* FontAwesome5_Solid.ttf in Resources */,
+				D063AF122278170C00D5E492 /* logo.png in Resources */,
 				D01E10942261DF960068D81C /* FontAwesome5_Regular.ttf in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				13B07FBD1A68108700A75B9A /* LaunchScreen.xib in Resources */,
@@ -1314,7 +1322,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.wunderkemmer.tmtracker;
 				PRODUCT_NAME = tmtracker;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
@@ -1338,7 +1346,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.wunderkemmer.tmtracker;
 				PRODUCT_NAME = tmtracker;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";

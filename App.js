@@ -708,6 +708,7 @@ export default class App extends Component<Props> {
 const styles = ExtendedStyleSheet.create({
 
   background: {
+    backgroundColor: '#000000',
     position: 'absolute',
     top: 0,
     right: 0,
