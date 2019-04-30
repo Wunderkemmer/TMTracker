@@ -397,7 +397,7 @@ export default class App extends Component<Props> {
     }
   };
 
-  onProject = (type, cost) => {
+  onProject = (type) => {
     switch (type) {
       case PROJECT_TYPES.BUY_AQUIFER: this.onBuyAquifer(); break;
       case PROJECT_TYPES.BUY_ASTEROID: this.onBuyTemperature(TRACKER_TYPES.MEGACREDITS); break;
@@ -537,11 +537,12 @@ export default class App extends Component<Props> {
     );
   };
 
-  renderTransactionButton = (backgroundColor, image1, image2, icon, isDisabled, onPress) => {
+  renderTransactionButton = (backgroundColor, cost, image1, image2, icon, isDisabled, onPress) => {
     return (
       <TransactionButton
         style={ styles.button }
         backgroundColor={ backgroundColor }
+        cost={ cost }
         icon={ icon }
         image1={ image1 }
         image2={ image2 }
@@ -658,6 +659,7 @@ export default class App extends Component<Props> {
                 {
                   this.renderTransactionButton(
                     '#5FB365',
+                    8,
                     plantsImage,
                     ImageIconGreenery,
                     'arrow-right',
@@ -668,6 +670,7 @@ export default class App extends Component<Props> {
                 {
                   this.renderTransactionButton(
                     '#ED4E44',
+                    8,
                     heatImage,
                     ImageIconTemperature,
                     'arrow-right',

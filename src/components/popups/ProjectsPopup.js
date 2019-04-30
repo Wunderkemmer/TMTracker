@@ -76,8 +76,16 @@ export default class ProjectsPopup extends Component {
     }
   });
 
+  onProject = (type, cost) => {
+    const { dismiss, onProject } = this.props;
+
+    dismiss();
+
+    onProject(type, cost);
+  };
+
   renderProjectButton (type) {
-    const { onProject, state } = this.props;
+    const { state } = this.props;
 
     const info = PROJECT_INFOS[type];
     const megaCredits = state.resourceCount[TRACKER_TYPES.MEGACREDITS];
@@ -98,7 +106,7 @@ export default class ProjectsPopup extends Component {
         isDisabled={ isTooExpensive || hasRunOut }
         text={ info.title }
         textStyle={ styles.buttonText }
-        onPress={ () => onProject(type, info.cost) }
+        onPress={ () => this.onProject(type, info.cost) }
       />
     );
   }
