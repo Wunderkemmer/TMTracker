@@ -7,6 +7,7 @@ import React, { Component, Fragment } from 'react';
 import { Alert, Dimensions, Image, SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
+import SplashScreen from 'react-native-splash-screen';
 
 import ImageMars from './resources/images/background_mars.jpg';
 import ImageIconGreenery from './resources/images/icon_greenery.png';
@@ -89,6 +90,8 @@ export default class App extends Component<Props> {
         history = JSON.parse(history);
 
         if (this.getIsGameInProgress(history)) {
+          SplashScreen.hide();
+
           Alert.alert(
             'An in-progress game was found, do you want to restore it?',
             null,
@@ -102,6 +105,8 @@ export default class App extends Component<Props> {
           return;
         }
       }
+
+      SplashScreen.hide();
 
       this.startGame();
     });
