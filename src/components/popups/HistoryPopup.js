@@ -6,14 +6,14 @@ import { FlatList, Image, Text, View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 
-import { TRACKER_INFOS, TRACKER_TYPES } from '../Tracker';
-
 import ImageIconCard from '../../../resources/images/icon_card.png';
 import ImageIconCity from '../../../resources/images/icon_city.png';
 import ImageIconGreenery from '../../../resources/images/icon_greenery.png';
 import ImageIconOcean from '../../../resources/images/icon_ocean.png';
 import ImageIconOxygen from '../../../resources/images/icon_oxygen.png';
 import ImageIconTemperature from '../../../resources/images/icon_temperature.png';
+
+import { TRACKER_INFOS, TRACKER_TYPES } from '../Tracker';
 
 import { PROJECT_INFOS, PROJECT_TYPES } from './ProjectsPopup';
 
@@ -26,10 +26,10 @@ export default class HistoryPopup extends Component {
     const image = trackerInfo.image;
     const title = trackerInfo.title;
 
-    let changeText = `${change} ${ title }`;
+    let changeText = `${ change } ${ title }`;
 
-    changeText = change > 0 ? `+${changeText}` : changeText;
-    changeText = isProduction ? `${changeText} production` : changeText;
+    changeText = change > 0 ? `+${ changeText }` : changeText;
+    changeText = isProduction ? `${ changeText } production` : changeText;
 
     const changeStyle = change === 0 ?
       styles.text :
@@ -263,7 +263,7 @@ export default class HistoryPopup extends Component {
         { renderImageRow(ImageIconOxygen, `Oxygen level at ${ oxygenLevel }%`, increase) }
         { renderImageRow(trackerInfo.image, `+1 Terraforming Rating`, increase) }
       </Fragment>
-    )
+    );
   }
 
   static renderTime (time) {
@@ -366,11 +366,11 @@ const styles = ExtendedStyleSheet.create({
   },
 
   textSize: {
-    fontSize: '1.2rem',
+    fontSize: '1.2rem'
   },
 
   textSizeSecondary: {
-    fontSize: '0.9rem',
+    fontSize: '0.9rem'
   },
 
   textDecrease: {
