@@ -33,7 +33,7 @@ export default class TransactionButton extends Component {
 const styles = ExtendedStyleSheet.create({
 
   icon: {
-    fontSize: '1.2rem',
+    fontSize: '1.4rem',
     color: '#FFFFFF'
   },
 

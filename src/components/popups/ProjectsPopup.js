@@ -4,10 +4,16 @@ import { View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 
-import Button from '../Button';
-import { TRACKER_TYPES } from '../Tracker';
-
 import { contants } from '../../../src/lib/utils';
+
+import ImageIconCard from '../../../resources/images/icon_card.png';
+import ImageIconCity from '../../../resources/images/icon_city.png';
+import ImageIconGreenery from '../../../resources/images/icon_greenery.png';
+import ImageIconOcean from '../../../resources/images/icon_ocean.png';
+import ImageIconTemperature from '../../../resources/images/icon_temperature.png';
+
+import ProjectButton from '../ProjectButton';
+import { TRACKER_INFOS, TRACKER_TYPES } from '../Tracker';
 
 export const PROJECT_TYPES = {
   BUY_ASTEROID: 'buyAsteroid',
@@ -22,17 +28,44 @@ export const PROJECT_INFOS = {
   [PROJECT_TYPES.BUY_ASTEROID]: {
     title: 'Buy Asteroid',
     cost: 14,
+    image1: TRACKER_INFOS[TRACKER_TYPES.MEGACREDITS].image,
+    image2: ImageIconTemperature,
     hasRunOut: (state) => state.temperature >= contants.MAX_TEMPERATURE
   },
   [PROJECT_TYPES.BUY_AQUIFER]: {
     title: 'Buy Aquifer',
     cost: 18,
+    image1: TRACKER_INFOS[TRACKER_TYPES.MEGACREDITS].image,
+    image2: ImageIconOcean,
     hasRunOut: (state) => state.oceanCount >= contants.MAX_OCEAN_COUNT
   },
-  [PROJECT_TYPES.BUY_CITY]: { title: 'Buy City', cost: 25 },
-  [PROJECT_TYPES.BUY_GREENERY]: { title: 'Buy Greenery', cost: 23 },
-  [PROJECT_TYPES.BUY_POWER_PLANT]: { title: 'Buy Power Plant', cost: 11 },
-  [PROJECT_TYPES.SELL_PATENT]: { title: 'Sell Patent', cost: -1 }
+  [PROJECT_TYPES.BUY_CITY]: {
+    title: 'Buy City',
+    cost: 25,
+    image1: TRACKER_INFOS[TRACKER_TYPES.MEGACREDITS].image,
+    image2: ImageIconCity,
+    image3: TRACKER_INFOS[TRACKER_TYPES.MEGACREDITS].image,
+    image3IsProduction: true,
+  },
+  [PROJECT_TYPES.BUY_GREENERY]: {
+    title: 'Buy Greenery',
+    cost: 23,
+    image1: TRACKER_INFOS[TRACKER_TYPES.MEGACREDITS].image,
+    image2: ImageIconGreenery,
+  },
+  [PROJECT_TYPES.BUY_POWER_PLANT]: {
+    title: 'Buy Power Plant',
+    cost: 11,
+    image1: TRACKER_INFOS[TRACKER_TYPES.MEGACREDITS].image,
+    image2: TRACKER_INFOS[TRACKER_TYPES.ENERGY].image,
+    image2IsProduction: true,
+  },
+  [PROJECT_TYPES.SELL_PATENT]: {
+    title: 'Sell Patent',
+    cost: -1,
+    image1: ImageIconCard,
+    image2: TRACKER_INFOS[TRACKER_TYPES.MEGACREDITS].image,
+  }
 };
 
 export default class ProjectsPopup extends Component {
@@ -51,7 +84,7 @@ export default class ProjectsPopup extends Component {
     onProject(type, cost);
   };
 
-  renderButton (type) {
+  renderProjectButton (type) {
     const { state } = this.props;
 
     const info = PROJECT_INFOS[type];
@@ -60,12 +93,19 @@ export default class ProjectsPopup extends Component {
     const hasRunOut = info.hasRunOut && info.hasRunOut(state);
 
     return (
-      <Button
+      <ProjectButton
         style={ styles.button }
         backgroundColor="#5B8BDD"
+        cost={ info.cost }
+        icon="arrow-right"
+        image1={ info.image1 }
+        image2={ info.image2 }
+        image2IsProduction={ info.image2IsProduction }
+        image3={ info.image3 }
+        image3IsProduction={ info.image3IsProduction }
+        isDisabled={ isTooExpensive || hasRunOut }
         text={ info.title }
         textStyle={ styles.buttonText }
-        isDisabled={ isTooExpensive || hasRunOut }
         onPress={ () => this.onProject(type, info.cost) }
       />
     );
@@ -75,14 +115,14 @@ export default class ProjectsPopup extends Component {
     return (
       <View style={ styles.container }>
         <View style={ styles.buttonColumn }>
-          { this.renderButton(PROJECT_TYPES.SELL_PATENT) }
-          { this.renderButton(PROJECT_TYPES.BUY_ASTEROID) }
-          { this.renderButton(PROJECT_TYPES.BUY_GREENERY) }
+          { this.renderProjectButton(PROJECT_TYPES.SELL_PATENT) }
+          { this.renderProjectButton(PROJECT_TYPES.BUY_ASTEROID) }
+          { this.renderProjectButton(PROJECT_TYPES.BUY_GREENERY) }
         </View>
         <View style={ styles.buttonColumn }>
-          { this.renderButton(PROJECT_TYPES.BUY_POWER_PLANT) }
-          { this.renderButton(PROJECT_TYPES.BUY_AQUIFER) }
-          { this.renderButton(PROJECT_TYPES.BUY_CITY) }
+          { this.renderProjectButton(PROJECT_TYPES.BUY_POWER_PLANT) }
+          { this.renderProjectButton(PROJECT_TYPES.BUY_AQUIFER) }
+          { this.renderProjectButton(PROJECT_TYPES.BUY_CITY) }
         </View>
       </View>
     );
@@ -110,8 +150,7 @@ const styles = ExtendedStyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'stretch',
-    paddingHorizontal: '2rem',
-    paddingVertical: '1.75rem'
+    padding: '1rem'
   }
 
 });

@@ -21,7 +21,7 @@ export default class HistoryPopup extends Component {
 
   keyExtractor = (item, index) => `${ item.event }.${ index }`;
 
-  static renderChange (type, change, time, isProduction, index = 0) {
+  static renderChange (type, change, time, isProduction, key) {
     const trackerInfo = TRACKER_INFOS[type];
     const image = trackerInfo.image;
     const title = trackerInfo.title;
@@ -35,48 +35,48 @@ export default class HistoryPopup extends Component {
       styles.text :
       (change > 0 ? styles.textIncrease : styles.textDecrease);
 
-    return HistoryPopup.renderHistoryImageRow(
+    return HistoryPopup.renderImageRow(
       image,
       changeText,
       [ styles.text, changeStyle ],
       time,
       isProduction,
-      `change.${ index }`
+      key
     );
   }
 
-  static renderHistoryImageRow (image, text, textStyle, time, isProduction, key = '') {
+  static renderImageRow (image, text, textStyle, time, isProduction, key) {
+    const itemStyle = time ? styles.item : styles.itemSecondary;
+
     const frameStyle = isProduction ?
       (time ? styles.production : styles.productionSecondary) :
       styles.resource;
 
-    const itemStyle = time ? styles.item : styles.itemSecondary;
-
-    const iconStyle = time ?
-      (isProduction ? styles.iconProduction : styles.iconResource) :
-      (isProduction ? styles.iconProductionSecondary : styles.iconResourceSecondary);
+    const imageStyle = time ?
+      (isProduction ? styles.imageProduction : styles.imageResource) :
+      (isProduction ? styles.imageProductionSecondary : styles.imageResourceSecondary);
 
     const textSizeStyle = time ? styles.textSize : styles.textSizeSecondary;
 
     return (
       <View style={ itemStyle } key={ key }>
         <View style={ frameStyle }>
-          <Image style={ iconStyle } resizeMode="contain" source={ image } />
+          <Image style={ imageStyle } resizeMode="contain" source={ image } />
         </View>
         <View>
           <Text style={ [ textStyle, textSizeStyle ] }>{ text }</Text>
-          { this.renderTime(time) }
+          { HistoryPopup.renderTime(time) }
         </View>
       </View>
     );
   }
 
-  static renderHistoryRow (text, textStyle, time, key = '') {
+  static renderTextRow (text, textStyle, time, key) {
     return (
       <View style={ styles.item } key={ key }>
         <View>
           <Text style={ textStyle }>{ text }</Text>
-          { this.renderTime(time) }
+          { HistoryPopup.renderTime(time) }
         </View>
       </View>
     );
@@ -84,6 +84,14 @@ export default class HistoryPopup extends Component {
 
   static renderHistoryItem ({ item }) {
     const { event, payload, state, time } = item;
+
+    const renderChange = HistoryPopup.renderChange;
+    const renderImageRow = HistoryPopup.renderImageRow;
+    const renderOxygen = HistoryPopup.renderOxygen;
+    const renderTextRow = HistoryPopup.renderTextRow;
+
+    const decrease = [ styles.text, styles.textDecrease ];
+    const increase = [ styles.text, styles.textIncrease ];
 
     switch (event) {
       case 'buyAquifer': {
@@ -93,42 +101,10 @@ export default class HistoryPopup extends Component {
 
         return (
           <Fragment>
-            {
-              HistoryPopup.renderHistoryImageRow(
-                ImageIconOcean,
-                `Purchased Aquifer`,
-                [ styles.text, styles.textIncrease ],
-                time,
-                false,
-                'aquifer'
-              )
-            }
-            {
-              HistoryPopup.renderHistoryImageRow(
-                ImageIconOcean,
-                `Ocean ${ oceanCount } added`,
-                [ styles.text, styles.textIncrease ],
-                null,
-                false,
-                'ocean'
-              )
-            }
-            {
-              HistoryPopup.renderHistoryImageRow(
-                trackerInfo.image,
-                `+1 Terraforming Rating`,
-                [ styles.text, styles.textIncrease ],
-                null,
-                false,
-                `terraformingRating`
-              )
-            }
-            {
-              HistoryPopup.renderChange(
-                TRACKER_TYPES.MEGACREDITS,
-                -PROJECT_INFOS[PROJECT_TYPES.BUY_AQUIFER].cost
-              )
-            }
+            { renderImageRow(ImageIconOcean, `Purchased Aquifer`, increase, time) }
+            { renderImageRow(ImageIconOcean, `Ocean ${ oceanCount } added`, increase) }
+            { renderImageRow(trackerInfo.image, `+1 Terraforming Rating`, increase) }
+            { renderChange(TRACKER_TYPES.MEGACREDITS, -PROJECT_INFOS[PROJECT_TYPES.BUY_AQUIFER].cost) }
           </Fragment>
         );
       }
@@ -136,26 +112,9 @@ export default class HistoryPopup extends Component {
       case 'buyCity': {
         return (
           <Fragment>
-            {
-              HistoryPopup.renderHistoryImageRow(
-                ImageIconCity,
-                `Purchased City`,
-                [ styles.text, styles.textIncrease ],
-                time
-              )
-            }
-            {
-              HistoryPopup.renderChange(TRACKER_TYPES.MEGACREDITS, 1, null, true, 0)
-            }
-            {
-              HistoryPopup.renderChange(
-                TRACKER_TYPES.MEGACREDITS,
-                -PROJECT_INFOS[PROJECT_TYPES.BUY_CITY].cost,
-                null,
-                false,
-                1
-              )
-            }
+            { renderImageRow(ImageIconCity, `Purchased City`, increase, time) }
+            { renderChange(TRACKER_TYPES.MEGACREDITS, 1, null, true) }
+            { renderChange(TRACKER_TYPES.MEGACREDITS, -PROJECT_INFOS[PROJECT_TYPES.BUY_CITY].cost) }
           </Fragment>
         );
       }
@@ -172,16 +131,9 @@ export default class HistoryPopup extends Component {
 
         return (
           <Fragment>
-            {
-              HistoryPopup.renderHistoryImageRow(
-                ImageIconGreenery,
-                title,
-                [ styles.text, styles.textIncrease ],
-                time
-              )
-            }
-            { HistoryPopup.renderOxygen(wasOxygenAdded, state.oxygenLevel) }
-            { HistoryPopup.renderChange(type, change) }
+            { renderImageRow(ImageIconGreenery, title, increase, time) }
+            { renderOxygen(wasOxygenAdded, state.oxygenLevel) }
+            { renderChange(type, change) }
           </Fragment>
         );
       }
@@ -191,27 +143,9 @@ export default class HistoryPopup extends Component {
 
         return (
           <Fragment>
-            {
-              HistoryPopup.renderHistoryImageRow(
-                trackerInfo.image,
-                `Purchased Power Plant`,
-                [ styles.text, styles.textIncrease ],
-                time,
-                true
-              )
-            }
-            {
-              HistoryPopup.renderChange(TRACKER_TYPES.ENERGY, 1, null, true, 0)
-            }
-            {
-              HistoryPopup.renderChange(
-                TRACKER_TYPES.MEGACREDITS,
-                -PROJECT_INFOS[PROJECT_TYPES.BUY_POWER_PLANT].cost,
-                null,
-                false,
-                1
-              )
-            }
+            { renderImageRow(trackerInfo.image, `Purchased Power Plant`, increase, time, true) }
+            { renderChange(TRACKER_TYPES.ENERGY, 1, null, true) }
+            { renderChange(TRACKER_TYPES.MEGACREDITS, -PROJECT_INFOS[PROJECT_TYPES.BUY_POWER_PLANT].cost) }
           </Fragment>
         );
       }
@@ -223,7 +157,6 @@ export default class HistoryPopup extends Component {
         const megaCreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_ASTEROID].cost;
 
         const isHeat = type === TRACKER_TYPES.HEAT;
-
         const change = isHeat ? -heatCost : -megaCreditCost;
         const title = isHeat ? 'Exchanged Heat for Temperature' : 'Purchased Asteroid';
 
@@ -231,37 +164,10 @@ export default class HistoryPopup extends Component {
 
         return (
           <Fragment>
-            {
-              HistoryPopup.renderHistoryImageRow(
-                ImageIconTemperature,
-                title,
-                [ styles.text, styles.textIncrease ],
-                time,
-                false,
-                'purchase'
-              )
-            }
-            {
-              HistoryPopup.renderHistoryImageRow(
-                ImageIconTemperature,
-                `Temperature at ${ state.temperature }°C`,
-                [ styles.text, styles.textIncrease ],
-                null,
-                false,
-                'temperature'
-              )
-            }
-            {
-              HistoryPopup.renderHistoryImageRow(
-                trackerInfo.image,
-                `+1 Terraforming Rating`,
-                [ styles.text, styles.textIncrease ],
-                null,
-                false,
-                `terraformingRating`
-              )
-            }
-            { HistoryPopup.renderChange(type, change) }
+            { renderImageRow(ImageIconTemperature, title, increase, time) }
+            { renderImageRow(ImageIconTemperature, `Temperature at ${ state.temperature }°C`, increase) }
+            { renderImageRow(trackerInfo.image, `+1 Terraforming Rating`, increase) }
+            { renderChange(type, change) }
           </Fragment>
         );
       }
@@ -272,7 +178,7 @@ export default class HistoryPopup extends Component {
         return changes.map((change, index) => {
           const { type, value } = change;
 
-          return HistoryPopup.renderChange(type, value, index === 0 ? time : null, false, index);
+          return renderChange(type, value, index === 0 ? time : null, false, `change.${ index }`);
         });
       }
 
@@ -285,28 +191,13 @@ export default class HistoryPopup extends Component {
 
         switch (type) {
           case TRACKER_TYPES.TERRAFORMING_RATING:
-            return HistoryPopup.renderHistoryImageRow(
-              image,
-              `-1 ${ title }`,
-              [ styles.text, styles.textDecrease ],
-              time
-            );
+            return renderImageRow(image, `-1 ${ title }`, decrease, time);
 
           case TRACKER_TYPES.GENERATION:
-            return HistoryPopup.renderHistoryRow(
-              `Returning to ${ title } ${ state.generation }`,
-              styles.text,
-              time
-            );
+            return renderTextRow(`Returning to ${ title } ${ state.generation }`, styles.text, time);
 
           default:
-            return HistoryPopup.renderHistoryImageRow(
-              image,
-              `-1 ${ title } production`,
-              [ styles.text, styles.textDecrease ],
-              time,
-              true
-            );
+            return renderImageRow(image, `-1 ${ title } production`, decrease, time, true);
         }
       }
 
@@ -319,84 +210,39 @@ export default class HistoryPopup extends Component {
 
         switch (type) {
           case TRACKER_TYPES.TERRAFORMING_RATING:
-            return HistoryPopup.renderHistoryImageRow(
-              image,
-              `+1 ${ title }`,
-              [ styles.text, styles.textIncrease ],
-              time
-            );
+            return renderImageRow(image, `+1 ${ title }`, increase, time);
 
           case TRACKER_TYPES.GENERATION:
-            return HistoryPopup.renderHistoryRow(
-              `Starting ${ title } ${ state.generation }`,
-              styles.text,
-              time
-            );
+            return renderTextRow(`Starting ${ title } ${ state.generation }`, styles.text, time);
 
           default:
-            return HistoryPopup.renderHistoryImageRow(
-              image,
-              `+1 ${ title } production`,
-              [ styles.text, styles.textIncrease ],
-              time,
-              true
-            );
+            return renderImageRow(image, `+1 ${ title } production`, increase, time, true);
         }
       }
 
       case 'newGame':
-        return HistoryPopup.renderHistoryRow(
-          'New Game!',
-          styles.text,
-          time
-        );
+        return renderTextRow('New Game!', styles.text, time);
 
       case 'oceanCount': {
-        return HistoryPopup.renderHistoryImageRow(
-          ImageIconOcean,
-          `Ocean ${ state.oceanCount } added`,
-          [ styles.text, styles.textIncrease ],
-          time
-        );
+        return renderImageRow(ImageIconOcean, `Ocean ${ state.oceanCount } added`, increase, time);
       }
 
       case 'oxygenLevel': {
-        return HistoryPopup.renderHistoryImageRow(
-          ImageIconOxygen,
-          `Oxygen level at ${ state.oxygenLevel }%`,
-          [ styles.text, styles.textIncrease ],
-          time
-        );
+        return renderImageRow(ImageIconOxygen, `Oxygen level at ${ state.oxygenLevel }%`, increase, time);
       }
 
       case 'sellPatent': {
         return (
           <Fragment>
-            {
-              HistoryPopup.renderHistoryImageRow(
-                ImageIconCard,
-                `Sold Patent`,
-                [ styles.text, styles.textDecrease ],
-                time
-              )
-            }
-            {
-              HistoryPopup.renderChange(
-                TRACKER_TYPES.MEGACREDITS,
-                -PROJECT_INFOS[PROJECT_TYPES.SELL_PATENT].cost
-              )
-            }
+            { renderImageRow(ImageIconCard, `Sold Patent`, decrease, time) }
+            { renderChange(TRACKER_TYPES.MEGACREDITS, -PROJECT_INFOS[PROJECT_TYPES.SELL_PATENT].cost) }
+            { renderImageRow(ImageIconCard, `-1 Cards`, decrease) }
           </Fragment>
         );
       }
 
       case 'temperature': {
-        return HistoryPopup.renderHistoryImageRow(
-          ImageIconTemperature,
-          `Temperature at ${ state.temperature }°C`,
-          [ styles.text, styles.textIncrease ],
-          time
-        );
+        return renderImageRow(ImageIconTemperature, `Temperature at ${ state.temperature }°C`, increase, time);
       }
     }
   }
@@ -408,28 +254,14 @@ export default class HistoryPopup extends Component {
       return;
     }
 
+    const renderImageRow = HistoryPopup.renderImageRow;
+
+    const increase = [ styles.text, styles.textIncrease ];
+
     return (
       <Fragment>
-        {
-          HistoryPopup.renderHistoryImageRow(
-            ImageIconOxygen,
-            `Oxygen level at ${ oxygenLevel }%`,
-            [ styles.text, styles.textIncrease ],
-            null,
-            false,
-            `oxygen`
-          )
-        }
-        {
-          HistoryPopup.renderHistoryImageRow(
-            trackerInfo.image,
-            `+1 Terraforming Rating`,
-            [ styles.text, styles.textIncrease ],
-            null,
-            false,
-            `terraformingRating`
-          )
-        }
+        { renderImageRow(ImageIconOxygen, `Oxygen level at ${ oxygenLevel }%`, increase) }
+        { renderImageRow(trackerInfo.image, `+1 Terraforming Rating`, increase) }
       </Fragment>
     )
   }
@@ -469,22 +301,22 @@ const styles = ExtendedStyleSheet.create({
     paddingBottom: '1rem'
   },
 
-  iconResource: {
+  imageResource: {
     width: '2.2rem',
     height: '2.2rem'
   },
 
-  iconResourceSecondary: {
+  imageResourceSecondary: {
     width: '1.2rem',
     height: '1.2rem'
   },
 
-  iconProduction: {
+  imageProduction: {
     width: '1.7rem',
     height: '1.7rem'
   },
 
-  iconProductionSecondary: {
+  imageProductionSecondary: {
     width: '0.8rem',
     height: '0.8rem'
   },
@@ -493,22 +325,22 @@ const styles = ExtendedStyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    paddingTop: '0.6rem'
+    paddingTop: '0.8rem'
   },
 
   itemSecondary: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    paddingTop: '0.35rem',
-    marginLeft: '2.6rem'
+    paddingTop: '0.2rem',
+    marginLeft: '2.8rem'
   },
 
   production: {
     backgroundColor: '#B37D43',
     borderColor: '#222222',
     borderWidth: 1,
-    marginRight: '0.3rem',
+    marginRight: '0.5rem',
     padding: '0.25rem'
   },
 
@@ -522,7 +354,7 @@ const styles = ExtendedStyleSheet.create({
     backgroundColor: '#B37D43',
     borderColor: '#222222',
     borderWidth: 1,
-    marginRight: '0.3rem',
+    marginRight: '0.5rem',
     padding: '0.15rem'
   },
 
