@@ -347,7 +347,7 @@ const styles = ExtendedStyleSheet.create({
   resource: {
     borderColor: '#FFFFFF',
     borderWidth: 1,
-    marginRight: '0.3rem'
+    marginRight: '0.5rem'
   },
 
   productionSecondary: {
