@@ -2,12 +2,13 @@ import AsyncStorage from '@react-native-community/async-storage';
 
 import { cloneDeep } from 'lodash';
 
-import React, { Component, Fragment } from 'react';
+import React, { Component } from 'react';
 
 import { Alert, Dimensions, Image, SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 import SplashScreen from 'react-native-splash-screen';
+import { Provider } from 'react-redux';
 
 import ImageMars from './resources/images/background_mars.jpg';
 import ImageIconGreenery from './resources/images/icon_greenery.png';
@@ -23,10 +24,16 @@ import InfoPopup from './src/components/popups/InfoPopup';
 import { Popup, Popups, showPopup } from './src/components/popups/Popups';
 import ProjectsPopup, { PROJECT_INFOS, PROJECT_TYPES } from './src/components/popups/ProjectsPopup';
 
-import Tracker, { TRACKER_TYPES } from './src/components/Tracker';
+import Tracker from './src/components/Tracker';
 import TransactionButton from './src/components/TransactionButton';
 
 import { contants } from './src/lib/utils';
+
+import store from './src/store';
+
+import { RESOURCE_TYPES } from './src/store/economy/economyConstants';
+
+import { resetEconomy } from './src/store/economy/economyActions';
 
 const MAX_OCEAN_COUNT = contants.MAX_OCEAN_COUNT;
 const MAX_OXYGEN_LEVEL = contants.MAX_OXYGEN_LEVEL;
@@ -45,37 +52,6 @@ Text.defaultProps.allowFontScaling = false;
 type Props = {};
 
 export default class App extends Component<Props> {
-
-  defaultState = {
-    generation: 1,
-    oceanCount: 0,
-    oxygenLevel: 0,
-    temperature: -30,
-
-    resourceCount: {
-      [TRACKER_TYPES.TERRAFORMING_RATING]: 20,
-      [TRACKER_TYPES.MEGACREDITS]: 20,
-      [TRACKER_TYPES.STEEL]: 0,
-      [TRACKER_TYPES.TITANIUM]: 0,
-      [TRACKER_TYPES.PLANTS]: 0,
-      [TRACKER_TYPES.ENERGY]: 0,
-      [TRACKER_TYPES.HEAT]: 0
-    },
-
-    resourceRate: {
-      [TRACKER_TYPES.MEGACREDITS]: 1,
-      [TRACKER_TYPES.STEEL]: 1,
-      [TRACKER_TYPES.TITANIUM]: 1,
-      [TRACKER_TYPES.PLANTS]: 1,
-      [TRACKER_TYPES.ENERGY]: 1,
-      [TRACKER_TYPES.HEAT]: 1
-    },
-
-    historyCount: 0,
-    undoneHistoryCount: 0
-  };
-
-  state = {};
 
   isLoading = true;
 
@@ -140,11 +116,13 @@ export default class App extends Component<Props> {
   };
 
   startGame = () => {
-    const state = cloneDeep(this.defaultState);
+    // const state = cloneDeep(this.defaultState);
+
+    store.dispatch(resetEconomy());
 
     this.history = [];
 
-    this.addHistoryAndSetState(state, 'newGame');
+    // this.addHistoryAndSetState(state, 'newGame');
   };
 
   updateHistoryAndSetState (state) {
@@ -159,8 +137,8 @@ export default class App extends Component<Props> {
   onBuyAquifer = () => {
     let { state } = this;
 
-    const megaCreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_AQUIFER].cost;
-    const canPurchase = state.resourceCount[TRACKER_TYPES.MEGACREDITS] >= megaCreditCost;
+    const megacreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_AQUIFER].cost;
+    const canPurchase = state.resourceCounts[RESOURCE_TYPES.MEGACREDITS] >= megacreditCost;
 
     if (canPurchase) {
       const oceanCount = Math.min(state.oceanCount + 1, MAX_OCEAN_COUNT);
@@ -169,10 +147,10 @@ export default class App extends Component<Props> {
         state = cloneDeep(state);
 
         state.oceanCount = oceanCount;
-        state.resourceCount[TRACKER_TYPES.MEGACREDITS] -= megaCreditCost;
-        state.resourceCount[TRACKER_TYPES.TERRAFORMING_RATING] += 1;
+        state.resourceCounts[RESOURCE_TYPES.MEGACREDITS] -= megacreditCost;
+        state.resourceCounts[RESOURCE_TYPES.TERRAFORMING_RATING] += 1;
 
-        this.addHistoryAndSetState(state, 'buyAquifer', { oceanCount, cost: megaCreditCost });
+        this.addHistoryAndSetState(state, 'buyAquifer', { oceanCount, cost: megacreditCost });
       }
     }
   };
@@ -180,13 +158,13 @@ export default class App extends Component<Props> {
   onBuyCity = () => {
     let { state } = this;
 
-    const megaCreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_CITY].cost;
-    const canPurchase = state.resourceCount[TRACKER_TYPES.MEGACREDITS] >= megaCreditCost;
+    const megacreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_CITY].cost;
+    const canPurchase = state.resourceCounts[RESOURCE_TYPES.MEGACREDITS] >= megacreditCost;
 
     if (canPurchase) {
       state = cloneDeep(state);
 
-      state.resourceRate[TRACKER_TYPES.MEGACREDITS] += 1;
+      state.resourceRate[RESOURCE_TYPES.MEGACREDITS] += 1;
 
       this.addHistoryAndSetState(state, 'buyCity');
     }
@@ -196,11 +174,11 @@ export default class App extends Component<Props> {
     let { state } = this;
 
     const plantCost = 8;
-    const megaCreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_GREENERY].cost;
+    const megacreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_GREENERY].cost;
 
-    const canPurchase = type === TRACKER_TYPES.PLANTS ?
-      state.resourceCount[TRACKER_TYPES.PLANTS] >= plantCost :
-      state.resourceCount[TRACKER_TYPES.MEGACREDITS] >= megaCreditCost;
+    const canPurchase = type === RESOURCE_TYPES.PLANTS ?
+      state.resourceCounts[RESOURCE_TYPES.PLANTS] >= plantCost :
+      state.resourceCounts[RESOURCE_TYPES.MEGACREDITS] >= megacreditCost;
 
     if (canPurchase) {
       state = cloneDeep(state);
@@ -214,13 +192,13 @@ export default class App extends Component<Props> {
 
         wasOxygenAdded = true;
 
-        state.resourceCount[TRACKER_TYPES.TERRAFORMING_RATING] += 1;
+        state.resourceCounts[RESOURCE_TYPES.TERRAFORMING_RATING] += 1;
       }
 
-      if (type === TRACKER_TYPES.PLANTS) {
-        state.resourceCount[TRACKER_TYPES.PLANTS] -= plantCost;
+      if (type === RESOURCE_TYPES.PLANTS) {
+        state.resourceCounts[RESOURCE_TYPES.PLANTS] -= plantCost;
       } else {
-        state.resourceCount[TRACKER_TYPES.MEGACREDITS] -= megaCreditCost;
+        state.resourceCounts[RESOURCE_TYPES.MEGACREDITS] -= megacreditCost;
       }
 
       this.addHistoryAndSetState(state, 'buyGreenery', { type, wasOxygenAdded });
@@ -230,13 +208,13 @@ export default class App extends Component<Props> {
   onBuyPowerPlant = () => {
     let { state } = this;
 
-    const megaCreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_POWER_PLANT].cost;
-    const canPurchase = state.resourceCount[TRACKER_TYPES.MEGACREDITS] >= megaCreditCost;
+    const megacreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_POWER_PLANT].cost;
+    const canPurchase = state.resourceCounts[RESOURCE_TYPES.MEGACREDITS] >= megacreditCost;
 
     if (canPurchase) {
       state = cloneDeep(state);
 
-      state.resourceRate[TRACKER_TYPES.ENERGY] += 1;
+      state.resourceRate[RESOURCE_TYPES.ENERGY] += 1;
 
       this.addHistoryAndSetState(state, 'buyPowerPlant');
     }
@@ -246,11 +224,11 @@ export default class App extends Component<Props> {
     let { state } = this;
 
     const heatCost = 8;
-    const megaCreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_ASTEROID].cost;
+    const megacreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_ASTEROID].cost;
 
-    const canPurchase = type === TRACKER_TYPES.HEAT ?
-      state.resourceCount[TRACKER_TYPES.HEAT] >= heatCost :
-      state.resourceCount[TRACKER_TYPES.MEGACREDITS] >= megaCreditCost;
+    const canPurchase = type === RESOURCE_TYPES.HEAT ?
+      state.resourceCounts[RESOURCE_TYPES.HEAT] >= heatCost :
+      state.resourceCounts[RESOURCE_TYPES.MEGACREDITS] >= megacreditCost;
 
     if (canPurchase) {
       const temperature = Math.min(state.temperature + 2, MAX_TEMPERATURE);
@@ -259,12 +237,12 @@ export default class App extends Component<Props> {
         state = cloneDeep(state);
 
         state.temperature = temperature;
-        state.resourceCount[TRACKER_TYPES.TERRAFORMING_RATING] += 1;
+        state.resourceCounts[RESOURCE_TYPES.TERRAFORMING_RATING] += 1;
 
-        if (type === TRACKER_TYPES.HEAT) {
-          state.resourceCount[TRACKER_TYPES.HEAT] -= heatCost;
+        if (type === RESOURCE_TYPES.HEAT) {
+          state.resourceCounts[RESOURCE_TYPES.HEAT] -= heatCost;
         } else {
-          state.resourceCount[TRACKER_TYPES.MEGACREDITS] -= megaCreditCost;
+          state.resourceCounts[RESOURCE_TYPES.MEGACREDITS] -= megacreditCost;
         }
 
         this.addHistoryAndSetState(state, 'buyTemperature', { type });
@@ -272,90 +250,23 @@ export default class App extends Component<Props> {
     }
   };
 
-  onChange = (type, changes) => {
-    const state = cloneDeep(this.state);
+  // onChange = (type, changes) => {
+  //   this.addHistoryAndSetState(state, 'change', { type, changes });
+  // };
 
-    changes.forEach((change) => {
-      state.resourceCount[change.type] += change.value;
-    });
-
-    this.addHistoryAndSetState(state, 'change', { type, changes });
-  };
-
-  onDecrement = (type) => {
-    const state = cloneDeep(this.state);
-
-    let oldValue = null;
-    let didSomething = false;
-
-    switch (type) {
-      case TRACKER_TYPES.TERRAFORMING_RATING:
-        oldValue = state.resourceCount[type];
-        state.resourceCount[type] = Math.max(state.resourceCount[type] - 1, 0);
-        didSomething = oldValue !== state.resourceCount[type];
-
-        break;
-
-      case TRACKER_TYPES.MEGACREDITS:
-        oldValue = state.resourceRate[type];
-        state.resourceRate[type] = Math.max(state.resourceRate[type] - 1, -5);
-        didSomething = oldValue !== state.resourceRate[type];
-
-        break;
-
-      default:
-        oldValue = state.resourceRate[type];
-        state.resourceRate[type] = Math.max(state.resourceRate[type] - 1, 0);
-        didSomething = oldValue !== state.resourceRate[type];
-    }
-
-    if (didSomething) {
-      this.addHistoryAndSetState(state, 'decrement', { type });
-    }
-  };
-
-  onHistory = () => {
-    const { history } = this;
-
-    showPopup('history', { history });
-  };
+  // onDecrement = (type) => {
+  //   if (didSomething) {
+  //     this.addHistoryAndSetState(state, 'decrement', { type });
+  //   }
+  // };
 
   onInfo = () => {
     showPopup('info');
   };
 
-  onIncrement = (type) => {
-    const state = cloneDeep(this.state);
-
-    switch (type) {
-      case TRACKER_TYPES.TERRAFORMING_RATING:
-        state.resourceCount[type] += 1;
-
-        break;
-
-      case TRACKER_TYPES.GENERATION:
-        state.generation += 1;
-
-        state.resourceCount[TRACKER_TYPES.MEGACREDITS] +=
-          state.resourceRate[TRACKER_TYPES.MEGACREDITS] +
-          state.resourceCount[TRACKER_TYPES.TERRAFORMING_RATING];
-
-        state.resourceCount[TRACKER_TYPES.HEAT] +=
-          state.resourceRate[TRACKER_TYPES.HEAT] + state.resourceCount[TRACKER_TYPES.ENERGY];
-
-        state.resourceCount[TRACKER_TYPES.ENERGY] = state.resourceRate[TRACKER_TYPES.ENERGY];
-        state.resourceCount[TRACKER_TYPES.PLANTS] += state.resourceRate[TRACKER_TYPES.PLANTS];
-        state.resourceCount[TRACKER_TYPES.STEEL] += state.resourceRate[TRACKER_TYPES.STEEL];
-        state.resourceCount[TRACKER_TYPES.TITANIUM] += state.resourceRate[TRACKER_TYPES.TITANIUM];
-
-        break;
-
-      default:
-        state.resourceRate[type] += 1;
-    }
-
-    this.addHistoryAndSetState(state, 'increment', { type });
-  };
+  // onIncrement = (type) => {
+  //   this.addHistoryAndSetState(state, 'increment', { type });
+  // };
 
   onNewGame = () => {
     Alert.alert(
@@ -400,9 +311,9 @@ export default class App extends Component<Props> {
   onProject = (type) => {
     switch (type) {
       case PROJECT_TYPES.BUY_AQUIFER: this.onBuyAquifer(); break;
-      case PROJECT_TYPES.BUY_ASTEROID: this.onBuyTemperature(TRACKER_TYPES.MEGACREDITS); break;
+      case PROJECT_TYPES.BUY_ASTEROID: this.onBuyTemperature(RESOURCE_TYPES.MEGACREDITS); break;
       case PROJECT_TYPES.BUY_CITY: this.onBuyCity(); break;
-      case PROJECT_TYPES.BUY_GREENERY: this.onBuyGreenery(TRACKER_TYPES.MEGACREDITS); break;
+      case PROJECT_TYPES.BUY_GREENERY: this.onBuyGreenery(RESOURCE_TYPES.MEGACREDITS); break;
       case PROJECT_TYPES.BUY_POWER_PLANT: this.onBuyPowerPlant(); break;
       case PROJECT_TYPES.SELL_PATENT: this.onSellPatent(); break;
     }
@@ -427,11 +338,11 @@ export default class App extends Component<Props> {
   onSellPatent = () => {
     let { state } = this;
 
-    const megaCreditCost = PROJECT_INFOS[PROJECT_TYPES.SELL_PATENT].cost;
+    const megacreditCost = PROJECT_INFOS[PROJECT_TYPES.SELL_PATENT].cost;
 
     state = cloneDeep(state);
 
-    state.resourceCount[TRACKER_TYPES.MEGACREDITS] -= megaCreditCost;
+    state.resourceCounts[RESOURCE_TYPES.MEGACREDITS] -= megacreditCost;
 
     this.addHistoryAndSetState(state, 'sellPatent');
   };
@@ -448,18 +359,6 @@ export default class App extends Component<Props> {
 
       this.addHistoryAndSetState(state, 'temperature');
     }
-  };
-
-  onTracker = (type) => {
-    if (type === TRACKER_TYPES.GENERATION) {
-      this.onHistory();
-
-      return;
-    }
-
-    const { onChange, state } = this;
-
-    showPopup('calculator', { state, type, onChange });
   };
 
   onUndo = () => {
@@ -488,52 +387,21 @@ export default class App extends Component<Props> {
   };
 
   renderTracker = (type) => {
-    const { generation, resourceCount, resourceRate } = this.state;
-
     let style;
-    let count;
-    let rate;
-    let onDecrement;
-    let onIncrement;
-    let onHistory;
 
     switch (type) {
-      case TRACKER_TYPES.TERRAFORMING_RATING:
+      case RESOURCE_TYPES.TERRAFORMING_RATING:
+      case RESOURCE_TYPES.GENERATION:
         style = styles.trackerTiny;
-        count = resourceCount[type];
-        onDecrement = this.onDecrement;
-        onIncrement = this.onIncrement;
-
-        break;
-
-      case TRACKER_TYPES.GENERATION:
-        style = styles.trackerTiny;
-        count = generation;
-        onHistory = this.onHistory;
-        onIncrement = this.onIncrement;
 
         break;
 
       default:
         style = styles.tracker;
-        count = resourceCount[type];
-        rate = resourceRate[type];
-        onDecrement = this.onDecrement;
-        onIncrement = this.onIncrement;
     }
 
     return (
-      <Tracker
-        key={ type }
-        style={ style }
-        type={ type }
-        count={ count }
-        rate={ rate }
-        onPress={ this.onTracker }
-        onDecrement={ onDecrement }
-        onHistory={ onHistory }
-        onIncrement={ onIncrement }
-      />
+      <Tracker key={ type } style={ style } type={ type } />
     );
   };
 
@@ -559,19 +427,19 @@ export default class App extends Component<Props> {
       );
     }
 
-    const { oceanCount, oxygenLevel, resourceCount, temperature } = this.state;
+    const { oceanCount, oxygenLevel, resourceCounts, temperature } = store.getState().economy;
 
-    const plantsImage = Tracker.getTrackerInfo(TRACKER_TYPES.PLANTS).image;
-    const heatImage = Tracker.getTrackerInfo(TRACKER_TYPES.HEAT).image;
+    const plantsImage = Tracker.getTrackerInfo(RESOURCE_TYPES.PLANTS).image;
+    const heatImage = Tracker.getTrackerInfo(RESOURCE_TYPES.HEAT).image;
 
     const isUndoDisabled = this.state.historyCount < 2;
     const isRedoDisabled = this.state.undoneHistoryCount < 1;
 
     const isBuyGreeneryDisabled =
-      resourceCount[TRACKER_TYPES.PLANTS] < 8;
+      resourceCounts[RESOURCE_TYPES.PLANTS] < 8;
 
     const isBuyTemperatureDisabled =
-      resourceCount[TRACKER_TYPES.HEAT] < 8 || temperature >= MAX_TEMPERATURE;
+      resourceCounts[RESOURCE_TYPES.HEAT] < 8 || temperature >= MAX_TEMPERATURE;
 
     const isOceanComplete = oceanCount >= MAX_OCEAN_COUNT;
     const isTemperatureComplete = temperature >= MAX_TEMPERATURE;
@@ -593,13 +461,13 @@ export default class App extends Component<Props> {
     const oxygenLevelText = oxygenLevel + '%';
 
     return (
-      <Fragment>
+      <Provider store={ store }>
         <Image style={ styles.background } resizeMode="cover" source={ ImageMars } />
         <SafeAreaView style={ styles.safeAreaView }>
           <View style={ styles.container }>
             <View style={ styles.sidebar }>
               <View style={ styles.sidebarTracker }>
-                { this.renderTracker(TRACKER_TYPES.TERRAFORMING_RATING) }
+                { this.renderTracker(RESOURCE_TYPES.TERRAFORMING_RATING) }
               </View>
               <View style={ styles.sidebarButtonsLeft }>
                 <View style={ styles.sidebarButtonRow }>
@@ -641,19 +509,19 @@ export default class App extends Component<Props> {
             </View>
             <View style={ styles.resources }>
               <View style={ styles.resourcesRow }>
-                { this.renderTracker(TRACKER_TYPES.MEGACREDITS) }
-                { this.renderTracker(TRACKER_TYPES.STEEL) }
-                { this.renderTracker(TRACKER_TYPES.TITANIUM) }
+                { this.renderTracker(RESOURCE_TYPES.MEGACREDITS) }
+                { this.renderTracker(RESOURCE_TYPES.STEEL) }
+                { this.renderTracker(RESOURCE_TYPES.TITANIUM) }
               </View>
               <View style={ styles.resourcesRow }>
-                { this.renderTracker(TRACKER_TYPES.PLANTS) }
-                { this.renderTracker(TRACKER_TYPES.ENERGY) }
-                { this.renderTracker(TRACKER_TYPES.HEAT) }
+                { this.renderTracker(RESOURCE_TYPES.PLANTS) }
+                { this.renderTracker(RESOURCE_TYPES.ENERGY) }
+                { this.renderTracker(RESOURCE_TYPES.HEAT) }
               </View>
             </View>
             <View style={ styles.sidebar }>
               <View style={ styles.sidebarTracker }>
-                { this.renderTracker(TRACKER_TYPES.GENERATION) }
+                { this.renderTracker(RESOURCE_TYPES.GENERATION) }
               </View>
               <View style={ styles.sidebarButtonsRight }>
                 {
@@ -664,7 +532,7 @@ export default class App extends Component<Props> {
                     ImageIconGreenery,
                     'arrow-right',
                     isBuyGreeneryDisabled,
-                    () => this.onBuyGreenery(TRACKER_TYPES.PLANTS)
+                    () => this.onBuyGreenery(RESOURCE_TYPES.PLANTS)
                   )
                 }
                 {
@@ -675,7 +543,7 @@ export default class App extends Component<Props> {
                     ImageIconTemperature,
                     'arrow-right',
                     isBuyTemperatureDisabled,
-                    () => this.onBuyTemperature(TRACKER_TYPES.HEAT)
+                    () => this.onBuyTemperature(RESOURCE_TYPES.HEAT)
                   )
                 }
                 { this.renderButton('#5B8BDD', null, 'Projects', false, this.onProjects) }
@@ -707,7 +575,7 @@ export default class App extends Component<Props> {
             />
           </Popups>
         </SafeAreaView>
-      </Fragment>
+      </Provider>
     );
   }
 

@@ -13,7 +13,7 @@ import ImageIconOcean from '../../../resources/images/icon_ocean.png';
 import ImageIconOxygen from '../../../resources/images/icon_oxygen.png';
 import ImageIconTemperature from '../../../resources/images/icon_temperature.png';
 
-import { TRACKER_INFOS, TRACKER_TYPES } from '../Tracker';
+import { RESOURCE_INFOS, RESOURCE_TYPES } from '../../store/economy/economyConstants';
 
 import { PROJECT_INFOS, PROJECT_TYPES } from './ProjectsPopup';
 
@@ -22,9 +22,9 @@ export default class HistoryPopup extends Component {
   keyExtractor = (item, index) => `${ item.event }.${ index }`;
 
   static renderChange (type, change, time, isProduction, key) {
-    const trackerInfo = TRACKER_INFOS[type];
-    const image = trackerInfo.image;
-    const title = trackerInfo.title;
+    const resourceInfo = RESOURCE_INFOS[type];
+    const image = resourceInfo.image;
+    const title = resourceInfo.title;
 
     let changeText = `${ change } ${ title }`;
 
@@ -96,15 +96,14 @@ export default class HistoryPopup extends Component {
     switch (event) {
       case 'buyAquifer': {
         const { oceanCount } = payload;
-
-        const trackerInfo = TRACKER_INFOS[TRACKER_TYPES.TERRAFORMING_RATING];
+        const { image } = RESOURCE_INFOS.terraformingRating;
 
         return (
           <Fragment>
             { renderImageRow(ImageIconOcean, `Purchased Aquifer`, increase, time) }
             { renderImageRow(ImageIconOcean, `Ocean ${ oceanCount } added`, increase) }
-            { renderImageRow(trackerInfo.image, `+1 Terraforming Rating`, increase) }
-            { renderChange(TRACKER_TYPES.MEGACREDITS, -PROJECT_INFOS[PROJECT_TYPES.BUY_AQUIFER].cost) }
+            { renderImageRow(image, `+1 Terraforming Rating`, increase) }
+            { renderChange(RESOURCE_TYPES.MEGACREDITS, -PROJECT_INFOS[PROJECT_TYPES.BUY_AQUIFER].cost) }
           </Fragment>
         );
       }
@@ -113,8 +112,8 @@ export default class HistoryPopup extends Component {
         return (
           <Fragment>
             { renderImageRow(ImageIconCity, `Purchased City`, increase, time) }
-            { renderChange(TRACKER_TYPES.MEGACREDITS, 1, null, true) }
-            { renderChange(TRACKER_TYPES.MEGACREDITS, -PROJECT_INFOS[PROJECT_TYPES.BUY_CITY].cost) }
+            { renderChange(RESOURCE_TYPES.MEGACREDITS, 1, null, true) }
+            { renderChange(RESOURCE_TYPES.MEGACREDITS, -PROJECT_INFOS[PROJECT_TYPES.BUY_CITY].cost) }
           </Fragment>
         );
       }
@@ -123,10 +122,10 @@ export default class HistoryPopup extends Component {
         const { type, wasOxygenAdded } = payload;
 
         const plantCost = 8;
-        const megaCreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_GREENERY].cost;
+        const megacreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_GREENERY].cost;
 
-        const isPlants = type === TRACKER_TYPES.PLANTS;
-        const change = isPlants ? -plantCost : -megaCreditCost;
+        const isPlants = type === RESOURCE_TYPES.PLANTS;
+        const change = isPlants ? -plantCost : -megacreditCost;
         const title = isPlants ? 'Exchanged Plants for Greenery' : 'Purchased Greenery';
 
         return (
@@ -139,13 +138,13 @@ export default class HistoryPopup extends Component {
       }
 
       case 'buyPowerPlant': {
-        const trackerInfo = TRACKER_INFOS[TRACKER_TYPES.ENERGY];
+        const { image } = RESOURCE_INFOS.energy;
 
         return (
           <Fragment>
-            { renderImageRow(trackerInfo.image, `Purchased Power Plant`, increase, time, true) }
-            { renderChange(TRACKER_TYPES.ENERGY, 1, null, true) }
-            { renderChange(TRACKER_TYPES.MEGACREDITS, -PROJECT_INFOS[PROJECT_TYPES.BUY_POWER_PLANT].cost) }
+            { renderImageRow(image, `Purchased Power Plant`, increase, time, true) }
+            { renderChange(RESOURCE_TYPES.ENERGY, 1, null, true) }
+            { renderChange(RESOURCE_TYPES.MEGACREDITS, -PROJECT_INFOS[PROJECT_TYPES.BUY_POWER_PLANT].cost) }
           </Fragment>
         );
       }
@@ -154,19 +153,18 @@ export default class HistoryPopup extends Component {
         const { type } = payload;
 
         const heatCost = 8;
-        const megaCreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_ASTEROID].cost;
+        const megacreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_ASTEROID].cost;
 
-        const isHeat = type === TRACKER_TYPES.HEAT;
-        const change = isHeat ? -heatCost : -megaCreditCost;
+        const isHeat = type === RESOURCE_TYPES.HEAT;
+        const change = isHeat ? -heatCost : -megacreditCost;
         const title = isHeat ? 'Exchanged Heat for Temperature' : 'Purchased Asteroid';
-
-        const trackerInfo = TRACKER_INFOS[TRACKER_TYPES.TERRAFORMING_RATING];
+        const { image } = RESOURCE_INFOS.terraformingRating;
 
         return (
           <Fragment>
             { renderImageRow(ImageIconTemperature, title, increase, time) }
             { renderImageRow(ImageIconTemperature, `Temperature at ${ state.temperature }°C`, increase) }
-            { renderImageRow(trackerInfo.image, `+1 Terraforming Rating`, increase) }
+            { renderImageRow(image, `+1 Terraforming Rating`, increase) }
             { renderChange(type, change) }
           </Fragment>
         );
@@ -184,16 +182,13 @@ export default class HistoryPopup extends Component {
 
       case 'decrement': {
         const { type } = payload;
-
-        const trackerInfo = TRACKER_INFOS[type];
-        const image = trackerInfo.image;
-        const title = trackerInfo.title;
+        const { image, title } = RESOURCE_INFOS[type];
 
         switch (type) {
-          case TRACKER_TYPES.TERRAFORMING_RATING:
+          case RESOURCE_TYPES.TERRAFORMING_RATING:
             return renderImageRow(image, `-1 ${ title }`, decrease, time);
 
-          case TRACKER_TYPES.GENERATION:
+          case RESOURCE_TYPES.GENERATION:
             return renderTextRow(`Returning to ${ title } ${ state.generation }`, styles.text, time);
 
           default:
@@ -203,16 +198,13 @@ export default class HistoryPopup extends Component {
 
       case 'increment': {
         const { type } = payload;
-
-        const trackerInfo = TRACKER_INFOS[type];
-        const image = trackerInfo.image;
-        const title = trackerInfo.title;
+        const { image, title } = RESOURCE_INFOS[type];
 
         switch (type) {
-          case TRACKER_TYPES.TERRAFORMING_RATING:
+          case RESOURCE_TYPES.TERRAFORMING_RATING:
             return renderImageRow(image, `+1 ${ title }`, increase, time);
 
-          case TRACKER_TYPES.GENERATION:
+          case RESOURCE_TYPES.GENERATION:
             return renderTextRow(`Starting ${ title } ${ state.generation }`, styles.text, time);
 
           default:
@@ -235,7 +227,7 @@ export default class HistoryPopup extends Component {
         return (
           <Fragment>
             { renderImageRow(ImageIconCard, `Sold Patent`, decrease, time) }
-            { renderChange(TRACKER_TYPES.MEGACREDITS, -PROJECT_INFOS[PROJECT_TYPES.SELL_PATENT].cost) }
+            { renderChange(RESOURCE_TYPES.MEGACREDITS, -PROJECT_INFOS[PROJECT_TYPES.SELL_PATENT].cost) }
             { renderImageRow(ImageIconCard, `-1 Cards`, decrease) }
           </Fragment>
         );
@@ -248,7 +240,7 @@ export default class HistoryPopup extends Component {
   }
 
   static renderOxygen (wasOxygenAdded, oxygenLevel) {
-    const trackerInfo = TRACKER_INFOS[TRACKER_TYPES.TERRAFORMING_RATING];
+    const { image } = RESOURCE_INFOS.terraformingRating;
 
     if (!wasOxygenAdded) {
       return;
@@ -261,7 +253,7 @@ export default class HistoryPopup extends Component {
     return (
       <Fragment>
         { renderImageRow(ImageIconOxygen, `Oxygen level at ${ oxygenLevel }%`, increase) }
-        { renderImageRow(trackerInfo.image, `+1 Terraforming Rating`, increase) }
+        { renderImageRow(image, `+1 Terraforming Rating`, increase) }
       </Fragment>
     );
   }

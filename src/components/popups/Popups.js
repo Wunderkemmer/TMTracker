@@ -5,8 +5,9 @@ import { Image, Text, View } from 'react-native';
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 import PopupDialog, { SlideAnimation } from 'react-native-popup-dialog';
 
+import { RESOURCE_INFOS } from '../../store/economy/economyConstants';
+
 import Button from '../Button';
-import { TRACKER_INFOS } from '../Tracker';
 
 const popupManagers = [];
 const popupStates = {};
@@ -81,8 +82,7 @@ export class Popup extends Component {
     const { type } = this.props;
 
     if (type) {
-      const trackerInfo = TRACKER_INFOS[type];
-      const image = trackerInfo.image;
+      const { image } = RESOURCE_INFOS[type].image;
 
       if (image) {
         return (
@@ -97,7 +97,7 @@ export class Popup extends Component {
   renderTitle = () => {
     const { type, title } = this.props;
 
-    const displayTitle = type ? 'Update ' + TRACKER_INFOS[type].title : title;
+    const displayTitle = type ? 'Update ' + RESOURCE_INFOS[type].title : title;
 
     if (displayTitle) {
       return (
@@ -111,7 +111,7 @@ export class Popup extends Component {
   render () {
     const { component, id, style, show, type } = this.props;
 
-    const headerStyle = { backgroundColor: type ? TRACKER_INFOS[type].color : '#5B8BDD' };
+    const headerStyle = { backgroundColor: type ? RESOURCE_INFOS[type].color : '#5B8BDD' };
 
     return (
       <PopupDialog

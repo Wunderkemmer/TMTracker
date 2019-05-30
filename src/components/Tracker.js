@@ -4,183 +4,135 @@ import { Image, Text, TouchableWithoutFeedback, View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 
-import ImageIconEnergy from '../../resources/images/icon_energy.png';
-import ImageIconHeat from '../../resources/images/icon_heat.png';
-import ImageIconMegaCredits from '../../resources/images/icon_mega_credits.png';
-import ImageIconPlants from '../../resources/images/icon_plants.png';
-import ImageIconSteel from '../../resources/images/icon_steel.png';
-import ImageIconTerraformingRating from '../../resources/images/icon_terraforming_rating.png';
-import ImageIconTitanium from '../../resources/images/icon_titanium.png';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+
+import { changeCount, changeProduction, nextGeneration } from '../store/economy/economyActions';
+import { RESOURCE_TYPES, RESOURCE_INFOS } from '../store/economy/economyConstants';
 
 import Button from './Button';
 
-export const TRACKER_TYPES = {
-  TERRAFORMING_RATING: 'terraformingRating',
-  MEGACREDITS: 'megacredits',
-  STEEL: 'steel',
-  TITANIUM: 'titanium',
-  PLANTS: 'plants',
-  ENERGY: 'energy',
-  HEAT: 'heat',
-  GENERATION: 'generation'
+import { showPopup } from './popups/Popups';
+
+const BottomButton = (props) => {
+  const { icon, onPress, useDebounce } = props;
+
+  return (
+    <Button
+      style={ styles.button }
+      backgroundColor="#FFFFFF"
+      color="#222222"
+      icon={ icon }
+      onPress={ onPress }
+      useDebounce={ useDebounce }
+    />
+  );
 };
 
-export const TRACKER_INFOS = {
-      [TRACKER_TYPES.TERRAFORMING_RATING]: {
-        image: ImageIconTerraformingRating,
-        hideTitleInTracker: true,
-        usePositiveCalculator: true,
-        title: 'Terraforming Rating',
-        color: '#ED721F',
-      },
-      [TRACKER_TYPES.MEGACREDITS]: {
-        image: ImageIconMegaCredits,
-        title: 'MegaCredits',
-        color: '#FFCC33'
-      },
-      [TRACKER_TYPES.STEEL]: {
-        image: ImageIconSteel,
-        title: 'Steel',
-        color: '#B37D43',
-        multiplier: 2
-      },
-      [TRACKER_TYPES.TITANIUM]: {
-        image: ImageIconTitanium,
-        title: 'Titanium',
-        color: '#777777',
-        multiplier: 3
-      },
-      [TRACKER_TYPES.PLANTS]: {
-        image: ImageIconPlants,
-        title: 'Plants',
-        color: '#5FB365'
-      },
-      [TRACKER_TYPES.ENERGY]: {
-        image: ImageIconEnergy,
-        title: 'Energy',
-        color: '#A34Cb8'
-      },
-      [TRACKER_TYPES.HEAT]: {
-        image: ImageIconHeat,
-        title: 'Heat',
-        color: '#ED4E44',
-        multiplier: 1
-      },
-      [TRACKER_TYPES.GENERATION]: {
-        title: 'Generation',
-        color: '#5B8BDD',
-        useDebounce: true
-      }
-    };
-
-export default class Tracker extends Component {
+class Tracker extends Component {
 
   static getTrackerInfo = (type) => {
-    return TRACKER_INFOS[type]
+    return RESOURCE_INFOS[type]
   };
 
-  renderButton = (icon, onPress) => {
+  onButton1 = () => {
     const { type } = this.props;
 
-    const trackerInfo = TRACKER_INFOS[type];
+    switch (type) {
+      case RESOURCE_TYPES.TERRAFORMING_RATING:
+        this.props.actions.changeCount(type, -1);
+        break;
 
-    if (onPress) {
-      return (
-        <Button
-          style={ styles.button }
-          backgroundColor="#FFFFFF"
-          color="#222222"
-          icon={ icon }
-          onPress={ () => onPress(type) }
-          useDebounce={ trackerInfo.useDebounce }
-        />
-      );
+      case RESOURCE_TYPES.GENERATION:
+        showPopup('history');
+        break;
+
+      default:
+        this.props.actions.changeProduction(type, -1);
+    }
+  };
+
+  onButton2 = () => {
+    const { type } = this.props;
+
+    switch (type) {
+      case RESOURCE_TYPES.TERRAFORMING_RATING:
+        this.props.actions.changeCount(type, 1);
+        break;
+
+      case RESOURCE_TYPES.GENERATION:
+        this.props.actions.nextGeneration();
+        break;
+
+      default:
+        this.props.actions.changeProduction(type, 1);
+    }
+  };
+
+  onTracker = () => {
+    const { type } = this.props;
+
+    if (type === RESOURCE_TYPES.GENERATION) {
+      showPopup('history');
+
+      return;
     }
 
-    return null;
+    showPopup('calculator', { type });
   };
 
   renderImage = () => {
     const { type } = this.props;
+    const { image } = RESOURCE_INFOS[type];
 
-    const trackerInfo = TRACKER_INFOS[type];
-    const icon = trackerInfo.image;
-    const hideIconInTracker = trackerInfo.hideIconInTracker;
-
-    if (icon && !hideIconInTracker) {
-      return (
-        <Image style={ styles.headerIcon } resizeMode="contain" source={ icon } />
-      );
+    if (!image) {
+      return null;
     }
 
-    return null;
+    return (
+      <Image style={ styles.headerImage } resizeMode="contain" source={ image } />
+    );
   };
 
-  renderRate = () => {
-    const { rate } = this.props;
+  renderProduction = () => {
+    const { production } = this.props;
 
-    if (rate !== undefined) {
-      return (
-        <Text style={ styles.rateText }>{ rate }</Text>
-      );
+    if (production === undefined) {
+      return null;
     }
 
-    return null;
+    return (
+      <Text style={ styles.productionText }>{ production }</Text>
+    );
   };
 
   renderTitle = () => {
     const { type } = this.props;
+    const { title, hideTitleInTracker, useSmallTracker } = RESOURCE_INFOS[type];
 
-    const trackerInfo = TRACKER_INFOS[type];
-    const { title, hideTitleInTracker } = trackerInfo;
-
-    if (!hideTitleInTracker) {
-      let headerTextStyle;
-
-      switch (type) {
-        case TRACKER_TYPES.TERRAFORMING_RATING:
-        case TRACKER_TYPES.GENERATION:
-          headerTextStyle = styles.headerTextSmall;
-
-          break;
-
-        default:
-          headerTextStyle = styles.headerTextLarge;
-      }
-
-      return (
-        <Text style={ headerTextStyle }>{ title }</Text>
-      );
+    if (hideTitleInTracker) {
+      return null;
     }
 
-    return null;
+    const textStyle = useSmallTracker ? styles.headerTextSmall : styles.headerTextLarge;
+
+    return (
+      <Text style={ textStyle }>{ title }</Text>
+    );
   };
 
   render () {
-    const { count, onDecrement, onHistory, onIncrement, onPress, style, type } = this.props;
+    const { count, style, type } = this.props;
+    const { color, button1Icon, button2Icon, useDebounce, useSmallTracker } = RESOURCE_INFOS[type];
 
-    const trackerInfo = TRACKER_INFOS[type];
-
-    let colorStyle;
-    let countTextStyle;
-
-    switch (type) {
-      case TRACKER_TYPES.TERRAFORMING_RATING:
-      case TRACKER_TYPES.GENERATION:
-        colorStyle = { color: trackerInfo.color };
-        countTextStyle = styles.countTextSmall;
-
-        break;
-
-      default:
-        countTextStyle = styles.countTextLarge;
-    }
+    const colorStyle = useSmallTracker ? { color } : null;
+    const countTextStyle = useSmallTracker ? styles.countTextSmall : styles.countTextLarge;
 
     return (
       <Button
         style={ style }
-        backgroundColor={ trackerInfo.color }
-        onPress={ () => onPress(type) }
+        backgroundColor={ color }
+        onPress={ this.onTracker }
       >
         <View style={ styles.header }>
           { this.renderImage() }
@@ -191,11 +143,18 @@ export default class Tracker extends Component {
         </View>
         <TouchableWithoutFeedback>
           <View style={ styles.footer }>
-            <View style={ styles.rate }>
-              { this.renderButton('bars', onHistory) }
-              { this.renderButton('minus', onDecrement) }
-              { this.renderRate() }
-              { this.renderButton('plus', onIncrement) }
+            <View style={ styles.production }>
+              <BottomButton
+                icon={ button1Icon || 'minus' }
+                onPress={ this.onButton1 }
+                useDebounce={ useDebounce }
+              />
+              { this.renderProduction() }
+              <BottomButton
+                icon={ button2Icon || 'plus' }
+                onPress={ this.onButton2 }
+                useDebounce={ useDebounce }
+              />
             </View>
           </View>
         </TouchableWithoutFeedback>
@@ -261,7 +220,7 @@ const styles = ExtendedStyleSheet.create({
     paddingHorizontal: '0.45rem'
   },
 
-  headerIcon: {
+  headerImage: {
     flex: 1,
     height: '1.6rem',
     marginRight: '0.4rem'
@@ -282,14 +241,14 @@ const styles = ExtendedStyleSheet.create({
     color: '#FFFFFF'
   },
 
-  rate: {
+  production: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: '0.2rem'
   },
 
-  rateText: {
+  productionText: {
     fontSize: '2.5rem',
     fontWeight: 'bold',
     textAlign: 'center',
@@ -298,3 +257,22 @@ const styles = ExtendedStyleSheet.create({
   }
 
 });
+
+const mapStateToProps = (state, props) => {
+  const { economy } = state;
+
+  return {
+    count: economy.resourceCounts[props.type],
+    production: economy.resourceProductions[props.type],
+  };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+  actions: bindActionCreators({
+    changeCount,
+    changeProduction,
+    nextGeneration
+  }, dispatch)
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(Tracker);

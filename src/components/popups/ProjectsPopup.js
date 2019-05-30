@@ -4,16 +4,17 @@ import { View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 
-import { contants } from '../../../src/lib/utils';
-
 import ImageIconCard from '../../../resources/images/icon_card.png';
 import ImageIconCity from '../../../resources/images/icon_city.png';
 import ImageIconGreenery from '../../../resources/images/icon_greenery.png';
 import ImageIconOcean from '../../../resources/images/icon_ocean.png';
 import ImageIconTemperature from '../../../resources/images/icon_temperature.png';
 
+import { contants } from '../../../src/lib/utils';
+
+import { RESOURCE_INFOS } from '../../store/economy/economyConstants';
+
 import ProjectButton from '../ProjectButton';
-import { TRACKER_INFOS, TRACKER_TYPES } from '../Tracker';
 
 export const PROJECT_TYPES = {
   BUY_ASTEROID: 'buyAsteroid',
@@ -28,43 +29,43 @@ export const PROJECT_INFOS = {
   [PROJECT_TYPES.BUY_ASTEROID]: {
     title: 'Buy Asteroid',
     cost: 14,
-    image1: TRACKER_INFOS[TRACKER_TYPES.MEGACREDITS].image,
+    image1: RESOURCE_INFOS.megacredits.image,
     image2: ImageIconTemperature,
     hasRunOut: (state) => state.temperature >= contants.MAX_TEMPERATURE
   },
   [PROJECT_TYPES.BUY_AQUIFER]: {
     title: 'Buy Aquifer',
     cost: 18,
-    image1: TRACKER_INFOS[TRACKER_TYPES.MEGACREDITS].image,
+    image1: RESOURCE_INFOS.megacredits.image,
     image2: ImageIconOcean,
     hasRunOut: (state) => state.oceanCount >= contants.MAX_OCEAN_COUNT
   },
   [PROJECT_TYPES.BUY_CITY]: {
     title: 'Buy City',
     cost: 25,
-    image1: TRACKER_INFOS[TRACKER_TYPES.MEGACREDITS].image,
+    image1: RESOURCE_INFOS.megacredits.image,
     image2: ImageIconCity,
-    image3: TRACKER_INFOS[TRACKER_TYPES.MEGACREDITS].image,
+    image3: RESOURCE_INFOS.megacredits.image,
     image3IsProduction: true,
   },
   [PROJECT_TYPES.BUY_GREENERY]: {
     title: 'Buy Greenery',
     cost: 23,
-    image1: TRACKER_INFOS[TRACKER_TYPES.MEGACREDITS].image,
+    image1: RESOURCE_INFOS.megacredits.image,
     image2: ImageIconGreenery,
   },
   [PROJECT_TYPES.BUY_POWER_PLANT]: {
     title: 'Buy Power Plant',
     cost: 11,
-    image1: TRACKER_INFOS[TRACKER_TYPES.MEGACREDITS].image,
-    image2: TRACKER_INFOS[TRACKER_TYPES.ENERGY].image,
+    image1: RESOURCE_INFOS.megacredits.image,
+    image2: RESOURCE_INFOS.energy.image,
     image2IsProduction: true,
   },
   [PROJECT_TYPES.SELL_PATENT]: {
     title: 'Sell Patent',
     cost: -1,
     image1: ImageIconCard,
-    image2: TRACKER_INFOS[TRACKER_TYPES.MEGACREDITS].image,
+    image2: RESOURCE_INFOS.megacredits.image,
   }
 };
 
@@ -88,8 +89,8 @@ export default class ProjectsPopup extends Component {
     const { state } = this.props;
 
     const info = PROJECT_INFOS[type];
-    const megaCredits = state.resourceCount[TRACKER_TYPES.MEGACREDITS];
-    const isTooExpensive = info.cost > 0 && megaCredits < info.cost;
+    const megacredits = state.resourceCounts.megacredits;
+    const isTooExpensive = info.cost > 0 && megacredits < info.cost;
     const hasRunOut = info.hasRunOut && info.hasRunOut(state);
 
     return (

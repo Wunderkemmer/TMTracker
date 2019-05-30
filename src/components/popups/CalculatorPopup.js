@@ -7,10 +7,15 @@ import { ImageBackground, Text, TouchableOpacity, View } from 'react-native';
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 
-import Button from '../Button';
-import { TRACKER_INFOS, TRACKER_TYPES } from '../Tracker';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 
-export default class CalculatorPopup extends Component {
+import { changeCounts } from '../../store/economy/economyActions';
+import { RESOURCE_INFOS, RESOURCE_TYPES } from '../../store/economy/economyConstants';
+
+import Button from '../Button';
+
+class CalculatorPopup extends Component {
 
   static publicStyles = ExtendedStyleSheet.create({
     popup: {
@@ -21,64 +26,65 @@ export default class CalculatorPopup extends Component {
 
   state = {
     change: 0,
-    isNegativeZero: !TRACKER_INFOS[this.props.type].usePositiveCalculator,
+    isNegativeZero: !RESOURCE_INFOS[this.props.type].usePositiveCalculator,
 
-    resourceCount: {
-      [TRACKER_TYPES.HEAT]: 0,
-      [TRACKER_TYPES.STEEL]: 0,
-      [TRACKER_TYPES.TITANIUM]: 0
+    resourceChanges: {
+      heat: 0,
+      steel: 0,
+      titanium: 0
     },
 
     useResource: {
-      [TRACKER_TYPES.HEAT]: false,
-      [TRACKER_TYPES.STEEL]: false,
-      [TRACKER_TYPES.TITANIUM]: false
+      heat: false,
+      steel: false,
+      titanium: false
     }
   };
 
-  capResourceValues (state) {
-    if (state.useResource[TRACKER_TYPES.HEAT]) {
-      while (state.resourceCount[TRACKER_TYPES.HEAT] > 0 && this.getResourcesValue() > -state.change) {
-        state.resourceCount[TRACKER_TYPES.HEAT]--;
+  capResourceValues () {
+    const { state } = this;
+
+    if (state.useResource.heat) {
+      while (state.resourceChanges.heat > 0 && this.getResourcesValue() > -state.change) {
+        state.resourceChanges.heat--;
       }
     }
 
-    if (state.useResource[TRACKER_TYPES.STEEL]) {
-      while (state.resourceCount[TRACKER_TYPES.STEEL] > 0 && this.getResourcesValue() > -state.change) {
-        state.resourceCount[TRACKER_TYPES.STEEL]--;
+    if (state.useResource.steel) {
+      while (state.resourceChanges.steel > 0 && this.getResourcesValue() > -state.change) {
+        state.resourceChanges.steel--;
       }
     }
 
-    if (state.useResource[TRACKER_TYPES.TITANIUM]) {
-      while (state.resourceCount[TRACKER_TYPES.TITANIUM] > 0 && this.getResourcesValue() > -state.change) {
-        state.resourceCount[TRACKER_TYPES.TITANIUM]--;
+    if (state.useResource.titanium) {
+      while (state.resourceChanges.titanium > 0 && this.getResourcesValue() > -state.change) {
+        state.resourceChanges.titanium--;
       }
     }
   }
 
   getResourcesValue () {
     const { state } = this;
-    const { resourceCount } = state;
 
     return state.change > 0 ?
       0 :
-      (state.useResource[TRACKER_TYPES.HEAT] ? resourceCount[TRACKER_TYPES.HEAT] : 0) +
-      (state.useResource[TRACKER_TYPES.STEEL] ? resourceCount[TRACKER_TYPES.STEEL] * 2 : 0) +
-      (state.useResource[TRACKER_TYPES.TITANIUM] ? resourceCount[TRACKER_TYPES.TITANIUM] * 3 : 0);
+      (state.useResource.heat ? state.resourceChanges.heat : 0) +
+      (state.useResource.steel ? state.resourceChanges.steel * 2 : 0) +
+      (state.useResource.titanium ? state.resourceChanges.titanium * 3 : 0);
   }
 
   onAdjustResource (type, value) {
     const { state } = this;
 
-    const newCount = state.resourceCount[type] + value;
-    const trackerInfo = TRACKER_INFOS[type];
-    const total = newCount * trackerInfo.multiplier;
+    const newCount = state.resourceChanges[type] + value;
+    const resourceInfo = RESOURCE_INFOS[type];
+    const total = newCount * resourceInfo.multiplier;
 
     if (total > -state.change) {
       return;
     }
 
-    state.resourceCount[type] += value;
+    state.resourceChanges[type] += value;
 
     this.setState(state);
   }
@@ -88,45 +94,43 @@ export default class CalculatorPopup extends Component {
     const { type } = this.props;
 
     const changes = [
-      { type, value: state.change + this.getResourcesValue() }
+      { type, amount: state.change + this.getResourcesValue() }
     ];
 
-    if (state.useResource[TRACKER_TYPES.HEAT]) {
+    if (state.useResource.heat) {
       changes.push({
-        type: TRACKER_TYPES.HEAT,
-        value: -state.resourceCount[TRACKER_TYPES.HEAT]
+        type: RESOURCE_TYPES.HEAT,
+        amount: -state.resourceChanges.heat
       });
     }
 
-    if (state.useResource[TRACKER_TYPES.STEEL]) {
+    if (state.useResource.steel) {
       changes.push({
-        type: TRACKER_TYPES.STEEL,
-        value: -state.resourceCount[TRACKER_TYPES.STEEL]
+        type: RESOURCE_TYPES.STEEL,
+        amount: -state.resourceChanges.steel
       });
     }
 
-    if (state.useResource[TRACKER_TYPES.TITANIUM]) {
+    if (state.useResource.titanium) {
       changes.push({
-        type: TRACKER_TYPES.TITANIUM,
-        value: -state.resourceCount[TRACKER_TYPES.TITANIUM]
+        type: RESOURCE_TYPES.TITANIUM,
+        amount: -state.resourceChanges.titanium
       });
     }
 
-    this.props.onChange(type, changes);
+    this.props.actions.changeCounts(changes);
     this.props.dismiss();
   };
 
   onFastForwardResource = (type) => {
     const { state } = this;
-    const { state: parentState } = this.props;
-
-    const trackerInfo = TRACKER_INFOS[type];
+    const { resourceCounts } = this.props;
 
     // Calculate the max number of resources we can add
 
     const value = Math.min(
-      Math.floor(-(state.change + this.getResourcesValue()) / trackerInfo.multiplier),
-      parentState.resourceCount[type] - state.resourceCount[type]
+      Math.floor(-(state.change + this.getResourcesValue()) / RESOURCE_INFOS[type].multiplier),
+      resourceCounts[type] - state.resourceChanges[type]
     );
 
     this.onAdjustResource(type, value);
@@ -138,11 +142,11 @@ export default class CalculatorPopup extends Component {
 
     if (value === 'C') {
       state.change = 0;
-      state.isNegativeZero = !TRACKER_INFOS[type].usePositiveCalculator;
+      state.isNegativeZero = !RESOURCE_INFOS[type].usePositiveCalculator;
 
-      state.resourceCount[TRACKER_TYPES.HEAT] = 0;
-      state.resourceCount[TRACKER_TYPES.STEEL] = 0;
-      state.resourceCount[TRACKER_TYPES.TITANIUM] = 0;
+      state.resourceChanges.heat = 0;
+      state.resourceChanges.steel = 0;
+      state.resourceChanges.titanium = 0;
     } else if (value === '±') {
       if (state.change === 0) {
         state.isNegativeZero = !state.isNegativeZero;
@@ -165,7 +169,7 @@ export default class CalculatorPopup extends Component {
       state.isNegativeZero = false;
     }
 
-    this.capResourceValues(state);
+    this.capResourceValues();
     this.setState(state);
   };
 
@@ -174,24 +178,23 @@ export default class CalculatorPopup extends Component {
 
     state.useResource[type] = !state.useResource[type];
 
-    if (type === TRACKER_TYPES.STEEL) {
-      state.useResource[TRACKER_TYPES.TITANIUM] = false;
-    } else if (type === TRACKER_TYPES.TITANIUM) {
-      state.useResource[TRACKER_TYPES.STEEL] = false;
+    if (type === RESOURCE_TYPES.STEEL) {
+      state.useResource.titanium = false;
+    } else if (type === RESOURCE_TYPES.TITANIUM) {
+      state.useResource.steel = false;
     }
 
-    this.capResourceValues(state);
+    this.capResourceValues();
     this.setState(state);
   };
 
   renderActionButton = () => {
     const { state } = this;
-    const { type, state: parentState } = this.props;
+    const { type, resourceCounts } = this.props;
 
-    const resourceCount = parentState.resourceCount[type];
-    const resourceTotal = resourceCount + state.change + this.getResourcesValue();
-    const isDisabled = state.change === 0 || resourceTotal < 0;
-    const threshold = TRACKER_INFOS[type].usePositiveCalculator ? -1 : 0;
+    const total = resourceCounts[type] + state.change + this.getResourcesValue();
+    const isDisabled = state.change === 0 || total < 0;
+    const threshold = RESOURCE_INFOS[type].usePositiveCalculator ? -1 : 0;
     const backgroundColor = state.change <= threshold ? '#ED4E44' : '#5FB365';
 
     return (
@@ -203,7 +206,7 @@ export default class CalculatorPopup extends Component {
       >
         <View style={ styles.actionButtonRow }>
           <Text style={ styles.actionText }>New Total:</Text>
-          <Text style={ styles.actionChangeText }>{ resourceTotal }</Text>
+          <Text style={ styles.actionChangeText }>{ total }</Text>
         </View>
       </Button>
     );
@@ -211,24 +214,24 @@ export default class CalculatorPopup extends Component {
 
   renderAdditionalResource = (type) => {
     const { state } = this;
-    const { state: parentState } = this.props;
+    const { resourceCounts } = this.props;
 
-    const parentResourceCount = parentState.resourceCount[type];
+    const resourceCount = resourceCounts[type];
     const useResource = state.useResource[type];
 
-    if (!parentResourceCount || !useResource) {
+    if (!resourceCount || !useResource) {
       return null;
     }
 
-    const resourceCount = state.resourceCount[type];
-    const resourceTotal = parentResourceCount - resourceCount;
+    const resourceChange = state.resourceChanges[type];
+    const resourceTotal = resourceCount - resourceChange;
 
-    const trackerInfo = TRACKER_INFOS[type];
-    const isDownDisabled = resourceCount === 0;
+    const { color, image, multiplier } = RESOURCE_INFOS[type];
+    const isDownDisabled = resourceChange === 0;
 
     const isUpDisabled =
       resourceTotal <= 0 ||
-      this.getResourcesValue() + trackerInfo.multiplier > -state.change;
+      this.getResourcesValue() + multiplier > -state.change;
 
     const resourceImageStyle = isDownDisabled && isUpDisabled ?
       styles.resourceImageDisabled :
@@ -238,9 +241,8 @@ export default class CalculatorPopup extends Component {
       styles.resourceChangeTextDisabled :
       styles.resourceChangeText;
 
-    const image = trackerInfo.image;
-    const colorStyle = { color: type ? trackerInfo.color : '#222222' };
-    const resourcesText = '+' + resourceCount * trackerInfo.multiplier;
+    const colorStyle = { color: type ? color : '#222222' };
+    const resourcesText = '+' + resourceChange * multiplier;
 
     return (
       <View style={ styles.tabulatorTab }>
@@ -260,7 +262,7 @@ export default class CalculatorPopup extends Component {
   renderAdditionalResourceCount = (type) => {
     const { state } = this;
 
-    const resourceCount = state.resourceCount[type];
+    const resourceCount = state.resourceCounts[type];
 
     if (!resourceCount) {
       return null;
@@ -313,7 +315,7 @@ export default class CalculatorPopup extends Component {
     const { type: calculatorType } = this.props;
 
     const style = isDisabled ? styles.resourceDisabled : null;
-    const colorStyle = { color: TRACKER_INFOS[calculatorType].color };
+    const colorStyle = { color: RESOURCE_INFOS[calculatorType].color };
 
     return (
       <TouchableOpacity style={ style } disabled={ isDisabled } onPress={ onPress }>
@@ -325,11 +327,11 @@ export default class CalculatorPopup extends Component {
   renderResourceToggleButtons = () => {
     const { type } = this.props;
 
-    if (type !== TRACKER_TYPES.MEGACREDITS) {
+    if (type !== RESOURCE_TYPES.MEGACREDITS) {
       return null;
     }
 
-    const toggleTypes = [ TRACKER_TYPES.HEAT, TRACKER_TYPES.STEEL, TRACKER_TYPES.TITANIUM ];
+    const toggleTypes = [ RESOURCE_TYPES.HEAT, RESOURCE_TYPES.STEEL, RESOURCE_TYPES.TITANIUM ];
 
     return (
       <View style={ styles.toggleButtons }>
@@ -339,16 +341,14 @@ export default class CalculatorPopup extends Component {
   };
 
   renderToggleButton = (type) => {
-    const { state: parentState } = this.props;
+    const { resourceCounts } = this.props;
 
-    const parentResourceCount = parentState.resourceCount[type];
-
-    if (!parentResourceCount) {
+    if (!resourceCounts[type]) {
       return null;
     }
 
-    const trackerInfo = TRACKER_INFOS[type];
-    const image = trackerInfo.image;
+    const resourceInfo = RESOURCE_INFOS[type];
+    const image = resourceInfo.image;
 
     return (
       <TouchableOpacity
@@ -383,26 +383,19 @@ export default class CalculatorPopup extends Component {
   };
 
   render () {
-    const { state } = this;
-    const { type, state: parentState } = this.props;
+    const { change, isNegativeZero } = this.state;
+    const { resourceCounts, type } = this.props;
 
-    if (!parentState) {
-      return null;
-    }
+    const resourceCount = resourceCounts[type];
+    const resourceInfo = RESOURCE_INFOS[type];
+    const backgroundColorStyle = { backgroundColor: type ? resourceInfo.color : '#EEEEEE' };
+    const colorStyle = { color: type ? resourceInfo.color : '#222222' };
 
-    const resourceCount = parentState.resourceCount[type];
-
-    const trackerInfo = TRACKER_INFOS[type];
-    const backgroundColorStyle = { backgroundColor: type ? trackerInfo.color : '#EEEEEE' };
-    const colorStyle = { color: type ? trackerInfo.color : '#222222' };
-
-    const color = Color(trackerInfo.color);
+    const color = Color(resourceInfo.color);
     const white = Color('#FFFFFF');
     const lighterColor = color.mix(white, 0.65);
 
-    const changeText = state.isNegativeZero ?
-      '-0' :
-      state.change >= 0 ? '+' + state.change : state.change;
+    const changeText = isNegativeZero ? '-0' : change >= 0 ? '+' + change : change;
 
     return (
       <View style={ styles.container }>
@@ -448,9 +441,9 @@ export default class CalculatorPopup extends Component {
             <Text style={ styles.keyPadTabText }>{ `Change:` }</Text>
             <Text style={ styles.changeText }>{ changeText }</Text>
           </View>
-          { this.renderAdditionalResource(TRACKER_TYPES.HEAT) }
-          { this.renderAdditionalResource(TRACKER_TYPES.STEEL) }
-          { this.renderAdditionalResource(TRACKER_TYPES.TITANIUM) }
+          { this.renderAdditionalResource(RESOURCE_TYPES.HEAT) }
+          { this.renderAdditionalResource(RESOURCE_TYPES.STEEL) }
+          { this.renderAdditionalResource(RESOURCE_TYPES.TITANIUM) }
           { this.renderActionButton() }
         </View>
       </View>
@@ -706,3 +699,19 @@ const styles = ExtendedStyleSheet.create({
   }
 
 });
+
+const mapStateToProps = (state) => {
+  const { economy } = state;
+
+  return {
+    resourceCounts: economy.resourceCounts,
+  };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+  actions: bindActionCreators({
+    changeCounts,
+  }, dispatch)
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(CalculatorPopup);
