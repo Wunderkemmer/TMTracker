@@ -13,11 +13,14 @@ import ImageIconOcean from '../../../resources/images/icon_ocean.png';
 import ImageIconOxygen from '../../../resources/images/icon_oxygen.png';
 import ImageIconTemperature from '../../../resources/images/icon_temperature.png';
 
-import { RESOURCE_INFOS, RESOURCE_TYPES } from '../../store/economy/economyConstants';
+import {
+  PROJECT_INFOS,
+  PROJECT_TYPES,
+  RESOURCE_INFOS,
+  RESOURCE_TYPES
+} from '../../store/game/gameConstants';
 
-import { PROJECT_INFOS, PROJECT_TYPES } from './ProjectsPopup';
-
-export default class HistoryPopup extends Component {
+export default class HistoryModal extends Component {
 
   keyExtractor = (item, index) => `${ item.event }.${ index }`;
 
@@ -35,7 +38,7 @@ export default class HistoryPopup extends Component {
       styles.text :
       (change > 0 ? styles.textIncrease : styles.textDecrease);
 
-    return HistoryPopup.renderImageRow(
+    return HistoryModal.renderImageRow(
       image,
       changeText,
       [ styles.text, changeStyle ],
@@ -65,7 +68,7 @@ export default class HistoryPopup extends Component {
         </View>
         <View>
           <Text style={ [ textStyle, textSizeStyle ] }>{ text }</Text>
-          { HistoryPopup.renderTime(time) }
+          { HistoryModal.renderTime(time) }
         </View>
       </View>
     );
@@ -76,7 +79,7 @@ export default class HistoryPopup extends Component {
       <View style={ styles.item } key={ key }>
         <View>
           <Text style={ textStyle }>{ text }</Text>
-          { HistoryPopup.renderTime(time) }
+          { HistoryModal.renderTime(time) }
         </View>
       </View>
     );
@@ -85,10 +88,10 @@ export default class HistoryPopup extends Component {
   static renderHistoryItem ({ item }) {
     const { event, payload, state, time } = item;
 
-    const renderChange = HistoryPopup.renderChange;
-    const renderImageRow = HistoryPopup.renderImageRow;
-    const renderOxygen = HistoryPopup.renderOxygen;
-    const renderTextRow = HistoryPopup.renderTextRow;
+    const renderChange = HistoryModal.renderChange;
+    const renderImageRow = HistoryModal.renderImageRow;
+    const renderOxygen = HistoryModal.renderOxygen;
+    const renderTextRow = HistoryModal.renderTextRow;
 
     const decrease = [ styles.text, styles.textDecrease ];
     const increase = [ styles.text, styles.textIncrease ];
@@ -121,11 +124,11 @@ export default class HistoryPopup extends Component {
       case 'buyGreenery': {
         const { type, wasOxygenAdded } = payload;
 
-        const plantCost = 8;
+        const resourceCost = 8;
         const megacreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_GREENERY].cost;
 
         const isPlants = type === RESOURCE_TYPES.PLANTS;
-        const change = isPlants ? -plantCost : -megacreditCost;
+        const change = isPlants ? -resourceCost : -megacreditCost;
         const title = isPlants ? 'Exchanged Plants for Greenery' : 'Purchased Greenery';
 
         return (
@@ -152,11 +155,11 @@ export default class HistoryPopup extends Component {
       case 'buyTemperature': {
         const { type } = payload;
 
-        const heatCost = 8;
+        const resourceCost = 8;
         const megacreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_ASTEROID].cost;
 
         const isHeat = type === RESOURCE_TYPES.HEAT;
-        const change = isHeat ? -heatCost : -megacreditCost;
+        const change = isHeat ? -resourceCost : -megacreditCost;
         const title = isHeat ? 'Exchanged Heat for Temperature' : 'Purchased Asteroid';
         const { image } = RESOURCE_INFOS.terraformingRating;
 
@@ -246,7 +249,7 @@ export default class HistoryPopup extends Component {
       return;
     }
 
-    const renderImageRow = HistoryPopup.renderImageRow;
+    const renderImageRow = HistoryModal.renderImageRow;
 
     const increase = [ styles.text, styles.textIncrease ];
 
@@ -270,14 +273,15 @@ export default class HistoryPopup extends Component {
 
   render () {
     const { history } = this.props;
-    const reverseHistory = [ ...history ].reverse();
+    // const reverseHistory = [ ...history ].reverse();
+    const reverseHistory = [];
 
     return (
       <FlatList
         contentContainerStyle={ styles.container }
         data={ reverseHistory }
         keyExtractor={ this.keyExtractor }
-        renderItem={ HistoryPopup.renderHistoryItem }
+        renderItem={ HistoryModal.renderHistoryItem }
       />
     );
   }

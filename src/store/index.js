@@ -1,9 +1,19 @@
-import { combineReducers, createStore } from 'redux';
+import { applyMiddleware, combineReducers, createStore } from 'redux';
 
-import economy from './economy/economyReducer';
+import thunk from 'redux-thunk';
+
+import game from './game/gameReducer';
+import gameMiddleware from './game/gameMiddleware';
+import ui from './ui/uiReducer';
 
 const rootReducer = combineReducers({
-  economy
+  game,
+  ui
 });
 
-export default createStore(rootReducer)
+const middleWares = [
+  thunk,
+  gameMiddleware
+];
+
+export default createStore(rootReducer, applyMiddleware(...middleWares))

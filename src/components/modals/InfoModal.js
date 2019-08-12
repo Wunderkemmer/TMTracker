@@ -4,7 +4,7 @@ import { Text, View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 
-export default class InfoPopup extends Component {
+export default class InfoModal extends Component {
 
   render () {
     return (

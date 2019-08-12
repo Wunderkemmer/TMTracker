@@ -7,12 +7,12 @@ import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
-import { changeCount, changeProduction, nextGeneration } from '../store/economy/economyActions';
-import { RESOURCE_TYPES, RESOURCE_INFOS } from '../store/economy/economyConstants';
+import { changeCount, changeProduction, nextGeneration } from '../store/game/gameActions';
+import { RESOURCE_TYPES, RESOURCE_INFOS } from '../store/game/gameConstants';
+import { showModal } from '../store/ui/uiActions';
+import { MODAL_TYPES } from '../store/ui/uiConstants';
 
 import Button from './Button';
-
-import { showPopup } from './popups/Popups';
 
 const BottomButton = (props) => {
   const { icon, onPress, useDebounce } = props;
@@ -40,15 +40,15 @@ class Tracker extends Component {
 
     switch (type) {
       case RESOURCE_TYPES.TERRAFORMING_RATING:
-        this.props.actions.changeCount(type, -1);
+        this.props.actions.changeCount(type, -1, 'Tracker Down');
         break;
 
       case RESOURCE_TYPES.GENERATION:
-        showPopup('history');
+        this.props.actions.showModal(MODAL_TYPES.HISTORY);
         break;
 
       default:
-        this.props.actions.changeProduction(type, -1);
+        this.props.actions.changeProduction(type, -1, 'Tracker Down');
     }
   };
 
@@ -57,7 +57,7 @@ class Tracker extends Component {
 
     switch (type) {
       case RESOURCE_TYPES.TERRAFORMING_RATING:
-        this.props.actions.changeCount(type, 1);
+        this.props.actions.changeCount(type, 1, 'Tracker Up');
         break;
 
       case RESOURCE_TYPES.GENERATION:
@@ -65,7 +65,7 @@ class Tracker extends Component {
         break;
 
       default:
-        this.props.actions.changeProduction(type, 1);
+        this.props.actions.changeProduction(type, 1, 'Tracker Up');
     }
   };
 
@@ -73,12 +73,12 @@ class Tracker extends Component {
     const { type } = this.props;
 
     if (type === RESOURCE_TYPES.GENERATION) {
-      showPopup('history');
+      this.props.actions.showModal(MODAL_TYPES.HISTORY);
 
       return;
     }
 
-    showPopup('calculator', { type });
+    this.props.actions.showModal(MODAL_TYPES.CALCULATOR, { type });
   };
 
   renderImage = () => {
@@ -259,11 +259,11 @@ const styles = ExtendedStyleSheet.create({
 });
 
 const mapStateToProps = (state, props) => {
-  const { economy } = state;
+  const { game } = state;
 
   return {
-    count: economy.resourceCounts[props.type],
-    production: economy.resourceProductions[props.type],
+    count: game.resourceCounts[props.type],
+    production: game.resourceProductions[props.type],
   };
 };
 
@@ -271,7 +271,8 @@ const mapDispatchToProps = (dispatch) => ({
   actions: bindActionCreators({
     changeCount,
     changeProduction,
-    nextGeneration
+    nextGeneration,
+    showModal
   }, dispatch)
 });
 

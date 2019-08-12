@@ -23,9 +23,3 @@ export function debounce (functionReference, duration, onStart) {
     }
   };
 }
-
-export const contants = {
-  MAX_OCEAN_COUNT: 9,
-  MAX_OXYGEN_LEVEL: 14,
-  MAX_TEMPERATURE: 8
-};

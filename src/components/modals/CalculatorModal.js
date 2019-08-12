@@ -10,12 +10,12 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
-import { changeCounts } from '../../store/economy/economyActions';
-import { RESOURCE_INFOS, RESOURCE_TYPES } from '../../store/economy/economyConstants';
+import { changeCounts } from '../../store/game/gameActions';
+import { RESOURCE_INFOS, RESOURCE_TYPES } from '../../store/game/gameConstants';
 
 import Button from '../Button';
 
-class CalculatorPopup extends Component {
+class CalculatorModal extends Component {
 
   static publicStyles = ExtendedStyleSheet.create({
     popup: {
@@ -23,6 +23,10 @@ class CalculatorPopup extends Component {
       maxHeight: '24rem'
     }
   });
+
+  static defaultProps = {
+    type: RESOURCE_TYPES.MEGACREDITS
+  };
 
   state = {
     change: 0,
@@ -91,35 +95,27 @@ class CalculatorPopup extends Component {
 
   onChange = () => {
     const { state } = this;
-    const { type } = this.props;
+    const { hide, type } = this.props;
 
-    const changes = [
-      { type, amount: state.change + this.getResourcesValue() }
-    ];
+    const changes = {
+      [type]: state.change + this.getResourcesValue()
+    };
 
     if (state.useResource.heat) {
-      changes.push({
-        type: RESOURCE_TYPES.HEAT,
-        amount: -state.resourceChanges.heat
-      });
+      changes[RESOURCE_TYPES.HEAT] = -state.resourceChanges.heat;
     }
 
     if (state.useResource.steel) {
-      changes.push({
-        type: RESOURCE_TYPES.STEEL,
-        amount: -state.resourceChanges.steel
-      });
+      changes[RESOURCE_TYPES.STEEL] = -state.resourceChanges.steel;
     }
 
     if (state.useResource.titanium) {
-      changes.push({
-        type: RESOURCE_TYPES.TITANIUM,
-        amount: -state.resourceChanges.titanium
-      });
+      changes[RESOURCE_TYPES.TITANIUM] = -state.resourceChanges.titanium;
     }
 
-    this.props.actions.changeCounts(changes);
-    this.props.dismiss();
+    this.props.actions.changeCounts(changes, 'Calculator');
+
+    hide();
   };
 
   onFastForwardResource = (type) => {
@@ -262,16 +258,16 @@ class CalculatorPopup extends Component {
   renderAdditionalResourceCount = (type) => {
     const { state } = this;
 
-    const resourceCount = state.resourceCounts[type];
+    const resourceChange = state.resourceChanges[type];
 
-    if (!resourceCount) {
+    if (!resourceChange) {
       return null;
     }
 
     return (
       <Fragment>
         <View style={ styles.resourceTint } />
-        <Text style={ styles.resourceText }>{ resourceCount }</Text>
+        <Text style={ styles.resourceText }>{ resourceChange }</Text>
       </Fragment>
     );
   };
@@ -701,10 +697,10 @@ const styles = ExtendedStyleSheet.create({
 });
 
 const mapStateToProps = (state) => {
-  const { economy } = state;
+  const { game } = state;
 
   return {
-    resourceCounts: economy.resourceCounts,
+    resourceCounts: game.resourceCounts,
   };
 };
 
@@ -714,4 +710,4 @@ const mapDispatchToProps = (dispatch) => ({
   }, dispatch)
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(CalculatorPopup);
+export default connect(mapStateToProps, mapDispatchToProps)(CalculatorModal);

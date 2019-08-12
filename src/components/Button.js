@@ -102,6 +102,7 @@ const styles = ExtendedStyleSheet.create({
   },
 
   container: {
+    backgroundColor: '#5B8BDD',
     flex: 1,
     alignItems: 'stretch',
     justifyContent: 'center',
