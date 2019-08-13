@@ -43,12 +43,12 @@ export default class App extends Component<Props> {
       if (history) {
         history = JSON.parse(history);
 
-        const { event, state } = history[history.length - 1];
+        const { event, gameState } = history[history.length - 1];
 
         const isGameInProgress = event !== 'newGame' &&
-          (state.oceanCount < TERRAFORMING_INFOS[TERRAFORMING_TYPES.OCEAN_COUNT].maximum ||
-           state.oxygenLevel < TERRAFORMING_INFOS[TERRAFORMING_TYPES.OXYGEN_LEVEL].maximum ||
-           state.temperature < TERRAFORMING_INFOS[TERRAFORMING_TYPES.TEMPERATURE].maximum);
+          (gameState.oceanCount < TERRAFORMING_INFOS[TERRAFORMING_TYPES.OCEAN_COUNT].maximum ||
+           gameState.oxygenLevel < TERRAFORMING_INFOS[TERRAFORMING_TYPES.OXYGEN_LEVEL].maximum ||
+           gameState.temperature < TERRAFORMING_INFOS[TERRAFORMING_TYPES.TEMPERATURE].maximum);
 
         if (isGameInProgress) {
           SplashScreen.hide();

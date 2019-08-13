@@ -97,23 +97,23 @@ class CalculatorModal extends Component {
     const { state } = this;
     const { hide, type } = this.props;
 
-    const changes = {
+    const countChanges = {
       [type]: state.change + this.getResourcesValue()
     };
 
     if (state.useResource.heat) {
-      changes[RESOURCE_TYPES.HEAT] = -state.resourceChanges.heat;
+      countChanges[RESOURCE_TYPES.HEAT] = -state.resourceChanges.heat;
     }
 
     if (state.useResource.steel) {
-      changes[RESOURCE_TYPES.STEEL] = -state.resourceChanges.steel;
+      countChanges[RESOURCE_TYPES.STEEL] = -state.resourceChanges.steel;
     }
 
     if (state.useResource.titanium) {
-      changes[RESOURCE_TYPES.TITANIUM] = -state.resourceChanges.titanium;
+      countChanges[RESOURCE_TYPES.TITANIUM] = -state.resourceChanges.titanium;
     }
 
-    this.props.actions.changeCounts(changes, 'Calculator');
+    this.props.actions.changeCounts(countChanges, 'Calculator Adjustment');
 
     hide();
   };

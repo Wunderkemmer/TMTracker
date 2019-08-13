@@ -3,12 +3,9 @@ import constants from '../../lib/constants.js';
 import { PROJECT_INFOS, RESOURCE_INFOS, RESOURCE_TYPES, TERRAFORMING_INFOS } from '../game/gameConstants';
 
 const {
-  GAME_CHANGE_COUNT,
   GAME_CHANGE_COUNTS,
   GAME_CHANGE_GAME_STATE,
-  GAME_CHANGE_PRODUCTION,
   GAME_CHANGE_PRODUCTIONS,
-  GAME_CHANGE_TERRAFORMING,
   GAME_CHANGE_TERRAFORMINGS,
   GAME_SET_GAME_STATE
 } = constants;
@@ -83,11 +80,11 @@ export const runProject = (projectType) => {
 };
 
 export const changeCount = (type, amount, event) => (
-  { type: GAME_CHANGE_COUNT, payload: { type, amount, event } }
+  { type: GAME_CHANGE_COUNTS, payload: { countChanges: { [type]: amount }, event } }
 );
 
-export const changeCounts = (changes, event) => (
-  { type: GAME_CHANGE_COUNTS, payload: { changes, event } }
+export const changeCounts = (countChanges, event) => (
+  { type: GAME_CHANGE_COUNTS, payload: { countChanges, event } }
 );
 
 export const changeGameState = (countChanges, productionChanges, terraformingChanges, event) => (
@@ -98,19 +95,19 @@ export const changeGameState = (countChanges, productionChanges, terraformingCha
 );
 
 export const changeProduction = (type, amount, event) => (
-  { type: GAME_CHANGE_PRODUCTION, payload: { type, amount, event } }
+  { type: GAME_CHANGE_PRODUCTIONS, payload: { productionChanges: { [type]: amount }, event } }
 );
 
-export const changeProductions = (changes, event) => (
-  { type: GAME_CHANGE_PRODUCTIONS, payload: { changes, event } }
+export const changeProductions = (productionChanges, event) => (
+  { type: GAME_CHANGE_PRODUCTIONS, payload: { productionChanges, event } }
 );
 
 export const changeTerraforming = (type, amount, event) => (
-  { type: GAME_CHANGE_TERRAFORMING, payload: { type, amount, event } }
+  { type: GAME_CHANGE_TERRAFORMINGS, payload: { terraformingChanges: { [type]: amount }, event } }
 );
 
-export const changeTerraformings = (changes, event) => (
-  { type: GAME_CHANGE_TERRAFORMINGS, payload: { changes, event } }
+export const changeTerraformings = (terraformingChanges, event) => (
+  { type: GAME_CHANGE_TERRAFORMINGS, payload: { terraformingChanges, event } }
 );
 
 export const nextGeneration = () => {
@@ -120,13 +117,28 @@ export const nextGeneration = () => {
 
     const changes = {
       [RESOURCE_TYPES.MEGACREDITS]: productions.megacredits + counts.terraformingRating,
-      [RESOURCE_TYPES.STEEL]: productions.steel,
-      [RESOURCE_TYPES.TITANIUM]: productions.titanium,
-      [RESOURCE_TYPES.PLANTS]: productions.plants,
-      [RESOURCE_TYPES.ENERGY]: productions.energy - counts.energy,
-      [RESOURCE_TYPES.HEAT]: productions.heat + counts.energy,
       [RESOURCE_TYPES.GENERATION]: 1
     };
+
+    if (productions.steel) {
+      changes[RESOURCE_TYPES.STEEL] = productions.steel;
+    }
+
+    if (productions.titanium) {
+      changes[RESOURCE_TYPES.TITANIUM] = productions.titanium;
+    }
+
+    if (productions.plants) {
+      changes[RESOURCE_TYPES.PLANTS] = productions.plants;
+    }
+
+    if (productions.energy - counts.energy) {
+      changes[RESOURCE_TYPES.ENERGY] = productions.energy - counts.energy;
+    }
+
+    if (productions.heat + counts.energy) {
+      changes[RESOURCE_TYPES.HEAT] = productions.heat + counts.energy;
+    }
 
     return dispatch(changeCounts(changes, 'Next Generation'));
   };

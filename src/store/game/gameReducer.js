@@ -4,12 +4,9 @@ import { RESOURCE_INFOS, TERRAFORMING_INFOS } from './gameConstants';
 import GameState from './gameState';
 
 const {
-  GAME_CHANGE_COUNT,
   GAME_CHANGE_COUNTS,
   GAME_CHANGE_GAME_STATE,
-  GAME_CHANGE_PRODUCTION,
   GAME_CHANGE_PRODUCTIONS,
-  GAME_CHANGE_TERRAFORMING,
   GAME_CHANGE_TERRAFORMINGS,
   GAME_SET_GAME_STATE
 } = constants;
@@ -29,9 +26,9 @@ const updateResourceCount = (state, type, amount) => {
   return state;
 };
 
-const updateResourceCounts = (state, changes) => {
-  if (changes) {
-    for (let [ key, value ] of Object.entries(changes)) {
+const updateResourceCounts = (state, countChanges) => {
+  if (countChanges) {
+    for (let [ key, value ] of Object.entries(countChanges)) {
       state = updateResourceCount(state, key, value);
     }
   }
@@ -50,9 +47,9 @@ const updateResourceProduction = (state, type, amount) => {
   return state;
 };
 
-const updateResourceProductions = (state, changes) => {
-  if (changes) {
-    for (let [ key, value ] of Object.entries(changes)) {
+const updateResourceProductions = (state, productionChanges) => {
+  if (productionChanges) {
+    for (let [ key, value ] of Object.entries(productionChanges)) {
       state = updateResourceProduction(state, key, value);
     }
   }
@@ -68,9 +65,9 @@ const updateTerraforming = (state, type, amount) => {
   return state;
 };
 
-const updateTerraformings = (state, changes) => {
-  if (changes) {
-    for (let [ key, value ] of Object.entries(changes)) {
+const updateTerraformings = (state, terraformingChanges) => {
+  if (terraformingChanges) {
+    for (let [ key, value ] of Object.entries(terraformingChanges)) {
       state = updateTerraforming(state, key, value);
     }
   }
@@ -80,16 +77,10 @@ const updateTerraformings = (state, changes) => {
 
 export default (state = initialState, action) => {
   switch (action.type) {
-    case GAME_CHANGE_COUNT: {
-      const { amount, type } = action.payload;
-
-      return updateResourceCount(state, type, amount);
-    }
-
     case GAME_CHANGE_COUNTS: {
-      const { changes } = action.payload;
+      const { countChanges } = action.payload;
 
-      return updateResourceCounts(state, changes);
+      return updateResourceCounts(state, countChanges);
     }
 
     case GAME_CHANGE_GAME_STATE: {
@@ -102,34 +93,22 @@ export default (state = initialState, action) => {
       return state;
     }
 
-    case GAME_CHANGE_PRODUCTION: {
-      const { amount, type } = action.payload;
-
-      return updateResourceProduction(state, type, amount);
-    }
-
     case GAME_CHANGE_PRODUCTIONS: {
-      const { changes } = action.payload;
+      const { productionChanges } = action.payload;
 
-      return updateResourceProductions(state, changes);
-    }
-
-    case GAME_CHANGE_TERRAFORMING: {
-      const { amount, type } = action.payload;
-
-      return updateTerraforming(state, type, amount);
+      return updateResourceProductions(state, productionChanges);
     }
 
     case GAME_CHANGE_TERRAFORMINGS: {
-      const { changes } = action.payload;
+      const { terraformingChanges } = action.payload;
 
-      return updateTerraformings(state, changes);
+      return updateTerraformings(state, terraformingChanges);
     }
 
     case GAME_SET_GAME_STATE: {
       const { gameState } = action.payload;
 
-      return gameState;
+      return GameState(gameState);
     }
   }
 

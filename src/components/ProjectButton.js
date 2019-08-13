@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { Image, ImageBackground, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
@@ -10,50 +10,16 @@ import { bindActionCreators } from 'redux';
 
 import { runProject } from '../store/game/gameActions';
 
+import Ingredient from './Ingredient';
+
 import {
   PROJECT_INFOS,
   RESOURCE_INFOS,
-  RESOURCE_TYPES,
-  TERRAFORMING_INFOS,
-  TERRAFORMING_TYPES
+  TERRAFORMING_INFOS
 } from '../store/game/gameConstants';
 
 import Button from './Button';
 import If from './If';
-
-const { abs } = Math;
-
-const Ingredient = (props) => {
-  const { info } = props;
-  const { image, isProduction, type, value } = info;
-
-  if (type === RESOURCE_TYPES.TERRAFORMING_RATING) {
-    return null;
-  }
-
-  const hideValue = type === TERRAFORMING_TYPES.TEMPERATURE;
-  const absValue = hideValue ? 0 : abs(value);
-  const displayValue = absValue > 1 ? absValue : null;
-
-  const frameStyle = isProduction ? styles.production : styles.resource;
-  const imageStyle = isProduction ? styles.imageProduction : styles.image;
-
-  if (displayValue) {
-    return (
-      <View style={ frameStyle }>
-        <ImageBackground style={ imageStyle } source={ image }>
-          <Text style={ styles.value }>{ displayValue }</Text>
-        </ImageBackground>
-      </View>
-    );
-  }
-
-  return (
-    <View style={ frameStyle }>
-      <Image style={ imageStyle } source={ image } />
-    </View>
-  );
-};
 
 class ProjectButton extends Component {
 

@@ -187,6 +187,7 @@ export const RESOURCE_INFOS = {
 
   [RESOURCE_TYPES.TERRAFORMING_RATING]: {
     color: '#ED721F',
+    hideIngredient: true,
     hideTitleInTracker: true,
     image: ImageIconTerraformingRating,
     minProduction: 0,
@@ -243,6 +244,7 @@ export const RESOURCE_INFOS = {
   [RESOURCE_TYPES.GENERATION]: {
     button1Icon: 'bars',
     color: '#5B8BDD',
+    hideIngredient: true,
     minProduction: 0,
     title: 'Generation',
     useDebounce: true,
@@ -268,31 +270,36 @@ export const TERRAFORMING_INFOS = {
   [TERRAFORMING_TYPES.GREENERY_COUNT]: {
     color: '#5FB365',
     image: ImageIconGreenery,
-    title: 'MegaCredits'
+    sideEffect: { [TERRAFORMING_TYPES.OXYGEN_LEVEL]: 1 },
+    title: 'Greenery Count'
   },
 
   [TERRAFORMING_TYPES.OCEAN_COUNT]: {
-    maximum: 9,
-    minimum: 0,
     color: '#5B8BDD',
     image: ImageIconOcean,
-    title: 'Steel'
+    maximum: 9,
+    minimum: 0,
+    sideEffect: { [RESOURCE_TYPES.TERRAFORMING_RATING]: 1 },
+    title: 'Ocean Count'
   },
 
   [TERRAFORMING_TYPES.OXYGEN_LEVEL]: {
-    maximum: 14,
-    minimum: 0,
     color: '#FFF0B9',
     image: ImageIconOxygen,
-    title: 'Titanium'
+    maximum: 14,
+    minimum: 0,
+    sideEffect: { [RESOURCE_TYPES.TERRAFORMING_RATING]: 1 },
+    title: 'Oxygen Level'
   },
 
   [TERRAFORMING_TYPES.TEMPERATURE]: {
-    maximum: 8,
-    minimum: -30,
     color: '#ED4E44',
     image: ImageIconTemperature,
-    title: 'Plants'
+    hideValue: true,
+    maximum: 8,
+    minimum: -30,
+    sideEffect: { [RESOURCE_TYPES.TERRAFORMING_RATING]: 1 },
+    title: 'Temperature'
   }
 
 };

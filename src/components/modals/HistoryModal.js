@@ -2,279 +2,93 @@ import moment from 'moment';
 
 import React, { Component, Fragment } from 'react';
 
-import { FlatList, Image, Text, View } from 'react-native';
+import { FlatList, Text, View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 
-import ImageIconCard from '../../../resources/images/icon_card.png';
-import ImageIconCity from '../../../resources/images/icon_city.png';
-import ImageIconGreenery from '../../../resources/images/icon_greenery.png';
-import ImageIconOcean from '../../../resources/images/icon_ocean.png';
-import ImageIconOxygen from '../../../resources/images/icon_oxygen.png';
-import ImageIconTemperature from '../../../resources/images/icon_temperature.png';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+
+import Ingredient from '../Ingredient';
 
 import {
-  PROJECT_INFOS,
-  PROJECT_TYPES,
   RESOURCE_INFOS,
-  RESOURCE_TYPES
+  TERRAFORMING_INFOS
 } from '../../store/game/gameConstants';
 
-export default class HistoryModal extends Component {
+class HistoryModal extends Component {
 
   keyExtractor = (item, index) => `${ item.event }.${ index }`;
 
-  static renderChange (type, change, time, isProduction, key) {
-    const resourceInfo = RESOURCE_INFOS[type];
-    const image = resourceInfo.image;
-    const title = resourceInfo.title;
-
-    let changeText = `${ change } ${ title }`;
-
-    changeText = change > 0 ? `+${ changeText }` : changeText;
-    changeText = isProduction ? `${ changeText } production` : changeText;
-
-    const changeStyle = change === 0 ?
-      styles.text :
-      (change > 0 ? styles.textIncrease : styles.textDecrease);
-
-    return HistoryModal.renderImageRow(
-      image,
-      changeText,
-      [ styles.text, changeStyle ],
-      time,
-      isProduction,
-      key
-    );
-  }
-
-  static renderImageRow (image, text, textStyle, time, isProduction, key) {
-    const itemStyle = time ? styles.item : styles.itemSecondary;
-
-    const frameStyle = isProduction ?
-      (time ? styles.production : styles.productionSecondary) :
-      styles.resource;
-
-    const imageStyle = time ?
-      (isProduction ? styles.imageProduction : styles.imageResource) :
-      (isProduction ? styles.imageProductionSecondary : styles.imageResourceSecondary);
-
-    const textSizeStyle = time ? styles.textSize : styles.textSizeSecondary;
-
-    return (
-      <View style={ itemStyle } key={ key }>
-        <View style={ frameStyle }>
-          <Image style={ imageStyle } resizeMode="contain" source={ image } />
-        </View>
-        <View>
-          <Text style={ [ textStyle, textSizeStyle ] }>{ text }</Text>
-          { HistoryModal.renderTime(time) }
-        </View>
-      </View>
-    );
-  }
-
-  static renderTextRow (text, textStyle, time, key) {
-    return (
-      <View style={ styles.item } key={ key }>
-        <View>
-          <Text style={ textStyle }>{ text }</Text>
-          { HistoryModal.renderTime(time) }
-        </View>
-      </View>
-    );
-  }
-
   static renderHistoryItem ({ item }) {
-    const { event, payload, state, time } = item;
+    const { transaction } = item;
 
-    const renderChange = HistoryModal.renderChange;
-    const renderImageRow = HistoryModal.renderImageRow;
-    const renderOxygen = HistoryModal.renderOxygen;
-    const renderTextRow = HistoryModal.renderTextRow;
+    // const decrease = [ styles.text, styles.textDecrease ];
+    // const increase = [ styles.text, styles.textIncrease ];
 
-    const decrease = [ styles.text, styles.textDecrease ];
-    const increase = [ styles.text, styles.textIncrease ];
+    const {
+      event,
 
-    switch (event) {
-      case 'buyAquifer': {
-        const { oceanCount } = payload;
-        const { image } = RESOURCE_INFOS.terraformingRating;
+      countChanges,
+      productionChanges,
+      terraformingChanges
+    } = transaction;
 
-        return (
-          <Fragment>
-            { renderImageRow(ImageIconOcean, `Purchased Aquifer`, increase, time) }
-            { renderImageRow(ImageIconOcean, `Ocean ${ oceanCount } added`, increase) }
-            { renderImageRow(image, `+1 Terraforming Rating`, increase) }
-            { renderChange(RESOURCE_TYPES.MEGACREDITS, -PROJECT_INFOS[PROJECT_TYPES.BUY_AQUIFER].cost) }
-          </Fragment>
-        );
-      }
+    const countEntries = countChanges ? Object.entries(countChanges) : [];
+    const productionEntries = productionChanges ? Object.entries(productionChanges) : [];
+    const terraformingEntries = terraformingChanges ? Object.entries(terraformingChanges) : [];
+    const costInfos = [];
+    const resultInfos = [];
 
-      case 'buyCity': {
-        return (
-          <Fragment>
-            { renderImageRow(ImageIconCity, `Purchased City`, increase, time) }
-            { renderChange(RESOURCE_TYPES.MEGACREDITS, 1, null, true) }
-            { renderChange(RESOURCE_TYPES.MEGACREDITS, -PROJECT_INFOS[PROJECT_TYPES.BUY_CITY].cost) }
-          </Fragment>
-        );
-      }
+    for (let [ key, value ] of terraformingEntries) {
+      const image = TERRAFORMING_INFOS[key].image;
+      const info = { image, type: key, value };
 
-      case 'buyGreenery': {
-        const { type, wasOxygenAdded } = payload;
-
-        const resourceCost = 8;
-        const megacreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_GREENERY].cost;
-
-        const isPlants = type === RESOURCE_TYPES.PLANTS;
-        const change = isPlants ? -resourceCost : -megacreditCost;
-        const title = isPlants ? 'Exchanged Plants for Greenery' : 'Purchased Greenery';
-
-        return (
-          <Fragment>
-            { renderImageRow(ImageIconGreenery, title, increase, time) }
-            { renderOxygen(wasOxygenAdded, state.oxygenLevel) }
-            { renderChange(type, change) }
-          </Fragment>
-        );
-      }
-
-      case 'buyPowerPlant': {
-        const { image } = RESOURCE_INFOS.energy;
-
-        return (
-          <Fragment>
-            { renderImageRow(image, `Purchased Power Plant`, increase, time, true) }
-            { renderChange(RESOURCE_TYPES.ENERGY, 1, null, true) }
-            { renderChange(RESOURCE_TYPES.MEGACREDITS, -PROJECT_INFOS[PROJECT_TYPES.BUY_POWER_PLANT].cost) }
-          </Fragment>
-        );
-      }
-
-      case 'buyTemperature': {
-        const { type } = payload;
-
-        const resourceCost = 8;
-        const megacreditCost = PROJECT_INFOS[PROJECT_TYPES.BUY_ASTEROID].cost;
-
-        const isHeat = type === RESOURCE_TYPES.HEAT;
-        const change = isHeat ? -resourceCost : -megacreditCost;
-        const title = isHeat ? 'Exchanged Heat for Temperature' : 'Purchased Asteroid';
-        const { image } = RESOURCE_INFOS.terraformingRating;
-
-        return (
-          <Fragment>
-            { renderImageRow(ImageIconTemperature, title, increase, time) }
-            { renderImageRow(ImageIconTemperature, `Temperature at ${ state.temperature }°C`, increase) }
-            { renderImageRow(image, `+1 Terraforming Rating`, increase) }
-            { renderChange(type, change) }
-          </Fragment>
-        );
-      }
-
-      case 'change': {
-        const { changes } = payload;
-
-        return changes.map((change, index) => {
-          const { type, value } = change;
-
-          return renderChange(type, value, index === 0 ? time : null, false, `change.${ index }`);
-        });
-      }
-
-      case 'decrement': {
-        const { type } = payload;
-        const { image, title } = RESOURCE_INFOS[type];
-
-        switch (type) {
-          case RESOURCE_TYPES.TERRAFORMING_RATING:
-            return renderImageRow(image, `-1 ${ title }`, decrease, time);
-
-          case RESOURCE_TYPES.GENERATION:
-            return renderTextRow(`Returning to ${ title } ${ state.generation }`, styles.text, time);
-
-          default:
-            return renderImageRow(image, `-1 ${ title } production`, decrease, time, true);
-        }
-      }
-
-      case 'increment': {
-        const { type } = payload;
-        const { image, title } = RESOURCE_INFOS[type];
-
-        switch (type) {
-          case RESOURCE_TYPES.TERRAFORMING_RATING:
-            return renderImageRow(image, `+1 ${ title }`, increase, time);
-
-          case RESOURCE_TYPES.GENERATION:
-            return renderTextRow(`Starting ${ title } ${ state.generation }`, styles.text, time);
-
-          default:
-            return renderImageRow(image, `+1 ${ title } production`, increase, time, true);
-        }
-      }
-
-      case 'newGame':
-        return renderTextRow('New Game!', styles.text, time);
-
-      case 'oceanCount': {
-        return renderImageRow(ImageIconOcean, `Ocean ${ state.oceanCount } added`, increase, time);
-      }
-
-      case 'oxygenLevel': {
-        return renderImageRow(ImageIconOxygen, `Oxygen level at ${ state.oxygenLevel }%`, increase, time);
-      }
-
-      case 'sellPatent': {
-        return (
-          <Fragment>
-            { renderImageRow(ImageIconCard, `Sold Patent`, decrease, time) }
-            { renderChange(RESOURCE_TYPES.MEGACREDITS, -PROJECT_INFOS[PROJECT_TYPES.SELL_PATENT].cost) }
-            { renderImageRow(ImageIconCard, `-1 Cards`, decrease) }
-          </Fragment>
-        );
-      }
-
-      case 'temperature': {
-        return renderImageRow(ImageIconTemperature, `Temperature at ${ state.temperature }°C`, increase, time);
+      if (value < 0) {
+        costInfos.push(info);
+      } else {
+        resultInfos.push(info);
       }
     }
-  }
 
-  static renderOxygen (wasOxygenAdded, oxygenLevel) {
-    const { image } = RESOURCE_INFOS.terraformingRating;
+    for (let [ key, value ] of countEntries) {
+      const image = RESOURCE_INFOS[key].image;
+      const info = { image, type: key, value };
 
-    if (!wasOxygenAdded) {
-      return;
+      if (value < 0) {
+        costInfos.push(info);
+      } else {
+        resultInfos.push(info);
+      }
     }
 
-    const renderImageRow = HistoryModal.renderImageRow;
+    for (let [ key, value ] of productionEntries) {
+      const image = RESOURCE_INFOS[key].image;
+      const info = { image, isProduction: true, type: key, value };
 
-    const increase = [ styles.text, styles.textIncrease ];
+      if (value < 0) {
+        costInfos.push(info);
+      } else {
+        resultInfos.push(info);
+      }
+    }
 
     return (
       <Fragment>
-        { renderImageRow(ImageIconOxygen, `Oxygen level at ${ oxygenLevel }%`, increase) }
-        { renderImageRow(image, `+1 Terraforming Rating`, increase) }
+        <Text style={ styles.event }>{ event }</Text>
+        <View style={ styles.row }>
+          { costInfos.map((costInfo, index) => <Ingredient key={ index } info={ costInfo }/>) }
+        </View>
+        <View style={ styles.row }>
+          { resultInfos.map((resultInfo, index) => <Ingredient key={ index } info={ resultInfo }/>) }
+        </View>
       </Fragment>
-    );
-  }
-
-  static renderTime (time) {
-    if (!time) {
-      return null;
-    }
-
-    return (
-      <Text style={ styles.textTime }>{ moment(time).format('LL LTS') }</Text>
     );
   }
 
   render () {
     const { history } = this.props;
-    // const reverseHistory = [ ...history ].reverse();
-    const reverseHistory = [];
+    const reverseHistory = [ ...history ].reverse();
 
     return (
       <FlatList
@@ -297,76 +111,15 @@ const styles = ExtendedStyleSheet.create({
     paddingBottom: '1rem'
   },
 
-  imageResource: {
-    width: '2.2rem',
-    height: '2.2rem'
-  },
-
-  imageResourceSecondary: {
-    width: '1.2rem',
-    height: '1.2rem'
-  },
-
-  imageProduction: {
-    width: '1.7rem',
-    height: '1.7rem'
-  },
-
-  imageProductionSecondary: {
-    width: '0.8rem',
-    height: '0.8rem'
-  },
-
-  item: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingTop: '0.8rem'
-  },
-
-  itemSecondary: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingTop: '0.2rem',
-    marginLeft: '2.8rem'
-  },
-
-  production: {
-    backgroundColor: '#B37D43',
-    borderColor: '#222222',
-    borderWidth: 1,
-    marginRight: '0.5rem',
-    padding: '0.25rem'
-  },
-
-  resource: {
-    borderColor: '#FFFFFF',
-    borderWidth: 1,
-    marginRight: '0.5rem'
-  },
-
-  productionSecondary: {
-    backgroundColor: '#B37D43',
-    borderColor: '#222222',
-    borderWidth: 1,
-    marginRight: '0.5rem',
-    padding: '0.15rem'
-  },
-
-  text: {
+  event: {
     fontSize: '1.2rem',
     fontWeight: 'bold',
     color: '#333333',
     marginTop: '-0.175rem'
   },
 
-  textSize: {
-    fontSize: '1.2rem'
-  },
-
-  textSizeSecondary: {
-    fontSize: '0.9rem'
+  row: {
+    flexDirection: 'row'
   },
 
   textDecrease: {
@@ -383,3 +136,20 @@ const styles = ExtendedStyleSheet.create({
   }
 
 });
+
+const mapStateToProps = (state) => {
+  const { ui } = state;
+
+  return {
+    future: ui.future,
+    history: ui.history,
+  };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+  actions: bindActionCreators({
+    /* ... */
+  }, dispatch)
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(HistoryModal);

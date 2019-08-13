@@ -10,8 +10,8 @@ const {
   UI_UNDO
 } = constants;
 
-export const addHistory = (event, gameState) => (
-  { type: UI_ADD_HISTORY, payload: { event, gameState } }
+export const addHistory = (gameState, transaction) => (
+  { type: UI_ADD_HISTORY, payload: { gameState, transaction } }
 );
 
 export const hideModal = (id) => (
@@ -31,7 +31,7 @@ export const showModal = (id, props) => (
 );
 
 export const startGame = (gameState) => (
-  { type: UI_START_GAME, payload: { gameState } }
+  { type: UI_START_GAME, payload: { gameState, transaction: { event: 'New Game' } } }
 );
 
 export const undo = () => (

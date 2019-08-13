@@ -40,7 +40,7 @@ class Tracker extends Component {
 
     switch (type) {
       case RESOURCE_TYPES.TERRAFORMING_RATING:
-        this.props.actions.changeCount(type, -1, 'Tracker Down');
+        this.props.actions.changeCount(type, -1, 'Decrement Count');
         break;
 
       case RESOURCE_TYPES.GENERATION:
@@ -48,7 +48,7 @@ class Tracker extends Component {
         break;
 
       default:
-        this.props.actions.changeProduction(type, -1, 'Tracker Down');
+        this.props.actions.changeProduction(type, -1, 'Decrement Production');
     }
   };
 
@@ -57,7 +57,7 @@ class Tracker extends Component {
 
     switch (type) {
       case RESOURCE_TYPES.TERRAFORMING_RATING:
-        this.props.actions.changeCount(type, 1, 'Tracker Up');
+        this.props.actions.changeCount(type, 1, 'Increment Count');
         break;
 
       case RESOURCE_TYPES.GENERATION:
@@ -65,7 +65,7 @@ class Tracker extends Component {
         break;
 
       default:
-        this.props.actions.changeProduction(type, 1, 'Tracker Up');
+        this.props.actions.changeProduction(type, 1, 'Increment Production');
     }
   };
 

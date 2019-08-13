@@ -20,11 +20,11 @@ const initialState = new UiState();
 export default (state = initialState, action) => {
   switch (action.type) {
     case UI_ADD_HISTORY: {
-      const { event, gameState } = action.payload;
+      const { gameState, transaction } = action.payload;
 
       return state
         .set('future', List())
-        .set('history', List(state.history.concat({ event, gameState, time: Date.now() })));
+        .set('history', List(state.history.concat({ gameState, transaction, time: Date.now() })));
     }
 
     case UI_HIDE_MODAL: {
@@ -57,11 +57,11 @@ export default (state = initialState, action) => {
     }
 
     case UI_START_GAME: {
-      const { gameState } = action.payload;
+      const { gameState, transaction } = action.payload;
 
       return state
         .set('future', List())
-        .set('history', List([ { event: 'New Game', gameState, time: Date.now() } ]));
+        .set('history', List([ { gameState, transaction, time: Date.now() } ]));
     }
 
     case UI_UNDO: {
