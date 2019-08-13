@@ -11,8 +11,8 @@ const { abs } = Math;
 export default class Ingredient extends Component {
 
   render () {
-    const { info } = this.props;
-    const { image, isProduction, type, value } = info;
+    const { ingredient } = this.props;
+    const { image, isProduction, type, value } = ingredient;
     const resourceInfo = RESOURCE_INFOS[type];
 
     if (resourceInfo.hideIngredient) {

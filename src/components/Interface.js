@@ -73,31 +73,31 @@ class Interface extends Component {
     const {
       isRedoDisabled,
       isUndoDisabled,
-      oceanCount,
-      oxygenLevel,
+      oceans,
+      oxygen,
       temperature
     } = this.props;
 
     const { redo, showModal, undo } = this.props.actions;
 
-    const isOceanComplete = oceanCount >= RESOURCE_INFOS[RESOURCE_TYPES.OCEAN_COUNT].maximumCount;
-    const isTemperatureComplete = temperature >= RESOURCE_INFOS[RESOURCE_TYPES.TEMPERATURE].maximumCount;
-    const isOxygenComplete = oxygenLevel >= RESOURCE_INFOS[RESOURCE_TYPES.OXYGEN_LEVEL].maximumCount;
+    const capOceans = oceans >= RESOURCE_INFOS[RESOURCE_TYPES.OCEANS].maximumCount;
+    const capOxygen = oxygen >= RESOURCE_INFOS[RESOURCE_TYPES.OXYGEN].maximumCount;
+    const capTemperature = temperature >= RESOURCE_INFOS[RESOURCE_TYPES.TEMPERATURE].maximumCount;
 
-    const oceanTextStyle = isOceanComplete ?
+    const oceanTextStyle = capOceans ?
       styles.toggleBottomTextComplete :
       styles.toggleBottomText;
 
-    const temperatureTextStyle = isTemperatureComplete ?
+    const oxygenTextStyle = capOxygen ?
+      styles.toggleBottomTextComplete :
+      styles.toggleBottomText;
+
+    const temperatureTextStyle = capTemperature ?
       styles.toggleTopTextComplete :
       styles.toggleTopText;
 
-    const oxygenTextStyle = isOxygenComplete ?
-      styles.toggleBottomTextComplete :
-      styles.toggleBottomText;
-
+    const oxygenText = oxygen + '%';
     const temperatureText = (temperature > 0 ? '+' + temperature : temperature) + '°';
-    const oxygenLevelText = oxygenLevel + '%';
 
     return (
       <View style={ styles.container }>
@@ -135,27 +135,27 @@ class Interface extends Component {
             <View style={ styles.flex } />
             <View style={ styles.sidebarToggleRow }>
               <View style={ styles.sidebarToggleColumn }>
-                <TouchableOpacity onPress={ this.onOcean } disabled={ isOceanComplete }>
+                <TouchableOpacity onPress={ this.onOcean } disabled={ capOceans }>
                   <Image style={ styles.toggleOcean } source={ ImageIconOcean } />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={ this.onOcean } disabled={ isOceanComplete }>
-                  <Text style={ oceanTextStyle }>{ oceanCount }</Text>
+                <TouchableOpacity onPress={ this.onOcean } disabled={ capOceans }>
+                  <Text style={ oceanTextStyle }>{ oceans }</Text>
                 </TouchableOpacity>
               </View>
               <View style={ styles.sidebarToggleColumn }>
-                <TouchableOpacity onPress={ this.onTemperature } disabled={ isTemperatureComplete }>
+                <TouchableOpacity onPress={ this.onTemperature } disabled={ capTemperature }>
                   <Text style={ temperatureTextStyle }>{ temperatureText }</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={ this.onTemperature } disabled={ isTemperatureComplete }>
+                <TouchableOpacity onPress={ this.onTemperature } disabled={ capTemperature }>
                   <Image style={ styles.toggleTemperature } source={ ImageIconTemperature } />
                 </TouchableOpacity>
               </View>
               <View style={ styles.sidebarToggleColumn }>
-                <TouchableOpacity onPress={ this.onOxygen } disabled={ isOxygenComplete }>
+                <TouchableOpacity onPress={ this.onOxygen } disabled={ capOxygen }>
                   <Image style={ styles.toggleOxygen } source={ ImageIconOxygen } />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={ this.onOxygen } disabled={ isOxygenComplete }>
-                  <Text style={ oxygenTextStyle }>{ oxygenLevelText }</Text>
+                <TouchableOpacity onPress={ this.onOxygen } disabled={ capOxygen }>
+                  <Text style={ oxygenTextStyle }>{ oxygenText }</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -329,13 +329,13 @@ const styles = ExtendedStyleSheet.create({
 
 const mapStateToProps = (state) => {
   const { future, history } = state.ui;
-  const { oceanCount, oxygenLevel, temperature } = state.game.resourceCounts;
+  const { oceans, oxygen, temperature } = state.game.resourceCounts;
 
   return {
     isRedoDisabled: future.size < 1,
     isUndoDisabled: history.size < 2,
-    oceanCount,
-    oxygenLevel,
+    oceans,
+    oxygen,
     temperature
   };
 };

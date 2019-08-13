@@ -38,11 +38,11 @@ export const RESOURCE_TYPES = {
 
   GENERATION: 'generation',
 
-  CARD: 'card',
-  CITY_COUNT: 'cityCount',
-  GREENERY_COUNT: 'greeneryCount',
-  OCEAN_COUNT: 'oceanCount',
-  OXYGEN_LEVEL: 'oxygenLevel',
+  CARDS: 'cards',
+  CITIES: 'cities',
+  GREENERY: 'greenery',
+  OCEANS: 'oceans',
+  OXYGEN: 'oxygen',
   TEMPERATURE: 'temperature'
 };
 
@@ -51,22 +51,25 @@ export const PROJECT_INFOS = {
   [PROJECT_TYPES.ADD_OCEAN]: {
     event: 'Add Ocean',
     countChanges: {
-      [RESOURCE_TYPES.OCEAN_COUNT]: 1
-    }
+      [RESOURCE_TYPES.OCEANS]: 1
+    },
+    skipSideEffects: true
   },
 
   [PROJECT_TYPES.ADD_OXYGEN]: {
     event: 'Add Oxygen',
     countChanges: {
-      [RESOURCE_TYPES.OXYGEN_LEVEL]: 1
-    }
+      [RESOURCE_TYPES.OXYGEN]: 1
+    },
+    skipSideEffects: true
   },
 
   [PROJECT_TYPES.ADD_TEMPERATURE]: {
     event: 'Add Temperature',
     countChanges: {
       [RESOURCE_TYPES.TEMPERATURE]: 2
-    }
+    },
+    skipSideEffects: true
   },
 
   [PROJECT_TYPES.BUY_ASTEROID]: {
@@ -81,14 +84,14 @@ export const PROJECT_INFOS = {
     event: 'Buy Aquifer',
     countChanges: {
       [RESOURCE_TYPES.MEGACREDITS]: -18,
-      [RESOURCE_TYPES.OCEAN_COUNT]: 1,
+      [RESOURCE_TYPES.OCEANS]: 1,
     }
   },
 
   [PROJECT_TYPES.BUY_CITY]: {
     event: 'Buy City',
     countChanges: {
-      [RESOURCE_TYPES.CITY_COUNT]: 1,
+      [RESOURCE_TYPES.CITIES]: 1,
       [RESOURCE_TYPES.MEGACREDITS]: -25
     },
     productionChanges: {
@@ -99,7 +102,7 @@ export const PROJECT_INFOS = {
   [PROJECT_TYPES.BUY_GREENERY]: {
     event: 'Buy Greenery',
     countChanges: {
-      [RESOURCE_TYPES.GREENERY_COUNT]: 1,
+      [RESOURCE_TYPES.GREENERY]: 1,
       [RESOURCE_TYPES.MEGACREDITS]: -23
     }
   },
@@ -117,7 +120,7 @@ export const PROJECT_INFOS = {
   [PROJECT_TYPES.SELL_PATENT]: {
     event: 'Sell Patent',
     countChanges: {
-      [RESOURCE_TYPES.CARD]: -1,
+      [RESOURCE_TYPES.CARDS]: -1,
       [RESOURCE_TYPES.MEGACREDITS]: 1
     }
   },
@@ -133,7 +136,7 @@ export const PROJECT_INFOS = {
   [PROJECT_TYPES.TRADE_PLANTS]: {
     event: 'Trade Plants',
     countChanges: {
-      [RESOURCE_TYPES.GREENERY_COUNT]: 1,
+      [RESOURCE_TYPES.GREENERY]: 1,
       [RESOURCE_TYPES.PLANTS]: -8
     }
   }
@@ -202,40 +205,41 @@ export const RESOURCE_INFOS = {
     useSmallTracker: true
   },
 
-  [RESOURCE_TYPES.CARD]: {
+  [RESOURCE_TYPES.CARDS]: {
     color: '#222222',
     image: ImageIconCard,
     title: 'Card'
   },
 
-  [RESOURCE_TYPES.CITY_COUNT]: {
+  [RESOURCE_TYPES.CITIES]: {
     color: '#777777',
     image: ImageIconCity,
     title: 'City Count'
   },
 
-  [RESOURCE_TYPES.GREENERY_COUNT]: {
+  [RESOURCE_TYPES.GREENERY]: {
     color: '#5FB365',
     image: ImageIconGreenery,
-    sideEffect: { [RESOURCE_TYPES.OXYGEN_LEVEL]: 1 },
+    sideEffects: { [RESOURCE_TYPES.OXYGEN]: 1 },
     title: 'Greenery Count'
   },
 
-  [RESOURCE_TYPES.OCEAN_COUNT]: {
+  [RESOURCE_TYPES.OCEANS]: {
     color: '#5B8BDD',
     image: ImageIconOcean,
     maximumCount: 9,
     minimumCount: 0,
-    sideEffect: { [RESOURCE_TYPES.TERRAFORMING_RATING]: 1 },
+    sideEffects: { [RESOURCE_TYPES.TERRAFORMING_RATING]: 1 },
     title: 'Ocean Count'
   },
 
-  [RESOURCE_TYPES.OXYGEN_LEVEL]: {
+  [RESOURCE_TYPES.OXYGEN]: {
     color: '#FFF0B9',
+    hideIngredient: true,
     image: ImageIconOxygen,
     maximumCount: 14,
     minimumCount: 0,
-    sideEffect: { [RESOURCE_TYPES.TERRAFORMING_RATING]: 1 },
+    sideEffects: { [RESOURCE_TYPES.TERRAFORMING_RATING]: 1 },
     title: 'Oxygen Level'
   },
 
@@ -245,7 +249,7 @@ export const RESOURCE_INFOS = {
     hideValue: true,
     maximumCount: 8,
     minimumCount: -30,
-    sideEffect: { [RESOURCE_TYPES.TERRAFORMING_RATING]: 1 },
+    sideEffects: { [RESOURCE_TYPES.TERRAFORMING_RATING]: 1 },
     title: 'Temperature'
   }
 

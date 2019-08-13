@@ -19,19 +19,19 @@ class HistoryModal extends Component {
     const { resourceCounts, resourceProductions } = this.props;
 
     const {
-      costInfos,
+      costs,
       event,
-      resultInfos,
+      results,
     } = getTransactionData(item.transaction, resourceCounts, resourceProductions);
 
     return (
       <Fragment>
         <Text style={ styles.event }>{ event }</Text>
         <View style={ styles.row }>
-          { costInfos.map((costInfo, index) => <Ingredient key={ index } info={ costInfo }/>) }
+          { costs.map((cost, index) => <Ingredient key={ index } ingredient={ cost }/>) }
         </View>
         <View style={ styles.row }>
-          { resultInfos.map((resultInfo, index) => <Ingredient key={ index } info={ resultInfo }/>) }
+          { results.map((result, index) => <Ingredient key={ index } ingredient={ result }/>) }
         </View>
       </Fragment>
     );

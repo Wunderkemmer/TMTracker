@@ -44,12 +44,12 @@ export default class App extends Component<Props> {
         history = JSON.parse(history);
 
         const { event, gameState } = history[history.length - 1];
-        const { oceanCount, oxygenLevel, temperature } = gameState.resourceCounts;
+        const { oceans, oxygen, temperature } = gameState.resourceCounts;
 
         const isGameInProgress = event !== 'newGame' &&
-          (oceanCount < RESOURCE_INFOS[RESOURCE_TYPES.OCEAN_COUNT].maximum ||
-           oxygenLevel < RESOURCE_INFOS[RESOURCE_TYPES.OXYGEN_LEVEL].maximum ||
-           temperature < RESOURCE_INFOS[RESOURCE_TYPES.TEMPERATURE].maximum);
+          (oceans < RESOURCE_INFOS[RESOURCE_TYPES.OCEANS].maximumCount ||
+           oxygen < RESOURCE_INFOS[RESOURCE_TYPES.OXYGEN].maximumCount ||
+           temperature < RESOURCE_INFOS[RESOURCE_TYPES.TEMPERATURE].maximumCount);
 
         if (isGameInProgress) {
           SplashScreen.hide();

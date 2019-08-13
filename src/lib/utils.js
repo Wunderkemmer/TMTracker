@@ -1,53 +1,93 @@
 import { RESOURCE_INFOS } from '../store/game/gameConstants';
 
-export function getTransactionData (transaction, resourceCounts, resourceProductions) {
-  const { countChanges, productionChanges, event } = transaction;
+function processCountChanges (countChanges, resourceCounts, costs, results, skipSideEffects, isSideEffect) {
   const countEntries = countChanges ? Object.entries(countChanges) : [];
-  const productionEntries = productionChanges ? Object.entries(productionChanges) : [];
 
-  const costInfos = [];
-  const resultInfos = [];
-
+  let allCountChanges = {};
   let canAffordCounts = true;
-  let canAffordProductions = true;
   let isCapped = false;
 
-  for (let [ key, value ] of countEntries) {
-    const { image, maximumCount, minimumCount } = RESOURCE_INFOS[key];
-    const newValue = value + resourceCounts[key];
-    const info = { image, type: key, value };
+  for (let [ type, value ] of countEntries) {
+    const { image, maximumCount, minimumCount, sideEffects } = RESOURCE_INFOS[type];
+    const newValue = value + resourceCounts[type];
+    const ingredient = { image, type, value };
 
     if (value < 0) {
+      allCountChanges[type] = value;
+
       if (newValue < (minimumCount || 0)) {
         canAffordCounts = false;
       }
 
-      costInfos.push(info);
+      costs.push(ingredient);
     } else {
       if (maximumCount && newValue > maximumCount) {
         isCapped = true;
       }
 
-      resultInfos.push(info);
+      if (!isCapped || !isSideEffect) {
+        allCountChanges[type] = value;
+
+        results.push(ingredient);
+
+        if (sideEffects && !skipSideEffects) {
+          const data = processCountChanges(sideEffects, resourceCounts, costs, results, false, true);
+
+          allCountChanges = { ...allCountChanges, ...data.allCountChanges };
+        }
+      }
     }
   }
 
-  for (let [ key, value ] of productionEntries) {
-    const image = RESOURCE_INFOS[key].image;
-    const info = { image, isProduction: true, type: key, value };
+  return { allCountChanges, canAffordCounts, isCapped };
+}
+
+function processProductionChanges (productionChanges, resourceProductions, costs, results) {
+  const productionEntries = productionChanges ? Object.entries(productionChanges) : [];
+
+  let canAffordProductions = true;
+
+  for (let [ type, value ] of productionEntries) {
+    const { image, minimumProduction } = RESOURCE_INFOS[type];
+    const newValue = value + resourceProductions[type];
+    const ingredient = { image, isProduction: true, type, value };
 
     if (value < 0) {
-      if (value + resourceProductions[key] < RESOURCE_INFOS[key].minimumProduction) {
+      if (newValue < (minimumProduction || 0)) {
         canAffordProductions = false;
       }
 
-      costInfos.push(info);
+      costs.push(ingredient);
     } else {
-      resultInfos.push(info);
+      results.push(ingredient);
     }
   }
 
+  return { allProductionChanges: productionChanges, canAffordProductions };
+}
+
+export function getTransactionData (transaction, resourceCounts, resourceProductions) {
+  const { countChanges, event, skipSideEffects, productionChanges } = transaction;
+  const costs = [];
+  const results = [];
+
+  const { allCountChanges, canAffordCounts, isCapped } = processCountChanges(
+    countChanges, resourceCounts, costs, results, skipSideEffects
+  );
+
+  const { allProductionChanges, canAffordProductions } = processProductionChanges(
+    productionChanges, resourceProductions, costs, results
+  );
+
   const canAfford = canAffordCounts && canAffordProductions;
 
-  return { canAfford, costInfos, event, isCapped, resultInfos };
+  return {
+    countChanges: allCountChanges,
+    productionChanges: allProductionChanges,
+    canAfford,
+    costs,
+    event,
+    isCapped,
+    results
+  };
 }

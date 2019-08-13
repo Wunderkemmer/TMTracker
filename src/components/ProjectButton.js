@@ -41,10 +41,10 @@ class ProjectButton extends Component {
 
     const {
       canAfford,
-      costInfos,
+      costs,
       event,
       isCapped,
-      resultInfos
+      results
     } = getTransactionData(PROJECT_INFOS[projectType], resourceCounts, resourceProductions);
 
     const isDisabled = isCapped || !canAfford;
@@ -61,9 +61,9 @@ class ProjectButton extends Component {
           <Text style={ [ styles.event, eventStyle ] }>{ event }</Text>
         </If>
         <View style={ styles.row }>
-          { costInfos.map((costInfo, index) => <Ingredient key={ index } info={ costInfo }/>) }
+          { costs.map((cost, index) => <Ingredient key={ index } ingredient={ cost }/>) }
           <FontAwesome5 style={ styles.icon } name="arrow-right" />
-          { resultInfos.map((resultInfo, index) => <Ingredient key={ index } info={ resultInfo }/>) }
+          { results.map((result, index) => <Ingredient key={ index } ingredient={ result }/>) }
         </View>
       </Button>
     );

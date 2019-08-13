@@ -16,6 +16,8 @@ export const runProject = (projectType) => {
     const { resourceCounts, resourceProductions } = getState().game;
 
     const {
+      countChanges,
+      productionChanges,
       canAfford,
       event,
       isCapped,
@@ -25,11 +27,7 @@ export const runProject = (projectType) => {
       return false;
     }
 
-    return dispatch(changeGameState(
-      projectInfo.countChanges,
-      projectInfo.productionChanges,
-      event
-    ));
+    return dispatch(changeGameState(countChanges, productionChanges, event));
   };
 };
 

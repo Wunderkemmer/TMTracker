@@ -12,10 +12,10 @@ export const ResourceCountsRecord = Record({
 
   generation: 1,
 
-  cityCount: 0,
-  greeneryCount: 0,
-  oceanCount: 0,
-  oxygenLevel: 0,
+  cities: 0,
+  greenery: 0,
+  oceans: 0,
+  oxygen: 0,
   temperature: -30,
 });
 
