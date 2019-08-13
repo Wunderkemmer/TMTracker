@@ -80,7 +80,7 @@ export const nextGeneration = () => {
       changes[RESOURCE_TYPES.HEAT] = productions.heat + counts.energy;
     }
 
-    return dispatch(changeCounts(changes, 'Next Generation'));
+    return dispatch(changeCounts(changes, `Starting Generation ${ counts.generation + 1 }`));
   };
 };
 
