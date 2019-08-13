@@ -24,10 +24,10 @@ class ProjectsModal extends Component {
     return (
       <ProjectButton
         style={ styles.button }
+        eventStyle={ styles.buttonText }
         onPress={ this.props.hide }
         projectType={ projectType }
-        showTitle="true"
-        titleStyle={ styles.buttonText }
+        showEvent="true"
       />
     );
   };

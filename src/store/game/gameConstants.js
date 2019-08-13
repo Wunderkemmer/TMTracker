@@ -28,16 +28,16 @@ export const PROJECT_TYPES = {
 
 export const RESOURCE_TYPES = {
   TERRAFORMING_RATING: 'terraformingRating',
+
   MEGACREDITS: 'megacredits',
   STEEL: 'steel',
   TITANIUM: 'titanium',
   PLANTS: 'plants',
   ENERGY: 'energy',
   HEAT: 'heat',
-  GENERATION: 'generation'
-};
 
-export const TERRAFORMING_TYPES = {
+  GENERATION: 'generation',
+
   CARD: 'card',
   CITY_COUNT: 'cityCount',
   GREENERY_COUNT: 'greeneryCount',
@@ -49,136 +49,93 @@ export const TERRAFORMING_TYPES = {
 export const PROJECT_INFOS = {
 
   [PROJECT_TYPES.ADD_OCEAN]: {
-    cap: TERRAFORMING_TYPES.OCEAN_COUNT,
+    event: 'Add Ocean',
     countChanges: {
-      [TERRAFORMING_TYPES.OCEAN_COUNT]: 1
-    },
-    title: 'Add Ocean'
+      [RESOURCE_TYPES.OCEAN_COUNT]: 1
+    }
   },
 
   [PROJECT_TYPES.ADD_OXYGEN]: {
-    cap: TERRAFORMING_TYPES.OXYGEN_LEVEL,
-    terraformingChanges: {
-      [TERRAFORMING_TYPES.OXYGEN_LEVEL]: 1
-    },
-    title: 'Add Oxygen'
+    event: 'Add Oxygen',
+    countChanges: {
+      [RESOURCE_TYPES.OXYGEN_LEVEL]: 1
+    }
   },
 
   [PROJECT_TYPES.ADD_TEMPERATURE]: {
-    cap: TERRAFORMING_TYPES.TEMPERATURE,
-    terraformingChanges: {
-      [TERRAFORMING_TYPES.TEMPERATURE]: 2
-    },
-    title: 'Add Temperature'
+    event: 'Add Temperature',
+    countChanges: {
+      [RESOURCE_TYPES.TEMPERATURE]: 2
+    }
   },
 
   [PROJECT_TYPES.BUY_ASTEROID]: {
-    cap: TERRAFORMING_TYPES.TEMPERATURE,
+    event: 'Buy Asteroid',
     countChanges: {
       [RESOURCE_TYPES.MEGACREDITS]: -14,
-      [RESOURCE_TYPES.TERRAFORMING_RATING]: 1
-    },
-    terraformingChanges: {
-      [TERRAFORMING_TYPES.TEMPERATURE]: 2
-    },
-    title: 'Buy Asteroid'
+      [RESOURCE_TYPES.TEMPERATURE]: 2,
+    }
   },
 
   [PROJECT_TYPES.BUY_AQUIFER]: {
-    cap: TERRAFORMING_TYPES.OCEAN_COUNT,
+    event: 'Buy Aquifer',
     countChanges: {
       [RESOURCE_TYPES.MEGACREDITS]: -18,
-      [RESOURCE_TYPES.TERRAFORMING_RATING]: 1
-    },
-    terraformingChanges: {
-      [TERRAFORMING_TYPES.OCEAN_COUNT]: 1
-    },
-    title: 'Buy Aquifer'
+      [RESOURCE_TYPES.OCEAN_COUNT]: 1,
+    }
   },
 
   [PROJECT_TYPES.BUY_CITY]: {
+    event: 'Buy City',
     countChanges: {
+      [RESOURCE_TYPES.CITY_COUNT]: 1,
       [RESOURCE_TYPES.MEGACREDITS]: -25
     },
     productionChanges: {
       [RESOURCE_TYPES.MEGACREDITS]: 1
-    },
-    terraformingChanges: {
-      [TERRAFORMING_TYPES.CITY_COUNT]: 1
-    },
-    title: 'Buy City'
+    }
   },
 
   [PROJECT_TYPES.BUY_GREENERY]: {
-    cappedChanges: {
-      [TERRAFORMING_TYPES.OXYGEN_LEVEL]: {
-        countChanges: {
-          [RESOURCE_TYPES.TERRAFORMING_RATING]: 1
-        },
-        terraformingChanges: {
-          [TERRAFORMING_TYPES.OXYGEN_LEVEL]: 1
-        }
-      }
-    },
+    event: 'Buy Greenery',
     countChanges: {
+      [RESOURCE_TYPES.GREENERY_COUNT]: 1,
       [RESOURCE_TYPES.MEGACREDITS]: -23
-    },
-    terraformingChanges: {
-      [TERRAFORMING_TYPES.GREENERY_COUNT]: 1
-    },
-    title: 'Buy Greenery'
+    }
   },
 
   [PROJECT_TYPES.BUY_POWER_PLANT]: {
+    event: 'Buy Power Plant',
     countChanges: {
       [RESOURCE_TYPES.MEGACREDITS]: -11
     },
     productionChanges: {
       [RESOURCE_TYPES.ENERGY]: 1
-    },
-    title: 'Buy Power Plant'
+    }
   },
 
   [PROJECT_TYPES.SELL_PATENT]: {
+    event: 'Sell Patent',
     countChanges: {
+      [RESOURCE_TYPES.CARD]: -1,
       [RESOURCE_TYPES.MEGACREDITS]: 1
-    },
-    terraformingChanges: {
-      [TERRAFORMING_TYPES.CARD]: -1
-    },
-    title: 'Sell Patent'
+    }
   },
 
   [PROJECT_TYPES.TRADE_HEAT]: {
-    cap: TERRAFORMING_TYPES.TEMPERATURE,
+    event: 'Trade Heat',
     countChanges: {
       [RESOURCE_TYPES.HEAT]: -8,
-      [RESOURCE_TYPES.TERRAFORMING_RATING]: 1
-    },
-    terraformingChanges: {
-      [TERRAFORMING_TYPES.TEMPERATURE]: 2
-    },
-    title: 'Trade Heat'
+      [RESOURCE_TYPES.TEMPERATURE]: 2,
+    }
   },
 
   [PROJECT_TYPES.TRADE_PLANTS]: {
-    cappedChanges: {
-      [TERRAFORMING_TYPES.OXYGEN_LEVEL]: {
-        countChanges: {
-          [RESOURCE_TYPES.TERRAFORMING_RATING]: 1
-        },
-        terraformingChanges: {
-          [TERRAFORMING_TYPES.OXYGEN_LEVEL]: 1
-        }
-      }
-    },
+    event: 'Trade Plants',
     countChanges: {
+      [RESOURCE_TYPES.GREENERY_COUNT]: 1,
       [RESOURCE_TYPES.PLANTS]: -8
-    },
-    terraformingChanges: {
-      [TERRAFORMING_TYPES.GREENERY_COUNT]: 1
-    },
-    title: 'Trade Plants'
+    }
   }
 
 };
@@ -190,7 +147,6 @@ export const RESOURCE_INFOS = {
     hideIngredient: true,
     hideTitleInTracker: true,
     image: ImageIconTerraformingRating,
-    minProduction: 0,
     title: 'Terraforming Rating',
     usePositiveCalculator: true,
     useSmallTracker: true
@@ -199,14 +155,13 @@ export const RESOURCE_INFOS = {
   [RESOURCE_TYPES.MEGACREDITS]: {
     color: '#FFCC33',
     image: ImageIconMegacredits,
-    minProduction: -5,
+    minimumProduction: -5,
     title: 'MegaCredits'
   },
 
   [RESOURCE_TYPES.STEEL]: {
     color: '#B37D43',
     image: ImageIconSteel,
-    minProduction: 0,
     multiplier: 2,
     title: 'Steel'
   },
@@ -214,7 +169,6 @@ export const RESOURCE_INFOS = {
   [RESOURCE_TYPES.TITANIUM]: {
     color: '#777777',
     image: ImageIconTitanium,
-    minProduction: 0,
     multiplier: 3,
     title: 'Titanium'
   },
@@ -222,21 +176,19 @@ export const RESOURCE_INFOS = {
   [RESOURCE_TYPES.PLANTS]: {
     color: '#5FB365',
     image: ImageIconPlants,
-    minProduction: 0,
     title: 'Plants'
   },
 
   [RESOURCE_TYPES.ENERGY]: {
     color: '#A34Cb8',
     image: ImageIconEnergy,
-    minProduction: 0,
     title: 'Energy'
   },
 
   [RESOURCE_TYPES.HEAT]: {
     color: '#ED4E44',
     image: ImageIconHeat,
-    minProduction: 0,
+    minimumProduction: 0,
     multiplier: 1,
     title: 'Heat'
   },
@@ -245,59 +197,54 @@ export const RESOURCE_INFOS = {
     button1Icon: 'bars',
     color: '#5B8BDD',
     hideIngredient: true,
-    minProduction: 0,
     title: 'Generation',
     useDebounce: true,
     useSmallTracker: true
-  }
+  },
 
-};
-
-export const TERRAFORMING_INFOS = {
-
-  [TERRAFORMING_TYPES.CARD]: {
+  [RESOURCE_TYPES.CARD]: {
     color: '#222222',
     image: ImageIconCard,
     title: 'Card'
   },
 
-  [TERRAFORMING_TYPES.CITY_COUNT]: {
+  [RESOURCE_TYPES.CITY_COUNT]: {
     color: '#777777',
     image: ImageIconCity,
     title: 'City Count'
   },
 
-  [TERRAFORMING_TYPES.GREENERY_COUNT]: {
+  [RESOURCE_TYPES.GREENERY_COUNT]: {
     color: '#5FB365',
     image: ImageIconGreenery,
-    sideEffect: { [TERRAFORMING_TYPES.OXYGEN_LEVEL]: 1 },
+    sideEffect: { [RESOURCE_TYPES.OXYGEN_LEVEL]: 1 },
     title: 'Greenery Count'
   },
 
-  [TERRAFORMING_TYPES.OCEAN_COUNT]: {
+  [RESOURCE_TYPES.OCEAN_COUNT]: {
     color: '#5B8BDD',
     image: ImageIconOcean,
-    maximum: 9,
-    minimum: 0,
+    maximumCount: 9,
+    minimumCount: 0,
     sideEffect: { [RESOURCE_TYPES.TERRAFORMING_RATING]: 1 },
     title: 'Ocean Count'
   },
 
-  [TERRAFORMING_TYPES.OXYGEN_LEVEL]: {
+  [RESOURCE_TYPES.OXYGEN_LEVEL]: {
     color: '#FFF0B9',
     image: ImageIconOxygen,
-    maximum: 14,
-    minimum: 0,
+    maximumCount: 14,
+    minimumCount: 0,
     sideEffect: { [RESOURCE_TYPES.TERRAFORMING_RATING]: 1 },
     title: 'Oxygen Level'
   },
 
-  [TERRAFORMING_TYPES.TEMPERATURE]: {
+  [RESOURCE_TYPES.TEMPERATURE]: {
     color: '#ED4E44',
     image: ImageIconTemperature,
     hideValue: true,
-    maximum: 8,
-    minimum: -30,
+    maximumCount: 8,
+    minimumCount: -30,
     sideEffect: { [RESOURCE_TYPES.TERRAFORMING_RATING]: 1 },
     title: 'Temperature'
   }

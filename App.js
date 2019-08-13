@@ -16,7 +16,7 @@ import Modals from './src/components/modals/Modals';
 
 import store from './src/store';
 
-import { TERRAFORMING_INFOS, TERRAFORMING_TYPES } from './src/store/game/gameConstants';
+import { RESOURCE_INFOS, RESOURCE_TYPES } from './src/store/game/gameConstants';
 import GameState from './src/store/game/gameState';
 import { setHistory, startGame } from './src/store/ui/uiActions';
 
@@ -44,11 +44,12 @@ export default class App extends Component<Props> {
         history = JSON.parse(history);
 
         const { event, gameState } = history[history.length - 1];
+        const { oceanCount, oxygenLevel, temperature } = gameState.resourceCounts;
 
         const isGameInProgress = event !== 'newGame' &&
-          (gameState.oceanCount < TERRAFORMING_INFOS[TERRAFORMING_TYPES.OCEAN_COUNT].maximum ||
-           gameState.oxygenLevel < TERRAFORMING_INFOS[TERRAFORMING_TYPES.OXYGEN_LEVEL].maximum ||
-           gameState.temperature < TERRAFORMING_INFOS[TERRAFORMING_TYPES.TEMPERATURE].maximum);
+          (oceanCount < RESOURCE_INFOS[RESOURCE_TYPES.OCEAN_COUNT].maximum ||
+           oxygenLevel < RESOURCE_INFOS[RESOURCE_TYPES.OXYGEN_LEVEL].maximum ||
+           temperature < RESOURCE_INFOS[RESOURCE_TYPES.TEMPERATURE].maximum);
 
         if (isGameInProgress) {
           SplashScreen.hide();

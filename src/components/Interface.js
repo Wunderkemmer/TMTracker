@@ -14,13 +14,7 @@ import ImageIconTemperature from '../../resources/images/icon_temperature.png';
 import Button from '../components/Button';
 
 import { runProject } from '../store/game/gameActions';
-
-import {
-  PROJECT_TYPES,
-  RESOURCE_TYPES, TERRAFORMING_INFOS,
-  TERRAFORMING_TYPES
-} from '../store/game/gameConstants';
-
+import { PROJECT_TYPES, RESOURCE_INFOS, RESOURCE_TYPES } from '../store/game/gameConstants';
 import GameState from '../store/game/gameState';
 import { redo, showModal, startGame, undo } from '../store/ui/uiActions';
 import { MODAL_TYPES } from '../store/ui/uiConstants';
@@ -86,9 +80,9 @@ class Interface extends Component {
 
     const { redo, showModal, undo } = this.props.actions;
 
-    const isOceanComplete = oceanCount >= TERRAFORMING_INFOS[TERRAFORMING_TYPES.OCEAN_COUNT].maximum;
-    const isTemperatureComplete = temperature >= TERRAFORMING_INFOS[TERRAFORMING_TYPES.TEMPERATURE].maximum;
-    const isOxygenComplete = oxygenLevel >= TERRAFORMING_INFOS[TERRAFORMING_TYPES.OXYGEN_LEVEL].maximum;
+    const isOceanComplete = oceanCount >= RESOURCE_INFOS[RESOURCE_TYPES.OCEAN_COUNT].maximumCount;
+    const isTemperatureComplete = temperature >= RESOURCE_INFOS[RESOURCE_TYPES.TEMPERATURE].maximumCount;
+    const isOxygenComplete = oxygenLevel >= RESOURCE_INFOS[RESOURCE_TYPES.OXYGEN_LEVEL].maximumCount;
 
     const oceanTextStyle = isOceanComplete ?
       styles.toggleBottomTextComplete :
@@ -335,7 +329,7 @@ const styles = ExtendedStyleSheet.create({
 
 const mapStateToProps = (state) => {
   const { future, history } = state.ui;
-  const { oceanCount, oxygenLevel, temperature } = state.game;
+  const { oceanCount, oxygenLevel, temperature } = state.game.resourceCounts;
 
   return {
     isRedoDisabled: future.size < 1,

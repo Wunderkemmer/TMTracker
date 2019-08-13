@@ -4,11 +4,7 @@ import { Image, ImageBackground, Text, View } from 'react-native';
 
 import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 
-import {
-  RESOURCE_INFOS,
-  RESOURCE_TYPES,
-  TERRAFORMING_INFOS
-} from '../store/game/gameConstants';
+import { RESOURCE_INFOS } from '../store/game/gameConstants';
 
 const { abs } = Math;
 
@@ -17,15 +13,15 @@ export default class Ingredient extends Component {
   render () {
     const { info } = this.props;
     const { image, isProduction, type, value } = info;
-    const typeInfo = RESOURCE_INFOS[type] || TERRAFORMING_INFOS[type];
+    const resourceInfo = RESOURCE_INFOS[type];
 
-    if (typeInfo.hideIngredient) {
+    if (resourceInfo.hideIngredient) {
       return null;
     }
 
     const frameStyle = isProduction ? styles.frameProduction : styles.frame;
     const imageStyle = isProduction ? styles.imageProduction : styles.image;
-    const absValue = typeInfo.hideValue ? 0 : abs(value);
+    const absValue = resourceInfo.hideValue ? 0 : abs(value);
     const displayValue = absValue > 1 ? absValue : null;
 
     if (displayValue) {

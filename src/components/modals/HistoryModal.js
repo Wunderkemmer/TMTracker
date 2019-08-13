@@ -1,5 +1,3 @@
-import moment from 'moment';
-
 import React, { Component, Fragment } from 'react';
 
 import { FlatList, Text, View } from 'react-native';
@@ -9,69 +7,22 @@ import ExtendedStyleSheet from 'react-native-extended-stylesheet';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
-import Ingredient from '../Ingredient';
+import { getTransactionData } from '../../lib/utils';
 
-import {
-  RESOURCE_INFOS,
-  TERRAFORMING_INFOS
-} from '../../store/game/gameConstants';
+import Ingredient from '../Ingredient';
 
 class HistoryModal extends Component {
 
   keyExtractor = (item, index) => `${ item.event }.${ index }`;
 
-  static renderHistoryItem ({ item }) {
-    const { transaction } = item;
-
-    // const decrease = [ styles.text, styles.textDecrease ];
-    // const increase = [ styles.text, styles.textIncrease ];
+  renderHistoryItem = ({ item }) => {
+    const { resourceCounts, resourceProductions } = this.props;
 
     const {
+      costInfos,
       event,
-
-      countChanges,
-      productionChanges,
-      terraformingChanges
-    } = transaction;
-
-    const countEntries = countChanges ? Object.entries(countChanges) : [];
-    const productionEntries = productionChanges ? Object.entries(productionChanges) : [];
-    const terraformingEntries = terraformingChanges ? Object.entries(terraformingChanges) : [];
-    const costInfos = [];
-    const resultInfos = [];
-
-    for (let [ key, value ] of terraformingEntries) {
-      const image = TERRAFORMING_INFOS[key].image;
-      const info = { image, type: key, value };
-
-      if (value < 0) {
-        costInfos.push(info);
-      } else {
-        resultInfos.push(info);
-      }
-    }
-
-    for (let [ key, value ] of countEntries) {
-      const image = RESOURCE_INFOS[key].image;
-      const info = { image, type: key, value };
-
-      if (value < 0) {
-        costInfos.push(info);
-      } else {
-        resultInfos.push(info);
-      }
-    }
-
-    for (let [ key, value ] of productionEntries) {
-      const image = RESOURCE_INFOS[key].image;
-      const info = { image, isProduction: true, type: key, value };
-
-      if (value < 0) {
-        costInfos.push(info);
-      } else {
-        resultInfos.push(info);
-      }
-    }
+      resultInfos,
+    } = getTransactionData(item.transaction, resourceCounts, resourceProductions);
 
     return (
       <Fragment>
@@ -84,7 +35,7 @@ class HistoryModal extends Component {
         </View>
       </Fragment>
     );
-  }
+  };
 
   render () {
     const { history } = this.props;
@@ -95,7 +46,7 @@ class HistoryModal extends Component {
         contentContainerStyle={ styles.container }
         data={ reverseHistory }
         keyExtractor={ this.keyExtractor }
-        renderItem={ HistoryModal.renderHistoryItem }
+        renderItem={ this.renderHistoryItem }
       />
     );
   }
@@ -138,11 +89,15 @@ const styles = ExtendedStyleSheet.create({
 });
 
 const mapStateToProps = (state) => {
-  const { ui } = state;
+  const { game, ui } = state;
+  const { resourceCounts, resourceProductions } = game;
+  const { future, history } = ui;
 
   return {
-    future: ui.future,
-    history: ui.history,
+    future,
+    history,
+    resourceCounts,
+    resourceProductions
   };
 };
 

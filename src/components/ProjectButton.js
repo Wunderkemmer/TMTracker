@@ -8,18 +8,15 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
+import { getTransactionData } from '../lib/utils';
+
 import { runProject } from '../store/game/gameActions';
-
-import Ingredient from './Ingredient';
-
-import {
-  PROJECT_INFOS,
-  RESOURCE_INFOS,
-  TERRAFORMING_INFOS
-} from '../store/game/gameConstants';
+import { PROJECT_INFOS } from '../store/game/gameConstants';
 
 import Button from './Button';
 import If from './If';
+
+import Ingredient from './Ingredient';
 
 class ProjectButton extends Component {
 
@@ -34,68 +31,23 @@ class ProjectButton extends Component {
   render () {
     const {
       backgroundColor,
-      game,
+      eventStyle,
       projectType,
-      showTitle,
-      style,
-      titleStyle
+      resourceCounts,
+      resourceProductions,
+      showEvent,
+      style
     } = this.props;
 
-    const info = PROJECT_INFOS[projectType];
-    const { cap, countChanges, productionChanges, terraformingChanges, title } = info;
-    const { resourceCounts, resourceProductions } = game;
-    const countEntries = countChanges ? Object.entries(countChanges) : [];
-    const productionEntries = productionChanges ? Object.entries(productionChanges) : [];
-    const terraformingEntries = terraformingChanges ? Object.entries(terraformingChanges) : [];
-    const isCapped = cap && TERRAFORMING_INFOS[cap].maximum && game[cap] >= TERRAFORMING_INFOS[cap].maximum;
-    const costInfos = [];
-    const resultInfos = [];
+    const {
+      canAfford,
+      costInfos,
+      event,
+      isCapped,
+      resultInfos
+    } = getTransactionData(PROJECT_INFOS[projectType], resourceCounts, resourceProductions);
 
-    let canAffordCounts = true;
-    let canAffordProductions = true;
-
-    for (let [ key, value ] of terraformingEntries) {
-      const image = TERRAFORMING_INFOS[key].image;
-      const info = { image, type: key, value };
-
-      if (value < 0) {
-        costInfos.push(info);
-      } else {
-        resultInfos.push(info);
-      }
-    }
-
-    for (let [ key, value ] of countEntries) {
-      const image = RESOURCE_INFOS[key].image;
-      const info = { image, type: key, value };
-
-      if (value < 0) {
-        if (value + resourceCounts[key] < 0) {
-          canAffordCounts = false;
-        }
-
-        costInfos.push(info);
-      } else {
-        resultInfos.push(info);
-      }
-    }
-
-    for (let [ key, value ] of productionEntries) {
-      const image = RESOURCE_INFOS[key].image;
-      const info = { image, isProduction: true, type: key, value };
-
-      if (value < 0) {
-        if (value + resourceProductions[key] < RESOURCE_INFOS[key].minProduction) {
-          canAffordProductions = false;
-        }
-
-        costInfos.push(info);
-      } else {
-        resultInfos.push(info);
-      }
-    }
-
-    const isDisabled = isCapped || !canAffordCounts || !canAffordProductions;
+    const isDisabled = isCapped || !canAfford;
 
     return (
       <Button
@@ -105,8 +57,8 @@ class ProjectButton extends Component {
         onPress={ this.onPress }
         useDebounce={ true }
       >
-        <If condition={ showTitle }>
-          <Text style={ [ styles.title, titleStyle ] }>{ title }</Text>
+        <If condition={ showEvent }>
+          <Text style={ [ styles.event, eventStyle ] }>{ event }</Text>
         </If>
         <View style={ styles.row }>
           { costInfos.map((costInfo, index) => <Ingredient key={ index } info={ costInfo }/>) }
@@ -120,6 +72,15 @@ class ProjectButton extends Component {
 }
 
 const styles = ExtendedStyleSheet.create({
+
+  event: {
+    fontSize: '0.9rem',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#FFFFFF',
+    marginTop: '-0.1rem',
+    marginBottom: '0.4rem',
+  },
 
   icon: {
     fontSize: '1.4rem',
@@ -158,15 +119,6 @@ const styles = ExtendedStyleSheet.create({
     paddingHorizontal: '0.4rem'
   },
 
-  title: {
-    fontSize: '0.9rem',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#FFFFFF',
-    marginTop: '-0.1rem',
-    marginBottom: '0.4rem',
-  },
-
   value: {
     fontSize: '1rem',
     fontWeight: 'bold',
@@ -180,10 +132,11 @@ const styles = ExtendedStyleSheet.create({
 });
 
 const mapStateToProps = (state) => {
-  const { game } = state;
+  const { resourceCounts, resourceProductions } = state.game;
 
   return {
-    game
+    resourceCounts,
+    resourceProductions
   };
 };
 
