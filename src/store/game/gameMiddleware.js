@@ -1,41 +1,48 @@
 import constants from '../../lib/constants';
 
-import { addHistory } from '../ui/uiActions';
+import { setGameState } from './gameActions';
 
 const {
-  GAME_CHANGE_COUNT,
-  GAME_CHANGE_COUNTS,
-  GAME_CHANGE_GAME_STATE,
-  GAME_CHANGE_PRODUCTION,
-  GAME_CHANGE_PRODUCTIONS,
-  GAME_CHANGE_TERRAFORMING,
-  GAME_CHANGE_TERRAFORMINGS
+  UI_REDO,
+  UI_SET_HISTORY,
+  UI_START_GAME,
+  UI_UNDO
 } = constants;
 
-let gameState = null;
-
-const onChange = (store, reason) => {
-  const previousGameState = gameState;
-
-  gameState = store.getState().game;
-
-  if (previousGameState !== gameState) {
-    store.dispatch(addHistory(reason, gameState));
-  }
-};
-
 export default function gameMiddleware (store) {
-
   return (next) => (action) => {
     switch (action.type) {
-      case GAME_CHANGE_COUNT:
-      case GAME_CHANGE_COUNTS:
-      case GAME_CHANGE_GAME_STATE:
-      case GAME_CHANGE_PRODUCTION:
-      case GAME_CHANGE_PRODUCTIONS:
-      case GAME_CHANGE_TERRAFORMING:
-      case GAME_CHANGE_TERRAFORMINGS:
-        setTimeout(() => onChange(store, action.payload.reason), 0);
+      case UI_REDO: {
+        const { future } = store.getState().ui;
+
+        store.dispatch(setGameState(future.get(0).gameState));
+
+        break;
+      }
+
+      case UI_SET_HISTORY: {
+        const { history } = action.payload;
+
+        store.dispatch(setGameState(history[history.length - 1].gameState));
+
+        break;
+      }
+
+      case UI_START_GAME: {
+        const { gameState } = action.payload;
+
+        store.dispatch(setGameState(gameState));
+
+        break;
+      }
+
+      case UI_UNDO: {
+        const { history } = store.getState().ui;
+
+        store.dispatch(setGameState(history.get(history.size - 2).gameState));
+
+        break;
+      }
     }
 
     return next(action);

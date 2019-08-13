@@ -77,17 +77,14 @@ class Interface extends Component {
 
   render () {
     const {
-      historyCount,
-      undoneHistoryCount,
+      isRedoDisabled,
+      isUndoDisabled,
       oceanCount,
       oxygenLevel,
       temperature
     } = this.props;
 
-    const { redo, runProject, showModal, undo } = this.props.actions;
-
-    const isUndoDisabled = historyCount < 2;
-    const isRedoDisabled = undoneHistoryCount < 1;
+    const { redo, showModal, undo } = this.props.actions;
 
     const isOceanComplete = oceanCount >= TERRAFORMING_INFOS[TERRAFORMING_TYPES.OCEAN_COUNT].maximum;
     const isTemperatureComplete = temperature >= TERRAFORMING_INFOS[TERRAFORMING_TYPES.TEMPERATURE].maximum;
@@ -337,12 +334,12 @@ const styles = ExtendedStyleSheet.create({
 });
 
 const mapStateToProps = (state) => {
-  const { historyCount, undoneHistoryCount } = state.ui;
+  const { future, history } = state.ui;
   const { oceanCount, oxygenLevel, temperature } = state.game;
 
   return {
-    historyCount,
-    undoneHistoryCount,
+    isRedoDisabled: future.size < 1,
+    isUndoDisabled: history.size < 2,
     oceanCount,
     oxygenLevel,
     temperature

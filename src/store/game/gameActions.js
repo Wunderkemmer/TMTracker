@@ -9,7 +9,8 @@ const {
   GAME_CHANGE_PRODUCTION,
   GAME_CHANGE_PRODUCTIONS,
   GAME_CHANGE_TERRAFORMING,
-  GAME_CHANGE_TERRAFORMINGS
+  GAME_CHANGE_TERRAFORMINGS,
+  GAME_SET_GAME_STATE
 } = constants;
 
 export const runProject = (projectType) => {
@@ -81,35 +82,35 @@ export const runProject = (projectType) => {
   };
 };
 
-export const changeCount = (type, amount, reason) => (
-  { type: GAME_CHANGE_COUNT, payload: { type, amount, reason } }
+export const changeCount = (type, amount, event) => (
+  { type: GAME_CHANGE_COUNT, payload: { type, amount, event } }
 );
 
-export const changeCounts = (changes, reason) => (
-  { type: GAME_CHANGE_COUNTS, payload: { changes, reason } }
+export const changeCounts = (changes, event) => (
+  { type: GAME_CHANGE_COUNTS, payload: { changes, event } }
 );
 
-export const changeGameState = (countChanges, productionChanges, terraformingChanges, reason) => (
+export const changeGameState = (countChanges, productionChanges, terraformingChanges, event) => (
   {
     type: GAME_CHANGE_GAME_STATE,
-    payload: { countChanges, productionChanges, terraformingChanges, reason }
+    payload: { countChanges, productionChanges, terraformingChanges, event }
   }
 );
 
-export const changeProduction = (type, amount, reason) => (
-  { type: GAME_CHANGE_PRODUCTION, payload: { type, amount, reason } }
+export const changeProduction = (type, amount, event) => (
+  { type: GAME_CHANGE_PRODUCTION, payload: { type, amount, event } }
 );
 
-export const changeProductions = (changes, reason) => (
-  { type: GAME_CHANGE_PRODUCTIONS, payload: { changes, reason } }
+export const changeProductions = (changes, event) => (
+  { type: GAME_CHANGE_PRODUCTIONS, payload: { changes, event } }
 );
 
-export const changeTerraforming = (type, amount, reason) => (
-  { type: GAME_CHANGE_TERRAFORMING, payload: { type, amount, reason } }
+export const changeTerraforming = (type, amount, event) => (
+  { type: GAME_CHANGE_TERRAFORMING, payload: { type, amount, event } }
 );
 
-export const changeTerraformings = (changes, reason) => (
-  { type: GAME_CHANGE_TERRAFORMINGS, payload: { changes, reason } }
+export const changeTerraformings = (changes, event) => (
+  { type: GAME_CHANGE_TERRAFORMINGS, payload: { changes, event } }
 );
 
 export const nextGeneration = () => {
@@ -130,3 +131,8 @@ export const nextGeneration = () => {
     return dispatch(changeCounts(changes, 'Next Generation'));
   };
 };
+
+export const setGameState = (gameState) => (
+  { type: GAME_SET_GAME_STATE, payload: { gameState } }
+);
+

@@ -10,7 +10,8 @@ const {
   GAME_CHANGE_PRODUCTION,
   GAME_CHANGE_PRODUCTIONS,
   GAME_CHANGE_TERRAFORMING,
-  GAME_CHANGE_TERRAFORMINGS
+  GAME_CHANGE_TERRAFORMINGS,
+  GAME_SET_GAME_STATE
 } = constants;
 
 const max = Math.max;
@@ -123,6 +124,12 @@ export default (state = initialState, action) => {
       const { changes } = action.payload;
 
       return updateTerraformings(state, changes);
+    }
+
+    case GAME_SET_GAME_STATE: {
+      const { gameState } = action.payload;
+
+      return gameState;
     }
   }
 
