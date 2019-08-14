@@ -11,11 +11,12 @@ const { abs } = Math;
 export default class Ingredient extends Component {
 
   render () {
-    const { ingredient } = this.props;
+    const { ingredient, isVerbose } = this.props;
     const { image, isProduction, type, value } = ingredient;
     const resourceInfo = RESOURCE_INFOS[type];
+    const isHidden = resourceInfo.hideIngredient && !isVerbose;
 
-    if (resourceInfo.hideIngredient) {
+    if (!image || isHidden) {
       return null;
     }
 
@@ -27,7 +28,7 @@ export default class Ingredient extends Component {
     if (displayValue) {
       return (
         <View style={ frameStyle }>
-          <ImageBackground style={ imageStyle } source={ image }>
+          <ImageBackground style={ imageStyle } resizeMode="contain" source={ image }>
             <Text style={ styles.value }>{ displayValue }</Text>
           </ImageBackground>
         </View>
@@ -36,7 +37,7 @@ export default class Ingredient extends Component {
 
     return (
       <View style={ frameStyle }>
-        <Image style={ imageStyle } source={ image } />
+        <Image style={ imageStyle } resizeMode="contain" source={ image } />
       </View>
     );
   }
@@ -54,11 +55,11 @@ const styles = ExtendedStyleSheet.create({
 
   imageProduction: {
     width: '1.3rem',
-    height: '1.3rem'
+    height: '1.3rem',
   },
 
   frame: {
-    marginHorizontal: '0.2rem'
+    margin: '0.2rem'
   },
 
   frameProduction: {
@@ -69,8 +70,7 @@ const styles = ExtendedStyleSheet.create({
     borderWidth: 1,
     width: '1.8rem',
     height: '1.8rem',
-    marginHorizontal: '0.2rem',
-    // padding: '0.2rem'
+    margin: '0.2rem'
   },
 
   value: {

@@ -66,8 +66,8 @@ function processProductionChanges (productionChanges, resourceProductions, costs
   return { allProductionChanges: productionChanges, canAffordProductions };
 }
 
-export function getTransactionData (transaction, resourceCounts, resourceProductions) {
-  const { countChanges, event, skipSideEffects, productionChanges } = transaction;
+export function getTransactionData (transaction, resourceCounts, resourceProductions, isHistory) {
+  const { countChanges, event, skipSideEffects = isHistory, productionChanges } = transaction;
   const costs = [];
   const results = [];
 
@@ -79,12 +79,10 @@ export function getTransactionData (transaction, resourceCounts, resourceProduct
     productionChanges, resourceProductions, costs, results
   );
 
-  const canAfford = canAffordCounts && canAffordProductions;
-
   return {
     countChanges: allCountChanges,
     productionChanges: allProductionChanges,
-    canAfford,
+    canAfford: canAffordCounts && canAffordProductions,
     costs,
     event,
     isCapped,

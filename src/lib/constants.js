@@ -13,5 +13,4 @@ export default {
   UI_START_GAME: 'UI_START_GAME',
   UI_UNDO: 'UI_UNDO'
 
-
 }

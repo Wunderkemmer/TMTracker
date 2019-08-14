@@ -22,16 +22,16 @@ class HistoryModal extends Component {
       costs,
       event,
       results,
-    } = getTransactionData(item.transaction, resourceCounts, resourceProductions);
+    } = getTransactionData(item.transaction, resourceCounts, resourceProductions, true);
 
     return (
       <Fragment>
         <Text style={ styles.event }>{ event }</Text>
         <View style={ styles.row }>
-          { costs.map((cost, index) => <Ingredient key={ index } ingredient={ cost }/>) }
+          { costs.map((cost, index) => <Ingredient key={ index } ingredient={ cost } isVerbose="true" />) }
         </View>
         <View style={ styles.row }>
-          { results.map((result, index) => <Ingredient key={ index } ingredient={ result }/>) }
+          { results.map((result, index) => <Ingredient key={ index } ingredient={ result } isVerbose="true" />) }
         </View>
       </Fragment>
     );
